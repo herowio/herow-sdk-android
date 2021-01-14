@@ -1,9 +1,8 @@
-package io.herow.sdk.common
+package io.herow.sdk.common.states.app
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ProcessLifecycleOwner
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

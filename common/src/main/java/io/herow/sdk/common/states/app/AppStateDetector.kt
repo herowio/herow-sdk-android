@@ -1,4 +1,4 @@
-package io.herow.sdk.common
+package io.herow.sdk.common.states.app
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver

@@ -1,4 +1,4 @@
-package io.herow.sdk.common
+package io.herow.sdk.common.states.app
 
 /**
  * To be notified when the application switches from background to foreground or from foreground to background
