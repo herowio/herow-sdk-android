@@ -1,0 +1,6 @@
+group = 'io.herow.sdk'
+description = 'connection'
+
+dependencies {
+    implementation project(':common')
+}

@@ -1,0 +1,4 @@
+include ':common'
+include ':connection'
+include ':detection'
+rootProject.name = "Herow SDK"
