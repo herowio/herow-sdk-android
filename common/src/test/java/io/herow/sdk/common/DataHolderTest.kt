@@ -1,7 +1,6 @@
 package io.herow.sdk.common
 
 import androidx.test.core.app.ApplicationProvider
-import io.herow.sdk.common.states.DataHolder
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

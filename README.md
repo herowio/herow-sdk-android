@@ -1,2 +1,1 @@
-# herow-sdk-android
-Herow SDK for Android
+# Herow SDK for Android
