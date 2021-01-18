@@ -1,5 +1,6 @@
 package io.herow.sdk.connection
 
+import io.herow.sdk.connection.entities.response.ConfigResult
 import io.herow.sdk.connection.entities.response.TokenResult
 import io.herow.sdk.connection.entities.response.UserInfoResult
 import retrofit2.Response
@@ -32,4 +33,13 @@ interface HerowAPI {
     suspend fun userInfo(@Header("Authorization") token: String,
                          @Header("X-DEVICE-ID") deviceId: String,
                          @Body body: String): Response<UserInfoResult>
+
+    @Headers(
+        "Content-Type: application/json",
+        "X-VERSION: 7.0.0"
+    )
+    @GET("v2/sdk/config")
+    suspend fun config(@Header("Authorization") token: String,
+                       @Header("X-DEVICE-ID") deviceId: String,
+                       @Header("X-HEROW-ID") herowId: String): Response<ConfigResult>
 }

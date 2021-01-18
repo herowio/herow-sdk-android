@@ -1,4 +1,4 @@
 package io.herow.sdk.connection.entities.response
 
-data class UserInfoResult(private val herowId: String,
-                          private val modifiedDate: Long)
+data class UserInfoResult(val herowId: String,
+                          val modifiedDate: Long)
