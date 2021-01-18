@@ -1,5 +1,6 @@
 package io.herow.sdk.connection
 
+import io.herow.sdk.connection.entities.response.CacheResult
 import io.herow.sdk.connection.entities.response.ConfigResult
 import io.herow.sdk.connection.entities.response.TokenResult
 import io.herow.sdk.connection.entities.response.UserInfoResult
@@ -42,4 +43,14 @@ interface HerowAPI {
     suspend fun config(@Header("Authorization") token: String,
                        @Header("X-DEVICE-ID") deviceId: String,
                        @Header("X-HEROW-ID") herowId: String): Response<ConfigResult>
+
+    @Headers(
+        "Content-Type: application/json",
+        "X-VERSION: 7.0.0"
+    )
+    @GET("v2/sdk/cache/content/{geohash}")
+    suspend fun cache(@Header("Authorization") token: String,
+                      @Header("X-DEVICE-ID") deviceId: String,
+                      @Header("X-HEROW-ID") herowId: String,
+                      @Path("geohash") geohash: String): Response<CacheResult>
 }
