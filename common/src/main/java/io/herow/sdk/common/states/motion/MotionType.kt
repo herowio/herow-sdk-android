@@ -2,15 +2,26 @@ package io.herow.sdk.common.states.motion
 
 import com.google.android.gms.location.DetectedActivity
 
+/**
+ * We use this enumeration to avoid to use the API integer constant.
+ * IN_VEHICLE: the device is in a vehicle, such as a car
+ * ON_BICYCLE: the device is on a bicycle
+ * ON_FOOT: the device is on a user who is walking or running
+ * RUNNING
+ * STILL: the device is not moving
+ * TILTING: the device angle relative to gravity changed significantly
+ * UNKNOWN
+ * WALKING
+ */
 enum class MotionType {
-    IN_VEHICLE, // The device is in a vehicle, such as a car.
-    ON_BICYCLE, // The device is on a bicycle.
-    ON_FOOT, // The device is on a user who is walking or running.
-    RUNNING, //
-    STILL, // The device is still (not moving).
-    TILTING, // The device angle relative to gravity changed significantly.
-    UNKNOWN, // Unable to detect the current activity.
-    WALKING; // The device is on a user who is walking.
+    IN_VEHICLE,
+    ON_BICYCLE,
+    ON_FOOT,
+    RUNNING,
+    STILL,
+    TILTING,
+    UNKNOWN,
+    WALKING;
 
     companion object {
         fun getType(detectedActivity: Int): MotionType {

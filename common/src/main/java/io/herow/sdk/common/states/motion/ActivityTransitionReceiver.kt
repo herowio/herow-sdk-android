@@ -20,7 +20,6 @@ class ActivityTransitionReceiver: BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        println("onReceive")
         if (ActivityTransitionResult.hasResult(intent)) {
             ActivityTransitionResult.extractResult(intent)?.let { result: ActivityTransitionResult ->
                 val motionsEvent = ArrayList<MotionEvent>()

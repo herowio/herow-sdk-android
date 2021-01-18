@@ -3,4 +3,8 @@ description = 'connection'
 
 dependencies {
     implementation project(':common')
+
+    // Retrofit for API call
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
 }
