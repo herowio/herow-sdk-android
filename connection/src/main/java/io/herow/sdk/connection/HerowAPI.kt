@@ -1,14 +1,14 @@
 package io.herow.sdk.connection
 
+import io.herow.sdk.connection.entities.response.TokenResult
+import io.herow.sdk.connection.entities.response.UserInfoResult
 import retrofit2.Response
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.Headers
-import retrofit2.http.POST
+import retrofit2.http.*
 
 interface HerowAPI {
     companion object {
-        const val BASE_URL = "https://m-preprod.herow.io"
+        const val PRE_PROD_BASE_URL = "https://m-preprod.herow.io"
+        const val PROD_BASE_URL = "https://m.herow.io"
     }
 
     @FormUrlEncoded
@@ -23,4 +23,13 @@ interface HerowAPI {
                       @Field("client_secret") clientSecret: String,
                       @Field("redirect_uri") redirectUri: String,
                       @Field("grant_type") grantType: String = "password"): Response<TokenResult>
+
+    @Headers(
+        "Content-Type: application/json",
+        "X-VERSION: 7.0.0"
+    )
+    @PUT("v2/sdk/userinfo")
+    suspend fun userInfo(@Header("Authorization") token: String,
+                         @Header("X-DEVICE-ID") deviceId: String,
+                         @Body body: String): Response<UserInfoResult>
 }
