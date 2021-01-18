@@ -53,4 +53,14 @@ interface HerowAPI {
                       @Header("X-DEVICE-ID") deviceId: String,
                       @Header("X-HEROW-ID") herowId: String,
                       @Path("geohash") geohash: String): Response<CacheResult>
+
+    @Headers(
+        "Content-Type: application/json",
+        "X-VERSION: 7.0.0"
+    )
+    @POST("stat/queue/multi")
+    suspend fun logs(@Header("Authorization") token: String,
+                     @Header("X-DEVICE-ID") deviceId: String,
+                     @Header("X-HEROW-ID") herowId: String,
+                     @Body body: String): Response<Void>
 }
