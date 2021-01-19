@@ -18,7 +18,7 @@ object RetrofitBuilder {
 
     fun <T> buildRetrofitForUnitTests(apiURL: String, apiClass: Class<T>): T {
         val interceptor = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger.DEFAULT)
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+        interceptor.level = HttpLoggingInterceptor.Level.BODY
 
         val client: OkHttpClient = OkHttpClient.Builder()
             .addInterceptor(interceptor)
