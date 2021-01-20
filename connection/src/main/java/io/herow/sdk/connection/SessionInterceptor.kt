@@ -24,15 +24,19 @@ class SessionInterceptor(private val dataHolder: DataHolder): Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder = chain.request().newBuilder()
+
         requestBuilder.addHeader(SDK_VERSION_HEADER, BuildConfig.SDK_VERSION)
+
         val accessToken = dataHolder.get<String>(KEY_ACCESS_TOKEN)
         if (accessToken.isNotEmpty()) {
             requestBuilder.addHeader(AUTHORIZATION_HEADER, accessToken)
         }
+
         val herowId = dataHolder.get<String>(KEY_HEROW_ID)
         if (herowId.isNotEmpty()) {
             requestBuilder.addHeader(HEROW_ID_HEADER, herowId)
         }
+
         val deviceId = dataHolder.get<String>(KEY_DEVICE_ID)
         if (deviceId.isNotEmpty()) {
             requestBuilder.addHeader(DEVICE_ID_HEADER, deviceId)

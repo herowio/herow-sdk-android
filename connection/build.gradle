@@ -1,16 +1,8 @@
 group = 'io.herow.sdk'
 description = 'connection'
+version = "${project.version}"
 
 dependencies {
     api project(':common')
-
-    // Retrofit for API call
-    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
-    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
-    implementation "com.squareup.retrofit2:converter-scalars:$retrofit_version"
-
-    // Logging Network Calls
-    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
-
     testImplementation "com.squareup.okhttp3:mockwebserver:$okhttp_version"
 }

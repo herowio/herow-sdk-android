@@ -16,7 +16,6 @@ interface HerowAPI {
     @FormUrlEncoded
     @Headers(
         "Cache-Control: noCache",
-        "X-VERSION: 7.0.0"
     )
     @POST("auth/authorize/token")
     suspend fun token(@Field("username") username: String,
@@ -28,28 +27,24 @@ interface HerowAPI {
 
     @Headers(
         "Content-Type: application/json",
-        "X-VERSION: 7.0.0"
     )
     @PUT("v2/sdk/userinfo")
     suspend fun userInfo(@Body body: String): Response<UserInfoResult>
 
     @Headers(
         "Content-Type: application/json",
-        "X-VERSION: 7.0.0"
     )
     @GET("v2/sdk/config")
     suspend fun config(): Response<ConfigResult>
 
     @Headers(
         "Content-Type: application/json",
-        "X-VERSION: 7.0.0"
     )
     @GET("v2/sdk/cache/content/{geohash}")
     suspend fun cache(@Path("geohash") geohash: String): Response<CacheResult>
 
     @Headers(
         "Content-Type: application/json",
-        "X-VERSION: 7.0.0"
     )
     @POST("stat/queue/multi")
     suspend fun logs(@Body body: String): Response<Void>

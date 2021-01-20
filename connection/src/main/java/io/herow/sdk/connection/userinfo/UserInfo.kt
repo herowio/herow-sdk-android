@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 
 data class UserInfo(private val optins: List<Optin>,
                     @field:Json(name = "adId")
-                    private val advertiserId: String,
+                    private val advertiserId: String?,
                     @field:Json(name = "adStatus")
                     private val advertiserStatus: Boolean,
                     private val customId: String,
