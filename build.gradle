@@ -114,8 +114,8 @@ subprojects {
                 repo.setUrl(url)
                 repo.credentials(new Action<PasswordCredentials>() {
                     void execute(PasswordCredentials credentials) {
-                        credentials.setUsername(forgeMavenUser)
-                        credentials.setPassword(forgeMavenPassword)
+                        credentials.setUsername("")
+                        credentials.setPassword("")
                     }
                 });
             }
