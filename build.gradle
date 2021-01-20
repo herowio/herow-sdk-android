@@ -13,6 +13,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:4.1.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jacoco:org.jacoco.core:0.8.6"
     }
 }
 
@@ -24,6 +25,7 @@ subprojects {
 
     apply plugin: 'com.android.library'
     apply plugin: 'kotlin-android'
+    apply from: '../jacoco.gradle'
 
     android {
         compileSdkVersion 30
@@ -53,6 +55,9 @@ subprojects {
         }
 
         buildTypes {
+            debug {
+                testCoverageEnabled true
+            }
             release {
                 minifyEnabled false
                 proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -65,7 +70,6 @@ subprojects {
         kotlinOptions {
             jvmTarget = '1.8'
         }
-
         testOptions {
             unitTests {
                 includeAndroidResources = true

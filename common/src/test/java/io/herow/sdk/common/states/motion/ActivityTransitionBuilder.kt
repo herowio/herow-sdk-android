@@ -1,6 +1,5 @@
 package io.herow.sdk.common.states.motion
 
-import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import com.google.android.gms.common.internal.safeparcel.SafeParcelableSerializer

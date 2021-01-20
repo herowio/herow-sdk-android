@@ -1,0 +1,79 @@
+apply plugin: 'jacoco'
+
+// https://medium.com/wandera-engineering/android-kotlin-code-coverage-with-jacoco-sonar-and-gradle-plugin-6-x-3933ed503a6e
+// https://github.com/logerom/android-java-kotlin-jacoco/blob/master/jacoco.gradle
+
+ext {
+    coverageSourceDirs = 'src/test/java'
+}
+jacoco {
+    toolVersion = "0.8.6"
+    reportsDir = file("$buildDir/coverage-reports")
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+    jacoco.excludes = ['jdk.internal.*']
+}
+
+task jacocoTestReport(type: JacocoReport) {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports for Debug build"
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def excludes = [
+            // Data binding
+            'android/databinding/**/*.class',
+            '**/android/databinding/*Binding.class',
+            '**/android/databinding/*',
+            '**/androidx/databinding/*',
+            '**/BR.*',
+            // Android
+            '**/R.class',
+            '**/R$*.class',
+            '**/BuildConfig.*',
+            '**/Manifest*.*',
+            'android/**/*.*',
+            // Dagger
+            '**/*_MembersInjector.class',
+            '**/Dagger*Component.class',
+            '**/Dagger*Component$Builder.class',
+            '**/*Module_*Factory.class',
+            '**/di/module/*',
+            '**/*_Factory*.*',
+            '**/*Module*.*',
+            '**/*Dagger*.*',
+            '**/*Hilt*.*',
+            // Kotlin
+            '**/*MapperImpl*.*',
+            '**/*$ViewInjector*.*',
+            '**/*$ViewBinder*.*',
+            '**/BuildConfig.*',
+            '**/*Component*.*',
+            '**/*BR*.*',
+            '**/Manifest*.*',
+            '**/*$Lambda$*.*',
+            '**/*Companion*.*',
+            '**/*Module*.*',
+            '**/*Dagger*.*',
+            '**/*Hilt*.*',
+            '**/*MembersInjector*.*',
+            '**/*_MembersInjector.class',
+            '**/*_Factory*.*',
+            '**/*_Provide*Factory*.*',
+            '**/*Extensions*.*',
+    ]
+
+    def kotlinClasses = fileTree(dir: "${buildDir}/tmp/kotlin-classes/debugUnitTest", excludes: excludes)
+    classDirectories.setFrom(files([kotlinClasses]))
+
+    def sources = "${project.getProjectDir()}/src/main/java"
+    sourceDirectories.setFrom(project.files([sources]))
+
+    def unitTestsData = "$project.buildDir/jacoco/testDebugUnitTest.exec"
+    executionData(files([unitTestsData]))
+}
