@@ -1,4 +1,4 @@
-package io.herow.sdk.connection.entities.response.cache
+package io.herow.sdk.connection.cache
 
 data class Access(private val id: String,
                   private val name: String,

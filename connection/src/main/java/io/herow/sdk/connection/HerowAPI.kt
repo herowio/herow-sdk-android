@@ -1,9 +1,9 @@
 package io.herow.sdk.connection
 
-import io.herow.sdk.connection.entities.response.CacheResult
-import io.herow.sdk.connection.entities.response.ConfigResult
-import io.herow.sdk.connection.entities.response.TokenResult
-import io.herow.sdk.connection.entities.response.UserInfoResult
+import io.herow.sdk.connection.cache.CacheResult
+import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.connection.token.TokenResult
+import io.herow.sdk.connection.userinfo.UserInfoResult
 import retrofit2.Response
 import retrofit2.http.*
 

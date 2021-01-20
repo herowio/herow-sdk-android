@@ -25,7 +25,8 @@ class SessionInterceptorTest {
     @Before
     fun setUp() {
         dataHolder = DataHolder(context)
-        fakeAPI = RetrofitBuilder.buildRetrofitForAPI(context, mockWebServer.url("/").toString(), FakeAPI::class.java)
+        val serverURL = mockWebServer.url("/").toString()
+        fakeAPI = RetrofitBuilder.buildRetrofitForAPI(context, serverURL, FakeAPI::class.java, true)
     }
 
     @Test

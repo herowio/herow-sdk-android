@@ -1,4 +1,4 @@
-package io.herow.sdk.connection.entities.input
+package io.herow.sdk.connection.logs
 
 import com.squareup.moshi.Json
 

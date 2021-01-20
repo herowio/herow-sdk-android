@@ -1,4 +1,4 @@
-package io.herow.sdk.connection.entities
+package io.herow.sdk.connection
 
 enum class HerowPlatformURL {
     PRE_PROD,

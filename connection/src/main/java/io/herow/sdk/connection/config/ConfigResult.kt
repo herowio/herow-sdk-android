@@ -1,4 +1,4 @@
-package io.herow.sdk.connection.entities.response
+package io.herow.sdk.connection.config
 
 data class ConfigResult(private val cacheInterval: Long,
                         private val configInterval: Long,
