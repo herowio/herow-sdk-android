@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import com.jakewharton.threetenabp.AndroidThreeTen
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.common.DeviceHelper
+import io.herow.sdk.common.helpers.DeviceHelper
+import io.herow.sdk.common.IdentifiersHolder
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
@@ -23,6 +25,7 @@ object HerowInitializer {
     private lateinit var workerManager: WorkManager
 
     fun init(context: Context): HerowInitializer {
+        AndroidThreeTen.init(context)
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         activityTransitionDetector.launchTransitionMonitoring(context)
         workerManager = WorkManager.getInstance(context)
@@ -30,19 +33,23 @@ object HerowInitializer {
         return this
     }
 
+    /**
+     * Try to load and save identifiers :
+     * - DeviceId
+     * - AdvertisingId: we use the admob library (https://developers.google.com/admob/android/quick-start),
+     * but, we don't include it, we use the compileOnly flag (https://blog.gradle.org/introducing-compile-only-dependencies),
+     * to be able to use it only if the developer has already the library include in his project.
+     */
     private fun loadIdentifiers(context: Context) {
         GlobalScope.launch(Dispatchers.IO) {
-            val dataHolder = DataHolder(context)
+            val identifiersHolder = IdentifiersHolder(DataHolder(context))
             val deviceId = DeviceHelper.getDeviceId(context)
-            if (deviceId.isNotEmpty()) {
-                dataHolder["connection.device_id"] = deviceId
-            }
+            identifiersHolder.saveDeviceId(deviceId)
             try {
                 val advertiserInfo: AdvertisingIdClient.Info = AdvertisingIdClient.getAdvertisingIdInfo(context)
-                dataHolder["detection.ad_id"] = advertiserInfo.id
-                dataHolder["detection.ad_status"] = !advertiserInfo.isLimitAdTrackingEnabled
-                println("advertiserInfo.id: ${advertiserInfo.id}")
-                println("advertiserInfo.ad_status: ${!advertiserInfo.isLimitAdTrackingEnabled}")
+                if (!advertiserInfo.isLimitAdTrackingEnabled) {
+                    identifiersHolder.saveAdvertiserId(advertiserInfo.id)
+                }
             } catch (e: NoClassDefFoundError) {
                 println("Your application does not implement the play-services-ads library")
             }
@@ -68,6 +75,9 @@ object HerowInitializer {
         launchRequests()
     }
 
+    /**
+     * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
+     */
     private fun launchRequests() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)

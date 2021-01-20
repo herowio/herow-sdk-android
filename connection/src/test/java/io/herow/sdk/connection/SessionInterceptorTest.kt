@@ -2,6 +2,7 @@ package io.herow.sdk.connection
 
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.IdentifiersHolder
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -18,11 +19,11 @@ import java.util.*
 class SessionInterceptorTest {
     private val mockWebServer = MockWebServer()
     private lateinit var fakeAPI: FakeAPI
-    private lateinit var dataHolder: DataHolder
+    private lateinit var dataHolder: IdentifiersHolder
 
     @Before
     fun setUp() {
-        dataHolder = DataHolder(ApplicationProvider.getApplicationContext())
+        dataHolder = IdentifiersHolder(DataHolder(ApplicationProvider.getApplicationContext()))
         val serverURL = mockWebServer.url("/").toString()
         fakeAPI = RetrofitBuilder.buildRetrofitForAPI(dataHolder, serverURL, FakeAPI::class.java, true)
     }
@@ -32,19 +33,19 @@ class SessionInterceptorTest {
         mockWebServer.enqueue(MockResponse())
         fakeAPI.getAnswerToUniverse().execute()
         val headers = mockWebServer.takeRequest().headers.names()
-        Assert.assertFalse(headers.contains(SessionInterceptor.AUTHORIZATION_HEADER))
-        Assert.assertFalse(headers.contains(SessionInterceptor.DEVICE_ID_HEADER))
-        Assert.assertFalse(headers.contains(SessionInterceptor.HEROW_ID_HEADER))
+        Assert.assertFalse(headers.contains(HerowHeaders.AUTHORIZATION_HEADER))
+        Assert.assertFalse(headers.contains(HerowHeaders.DEVICE_ID_HEADER))
+        Assert.assertFalse(headers.contains(HerowHeaders.HEROW_ID_HEADER))
 
-        dataHolder["connection.access_token"] = UUID.randomUUID().toString()
-        dataHolder["connection.device_id"] = UUID.randomUUID().toString()
-        dataHolder["connection.herow_id"] = UUID.randomUUID().toString()
+        dataHolder.saveAccessToken(UUID.randomUUID().toString())
+        dataHolder.saveDeviceId(UUID.randomUUID().toString())
+        dataHolder.saveHerowId(UUID.randomUUID().toString())
 
         mockWebServer.enqueue(MockResponse())
         fakeAPI.getAnswerToUniverse().execute()
         val newHeaders = mockWebServer.takeRequest().headers.names()
-        Assert.assertTrue(newHeaders.contains(SessionInterceptor.AUTHORIZATION_HEADER))
-        Assert.assertTrue(newHeaders.contains(SessionInterceptor.DEVICE_ID_HEADER))
-        Assert.assertTrue(newHeaders.contains(SessionInterceptor.HEROW_ID_HEADER))
+        Assert.assertTrue(newHeaders.contains(HerowHeaders.AUTHORIZATION_HEADER))
+        Assert.assertTrue(newHeaders.contains(HerowHeaders.DEVICE_ID_HEADER))
+        Assert.assertTrue(newHeaders.contains(HerowHeaders.HEROW_ID_HEADER))
     }
 }

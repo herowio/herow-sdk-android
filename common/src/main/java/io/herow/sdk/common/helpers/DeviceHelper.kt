@@ -1,4 +1,4 @@
-package io.herow.sdk.common
+package io.herow.sdk.common.helpers
 
 import android.content.Context
 import android.provider.Settings

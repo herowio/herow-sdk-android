@@ -6,17 +6,19 @@ import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.common.DeviceHelper
-import io.herow.sdk.common.TimeHelper
+import io.herow.sdk.common.helpers.DeviceHelper
+import io.herow.sdk.common.IdentifiersHolder
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.HerowAPI
+import io.herow.sdk.connection.HerowHeaders
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.RetrofitBuilder
+import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.token.PlatformData
 import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
-import java.util.*
 
 class RequestWorker(context: Context,
                     workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
@@ -28,11 +30,12 @@ class RequestWorker(context: Context,
     }
 
     override suspend fun doWork(): Result {
-        val dataHolder = DataHolder(applicationContext)
+        val identifiersHolder = IdentifiersHolder(DataHolder(applicationContext))
         val platform = getPlatform()
-        val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(dataHolder, getApiUrl(platform), HerowAPI::class.java)
-        launchTokenRequest(dataHolder, platform, herowAPI)
-        launchUserInfoRequest(dataHolder, herowAPI)
+        val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(identifiersHolder, getApiUrl(platform), HerowAPI::class.java)
+        launchTokenRequest(identifiersHolder, platform, herowAPI)
+        launchUserInfoRequest(identifiersHolder, herowAPI)
+        launchConfigRequest(identifiersHolder, herowAPI)
         return Result.success()
     }
 
@@ -53,7 +56,7 @@ class RequestWorker(context: Context,
         return HerowAPI.PROD_BASE_URL
     }
 
-    private suspend fun launchTokenRequest(dataHolder: DataHolder,
+    private suspend fun launchTokenRequest(identifiersHolder: IdentifiersHolder,
                                            platform: HerowPlatform,
                                            herowAPI: HerowAPI) {
         val sdkId = inputData.getString(KEY_SDK_ID) ?: ""
@@ -63,18 +66,18 @@ class RequestWorker(context: Context,
             val tokenResponse = herowAPI.token(sdkId, sdkKey, platformData.clientId, platformData.clientSecret, platformData.redirectUri)
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
-                    dataHolder["connection.access_token"] = tokenResult.getToken()
+                    identifiersHolder.saveAccessToken(tokenResult.getToken())
                 }
             }
         }
     }
 
-    private suspend fun launchUserInfoRequest(dataHolder: DataHolder, herowAPI: HerowAPI) {
+    private suspend fun launchUserInfoRequest(identifiersHolder: IdentifiersHolder, herowAPI: HerowAPI) {
         val customId = inputData.getString(KEY_CUSTOM_ID) ?: ""
         val userInfo = UserInfo(
             listOf(Optin("USER_DATA", true)),
-            getAdId(dataHolder), dataHolder["detection.ad_status"],
-            customId, DeviceHelper.getDefaultLanguage(), TimeHelper.getUtcOffset()
+            identifiersHolder.getAdvertiserId(), customId,
+            DeviceHelper.getDefaultLanguage(), TimeHelper.getUtcOffset()
         )
 
         val moshi = Moshi.Builder().build()
@@ -84,16 +87,19 @@ class RequestWorker(context: Context,
         val userInfoResponse = herowAPI.userInfo(jsonString)
         if (userInfoResponse.isSuccessful) {
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
-                dataHolder["connection.herow_id"] = userInfoResult.herowId
+                identifiersHolder.saveHerowId(userInfoResult.herowId)
             }
         }
     }
 
-    private fun getAdId(dataHolder: DataHolder): String? {
-        val adId = dataHolder.get<String>("detection.ad_id")
-        if (adId.isEmpty()) {
-            return null
+    private suspend fun launchConfigRequest(identifiersHolder: IdentifiersHolder, herowAPI: HerowAPI) {
+        val configResponse = herowAPI.config()
+        if (configResponse.isSuccessful) {
+            configResponse.body()?.let { configResult: ConfigResult ->
+                println(configResult)
+                val lastTimeCacheWasModified = configResponse.headers()[HerowHeaders.LAST_TIME_CACHE_MODIFIED]
+                println(lastTimeCacheWasModified)
+            }
         }
-        return adId
     }
 }
