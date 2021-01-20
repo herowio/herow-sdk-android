@@ -1,6 +1,6 @@
 package io.herow.sdk.connection
 
-enum class HerowPlatformURL {
+enum class HerowPlatform {
     PRE_PROD,
     PROD
 }

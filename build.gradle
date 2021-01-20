@@ -6,6 +6,7 @@ buildscript {
         okhttp_version = "4.9.0"
         play_services_location = "17.1.0"
         retrofit_version = "2.9.0"
+        worker_version = "2.4.0"
     }
     repositories {
         google()
@@ -31,14 +32,16 @@ subprojects {
     android {
         compileSdkVersion 30
         buildToolsVersion "30.0.3"
+
         defaultConfig {
             minSdkVersion 21
             targetSdkVersion 30
             versionCode 1
-            versionName "1.0"
+            versionName "7.0.0"
             testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
             consumerProguardFiles "consumer-rules.pro"
 
+            buildConfigField "String", "SDK_VERSION", "\"${versionName}\""
             buildConfigField "String", "PRE_PROD_CLIENT_ID", findApiKey("PRE_PROD_CLIENT_ID")
             buildConfigField "String", "PRE_PROD_CLIENT_SECRET", findApiKey("PRE_PROD_CLIENT_SECRET")
             buildConfigField "String", "PRE_PROD_REDIRECT_URI", findApiKey("PRE_PROD_REDIRECT_URI")
@@ -80,6 +83,7 @@ subprojects {
 
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+        implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
         implementation "com.google.android.gms:play-services-location:$play_services_location"
 
         // Kotlin coroutines

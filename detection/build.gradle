@@ -2,5 +2,9 @@ group = 'io.herow.sdk'
 description = 'detection'
 
 dependencies {
-    implementation project(':connection')
+    api project(':connection')
+
+    // WorkerManager with coroutine support
+    implementation "androidx.work:work-runtime:$worker_version"
+    implementation "androidx.work:work-runtime-ktx:$worker_version"
 }

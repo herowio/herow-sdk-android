@@ -2,7 +2,7 @@ group = 'io.herow.sdk'
 description = 'connection'
 
 dependencies {
-    implementation project(':common')
+    api project(':common')
 
     // Retrofit for API call
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"

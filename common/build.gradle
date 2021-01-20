@@ -2,6 +2,5 @@ group = 'io.herow.sdk'
 description = 'common'
 
 dependencies {
-    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     implementation "androidx.preference:preference-ktx:1.1.1"
 }

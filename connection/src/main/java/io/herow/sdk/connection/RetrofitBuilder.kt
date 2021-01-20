@@ -1,6 +1,6 @@
 package io.herow.sdk.connection
 
-import android.content.Context
+import io.herow.sdk.common.DataHolder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,7 +8,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitBuilder {
-    fun <T> buildRetrofitForAPI(context: Context,
+    fun <T> buildRetrofitForAPI(dataHolder: DataHolder,
                                 apiURL: String,
                                 apiClass: Class<T>,
                                 addLoggingInterceptor: Boolean = false): T {
@@ -16,13 +16,13 @@ object RetrofitBuilder {
             .baseUrl(apiURL)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
-            .client(getOkHttpClient(context, addLoggingInterceptor))
+            .client(getOkHttpClient(dataHolder, addLoggingInterceptor))
             .build()
         return retrofit.create(apiClass)
     }
 
-    private fun getOkHttpClient(context: Context, addLoggingInterceptor: Boolean): OkHttpClient {
-        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(SessionInterceptor(context))
+    private fun getOkHttpClient(dataHolder: DataHolder, addLoggingInterceptor: Boolean): OkHttpClient {
+        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(SessionInterceptor(dataHolder))
         if (addLoggingInterceptor) {
             val httpLoggingInterceptor = HttpLoggingInterceptor()
             httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY

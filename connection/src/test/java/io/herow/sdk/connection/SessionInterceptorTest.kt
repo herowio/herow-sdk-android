@@ -1,6 +1,5 @@
 package io.herow.sdk.connection
 
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.common.DataHolder
 import kotlinx.coroutines.runBlocking
@@ -17,16 +16,15 @@ import java.util.*
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class SessionInterceptorTest {
-    private val context: Context = ApplicationProvider.getApplicationContext()
+    private val mockWebServer = MockWebServer()
     private lateinit var fakeAPI: FakeAPI
     private lateinit var dataHolder: DataHolder
-    private val mockWebServer = MockWebServer()
 
     @Before
     fun setUp() {
-        dataHolder = DataHolder(context)
+        dataHolder = DataHolder(ApplicationProvider.getApplicationContext())
         val serverURL = mockWebServer.url("/").toString()
-        fakeAPI = RetrofitBuilder.buildRetrofitForAPI(context, serverURL, FakeAPI::class.java, true)
+        fakeAPI = RetrofitBuilder.buildRetrofitForAPI(dataHolder, serverURL, FakeAPI::class.java, true)
     }
 
     @Test
