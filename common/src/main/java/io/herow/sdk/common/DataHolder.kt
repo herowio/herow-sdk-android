@@ -2,15 +2,12 @@ package io.herow.sdk.common
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.preference.PreferenceManager
 
-object DataHolder {
-    lateinit var preferences: SharedPreferences
-
-    fun init(context: Context): DataHolder {
-        preferences = PreferenceManager.getDefaultSharedPreferences(context)
-        return this
+class DataHolder(context: Context, prefsName: String = DEFAULT_SHARED_PREFS_NAME) {
+    companion object {
+        private const val DEFAULT_SHARED_PREFS_NAME = "io.herow.sdk"
     }
+    val preferences: SharedPreferences = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
     private inline fun edit(operation: (SharedPreferences.Editor) -> Unit) {
         val editor: SharedPreferences.Editor = preferences.edit()

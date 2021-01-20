@@ -31,36 +31,26 @@ interface HerowAPI {
         "X-VERSION: 7.0.0"
     )
     @PUT("v2/sdk/userinfo")
-    suspend fun userInfo(@Header("Authorization") token: String,
-                         @Header("X-DEVICE-ID") deviceId: String,
-                         @Body body: String): Response<UserInfoResult>
+    suspend fun userInfo(@Body body: String): Response<UserInfoResult>
 
     @Headers(
         "Content-Type: application/json",
         "X-VERSION: 7.0.0"
     )
     @GET("v2/sdk/config")
-    suspend fun config(@Header("Authorization") token: String,
-                       @Header("X-DEVICE-ID") deviceId: String,
-                       @Header("X-HEROW-ID") herowId: String): Response<ConfigResult>
+    suspend fun config(): Response<ConfigResult>
 
     @Headers(
         "Content-Type: application/json",
         "X-VERSION: 7.0.0"
     )
     @GET("v2/sdk/cache/content/{geohash}")
-    suspend fun cache(@Header("Authorization") token: String,
-                      @Header("X-DEVICE-ID") deviceId: String,
-                      @Header("X-HEROW-ID") herowId: String,
-                      @Path("geohash") geohash: String): Response<CacheResult>
+    suspend fun cache(@Path("geohash") geohash: String): Response<CacheResult>
 
     @Headers(
         "Content-Type: application/json",
         "X-VERSION: 7.0.0"
     )
     @POST("stat/queue/multi")
-    suspend fun logs(@Header("Authorization") token: String,
-                     @Header("X-DEVICE-ID") deviceId: String,
-                     @Header("X-HEROW-ID") herowId: String,
-                     @Body body: String): Response<Void>
+    suspend fun logs(@Body body: String): Response<Void>
 }
