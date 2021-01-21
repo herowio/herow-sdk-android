@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
-import io.herow.sdk.common.IdentifiersHolder
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
@@ -20,8 +20,11 @@ import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
 
-class RequestWorker(context: Context,
-                    workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
+/**
+ * @see HerowAPI#config()
+ */
+class ConfigWorker(context: Context,
+                   workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
     companion object {
         const val KEY_SDK_ID     = "detection.sdk_id"
         const val KEY_SDK_KEY    = "detection.sdk_key"
@@ -30,12 +33,12 @@ class RequestWorker(context: Context,
     }
 
     override suspend fun doWork(): Result {
-        val identifiersHolder = IdentifiersHolder(DataHolder(applicationContext))
+        val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val platform = getPlatform()
-        val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(identifiersHolder, getApiUrl(platform), HerowAPI::class.java)
-        launchTokenRequest(identifiersHolder, platform, herowAPI)
-        launchUserInfoRequest(identifiersHolder, herowAPI)
-        launchConfigRequest(identifiersHolder, herowAPI)
+        val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(sessionHolder, getApiUrl(platform), HerowAPI::class.java)
+        launchTokenRequest(sessionHolder, platform, herowAPI)
+        launchUserInfoRequest(sessionHolder, herowAPI)
+        launchConfigRequest(sessionHolder, herowAPI)
         return Result.success()
     }
 
@@ -56,7 +59,7 @@ class RequestWorker(context: Context,
         return HerowAPI.PROD_BASE_URL
     }
 
-    private suspend fun launchTokenRequest(identifiersHolder: IdentifiersHolder,
+    private suspend fun launchTokenRequest(sessionHolder: SessionHolder,
                                            platform: HerowPlatform,
                                            herowAPI: HerowAPI) {
         val sdkId = inputData.getString(KEY_SDK_ID) ?: ""
@@ -66,18 +69,17 @@ class RequestWorker(context: Context,
             val tokenResponse = herowAPI.token(sdkId, sdkKey, platformData.clientId, platformData.clientSecret, platformData.redirectUri)
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
-                    identifiersHolder.saveAccessToken(tokenResult.getToken())
+                    sessionHolder.saveAccessToken(tokenResult.getToken())
                 }
             }
         }
     }
 
-    private suspend fun launchUserInfoRequest(identifiersHolder: IdentifiersHolder, herowAPI: HerowAPI) {
+    private suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
         val customId = inputData.getString(KEY_CUSTOM_ID) ?: ""
         val userInfo = UserInfo(
             listOf(Optin("USER_DATA", true)),
-            identifiersHolder.getAdvertiserId(), customId,
-            DeviceHelper.getDefaultLanguage(), TimeHelper.getUtcOffset()
+            sessionHolder.getAdvertiserId(), customId, TimeHelper.getUtcOffset()
         )
 
         val moshi = Moshi.Builder().build()
@@ -87,12 +89,12 @@ class RequestWorker(context: Context,
         val userInfoResponse = herowAPI.userInfo(jsonString)
         if (userInfoResponse.isSuccessful) {
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
-                identifiersHolder.saveHerowId(userInfoResult.herowId)
+                sessionHolder.saveHerowId(userInfoResult.herowId)
             }
         }
     }
 
-    private suspend fun launchConfigRequest(identifiersHolder: IdentifiersHolder, herowAPI: HerowAPI) {
+    private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
         val configResponse = herowAPI.config()
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->

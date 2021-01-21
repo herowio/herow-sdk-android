@@ -1,6 +1,8 @@
-package io.herow.sdk.common
+package io.herow.sdk.connection
 
-class IdentifiersHolder(private val dataHolder: DataHolder) {
+import io.herow.sdk.common.DataHolder
+
+class SessionHolder(private val dataHolder: DataHolder) {
     companion object {
         private const val KEY_ACCESS_TOKEN = "common.access_token"
         private const val KEY_HEROW_ID = "common.herow_id"

@@ -2,7 +2,6 @@ package io.herow.sdk.connection
 
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.common.IdentifiersHolder
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -19,11 +18,11 @@ import java.util.*
 class SessionInterceptorTest {
     private val mockWebServer = MockWebServer()
     private lateinit var fakeAPI: FakeAPI
-    private lateinit var dataHolder: IdentifiersHolder
+    private lateinit var dataHolder: SessionHolder
 
     @Before
     fun setUp() {
-        dataHolder = IdentifiersHolder(DataHolder(ApplicationProvider.getApplicationContext()))
+        dataHolder = SessionHolder(DataHolder(ApplicationProvider.getApplicationContext()))
         val serverURL = mockWebServer.url("/").toString()
         fakeAPI = RetrofitBuilder.buildRetrofitForAPI(dataHolder, serverURL, FakeAPI::class.java, true)
     }

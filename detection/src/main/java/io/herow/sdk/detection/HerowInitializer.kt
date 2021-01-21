@@ -7,7 +7,7 @@ import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.jakewharton.threetenabp.AndroidThreeTen
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
-import io.herow.sdk.common.IdentifiersHolder
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
@@ -42,13 +42,13 @@ object HerowInitializer {
      */
     private fun loadIdentifiers(context: Context) {
         GlobalScope.launch(Dispatchers.IO) {
-            val identifiersHolder = IdentifiersHolder(DataHolder(context))
+            val sessionHolder = SessionHolder(DataHolder(context))
             val deviceId = DeviceHelper.getDeviceId(context)
-            identifiersHolder.saveDeviceId(deviceId)
+            sessionHolder.saveDeviceId(deviceId)
             try {
                 val advertiserInfo: AdvertisingIdClient.Info = AdvertisingIdClient.getAdvertisingIdInfo(context)
                 if (!advertiserInfo.isLimitAdTrackingEnabled) {
-                    identifiersHolder.saveAdvertiserId(advertiserInfo.id)
+                    sessionHolder.saveAdvertiserId(advertiserInfo.id)
                 }
             } catch (e: NoClassDefFoundError) {
                 println("Your application does not implement the play-services-ads library")
@@ -87,14 +87,14 @@ object HerowInitializer {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
-        val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<RequestWorker>()
+        val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
             .setConstraints(constraints)
             .setInputData(
                 workDataOf(
-                    RequestWorker.KEY_SDK_ID to sdkSession.sdkId,
-                    RequestWorker.KEY_SDK_KEY to sdkSession.sdkKey,
-                    RequestWorker.KEY_CUSTOM_ID to customId,
-                    RequestWorker.KEY_PLATFORM to platform.name
+                    ConfigWorker.KEY_SDK_ID to sdkSession.sdkId,
+                    ConfigWorker.KEY_SDK_KEY to sdkSession.sdkKey,
+                    ConfigWorker.KEY_CUSTOM_ID to customId,
+                    ConfigWorker.KEY_PLATFORM to platform.name
                 )
             )
             .build()

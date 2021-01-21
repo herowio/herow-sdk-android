@@ -13,10 +13,10 @@ interface HerowAPI {
         const val PROD_BASE_URL = "https://m.herow.io"
     }
 
-    @FormUrlEncoded
     @Headers(
         "Cache-Control: noCache",
     )
+    @FormUrlEncoded
     @POST("auth/authorize/token")
     suspend fun token(@Field("username") username: String,
                       @Field("password") password: String,
