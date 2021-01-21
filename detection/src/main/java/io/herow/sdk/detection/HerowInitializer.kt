@@ -21,7 +21,7 @@ object HerowInitializer {
     private val appStateDetector = AppStateDetector()
     private var customId: String = ""
     private var platform: HerowPlatform = HerowPlatform.PROD
-    private lateinit var sdkSession: SdkSession
+    private var sdkSession = SdkSession("", "")
     private lateinit var workerManager: WorkManager
 
     fun init(context: Context): HerowInitializer {
@@ -72,7 +72,12 @@ object HerowInitializer {
     }
 
     fun synchronize() {
-        launchRequests()
+        if (sdkSession.hasBeenFilled()) {
+            launchRequests()
+        } else {
+            println("You need to enter your credentials before being able to use the SDK, with the " +
+                    "configApp & configPlatform methods")
+        }
     }
 
     /**
