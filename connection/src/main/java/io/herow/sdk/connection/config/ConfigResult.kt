@@ -1,5 +1,8 @@
 package io.herow.sdk.connection.config
 
-data class ConfigResult(private val cacheInterval: Long,
-                        private val configInterval: Long,
-                        private val enabled: Boolean)
+import com.squareup.moshi.Json
+
+data class ConfigResult(val cacheInterval: Long,
+                        val configInterval: Long,
+                        @field:Json(name = "enabled")
+                        val isGeofenceEnable: Boolean)

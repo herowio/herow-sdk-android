@@ -1,4 +1,4 @@
 package io.herow.sdk.connection.cache
 
-data class CacheResult(private val zones: List<Zone>,
-                       private val pois: List<Poi>)
+data class CacheResult(val zones: List<Zone>,
+                       val pois: List<Poi>)

@@ -1,4 +1,4 @@
-package io.herow.sdk.detection
+package io.herow.sdk.detection.helpers
 
 import android.location.Location
 
@@ -59,6 +59,10 @@ object GeoHashHelper {
             gh = gh shr 5
         }
         return String(chars)
+    }
+
+    fun encodeBase32(location: Location): String {
+        return encodeBase32(location.latitude, location.longitude)
     }
 
     /**

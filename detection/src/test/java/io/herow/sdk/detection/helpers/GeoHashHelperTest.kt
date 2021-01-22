@@ -1,4 +1,4 @@
-package io.herow.sdk.detection
+package io.herow.sdk.detection.helpers
 
 import android.location.Location
 import org.junit.Assert
@@ -30,7 +30,7 @@ class GeoHashHelperTest {
 
     @Test
     fun testEncode() {
-        val geoHash = GeoHashHelper.encodeBase32(locationToEncode.latitude, locationToEncode.longitude)
+        val geoHash = GeoHashHelper.encodeBase32(locationToEncode)
         Assert.assertEquals(expectedEncodedGeoHash, geoHash)
     }
 

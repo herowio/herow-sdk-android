@@ -1,4 +1,4 @@
-package io.herow.sdk.detection
+package io.herow.sdk.detection.network
 
 import android.content.Context
 import androidx.work.CoroutineWorker
@@ -6,7 +6,6 @@ import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.HerowAPI
@@ -19,6 +18,7 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
+import io.herow.sdk.detection.HerowInitializer
 
 /**
  * @see HerowAPI#config()
@@ -98,7 +98,9 @@ class ConfigWorker(context: Context,
         val configResponse = herowAPI.config()
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
-                println(configResult)
+                if (configResult.isGeofenceEnable) {
+                    HerowInitializer.launchGeofencingMonitoring()
+                }
                 val lastTimeCacheWasModified = configResponse.headers()[HerowHeaders.LAST_TIME_CACHE_MODIFIED]
                 println(lastTimeCacheWasModified)
             }

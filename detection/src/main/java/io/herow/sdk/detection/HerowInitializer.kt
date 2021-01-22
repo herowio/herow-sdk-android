@@ -1,6 +1,7 @@
 package io.herow.sdk.detection
 
 import android.content.Context
+import android.location.Location
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
@@ -12,6 +13,13 @@ import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.token.SdkSession
+import io.herow.sdk.detection.helpers.GeoHashHelper
+import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.location.LocationDispatcher
+import io.herow.sdk.detection.location.LocationManager
+import io.herow.sdk.detection.network.CacheWorker
+import io.herow.sdk.detection.network.ConfigWorker
+import io.herow.sdk.detection.network.NetworkWorkerTags
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -22,6 +30,7 @@ object HerowInitializer {
     private var customId: String = ""
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
+    private lateinit var locationManager: LocationManager
     private lateinit var workerManager: WorkManager
 
     fun init(context: Context): HerowInitializer {
@@ -29,8 +38,15 @@ object HerowInitializer {
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         activityTransitionDetector.launchTransitionMonitoring(context)
         workerManager = WorkManager.getInstance(context)
+        locationManager = LocationManager(context)
+        registerListeners()
         loadIdentifiers(context)
         return this
+    }
+
+    private fun registerListeners() {
+        AppStateDetector.addAppStateListener(locationManager)
+        LocationDispatcher.addLocationListener(locationManager)
     }
 
     /**
@@ -73,7 +89,7 @@ object HerowInitializer {
 
     fun synchronize() {
         if (sdkSession.hasBeenFilled()) {
-            launchRequests()
+            launchConfigRequest()
         } else {
             println("You need to enter your credentials before being able to use the SDK, with the " +
                     "configApp & configPlatform methods")
@@ -83,11 +99,12 @@ object HerowInitializer {
     /**
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      */
-    private fun launchRequests() {
+    private fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
         val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
+            .addTag(NetworkWorkerTags.CONFIG)
             .setConstraints(constraints)
             .setInputData(
                 workDataOf(
@@ -99,5 +116,29 @@ object HerowInitializer {
             )
             .build()
         workerManager.enqueue(workerRequest)
+    }
+
+    fun launchGeofencingMonitoring() {
+        locationManager.startMonitoring()
+    }
+
+    /**
+     * Launch the cache request to get the zones the SDK must monitored
+     */
+    fun launchCacheRequest(location: Location) {
+        if (WorkHelper.isWorkNotScheduled(workerManager, NetworkWorkerTags.CACHE)) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<CacheWorker>()
+                .addTag(NetworkWorkerTags.CACHE)
+                .setConstraints(constraints)
+                .setInputData(workDataOf(
+                    CacheWorker.KEY_PLATFORM to platform.name,
+                    CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
+                ))
+                .build()
+            workerManager.enqueue(workerRequest)
+        }
     }
 }
