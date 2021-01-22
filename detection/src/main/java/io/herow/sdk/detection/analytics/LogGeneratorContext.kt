@@ -12,18 +12,16 @@ import io.herow.sdk.detection.analytics.adapter.LocationAdapter
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.location.LocationListener
 
-class LogGeneratorContext(
-    private val applicationData: ApplicationData,
-    private val sessionHolder: SessionHolder
-): AppStateListener, LocationListener {
-    private var isOnForeground: Boolean = false
+class LogGeneratorContext(private val applicationData: ApplicationData,
+                          private val sessionHolder: SessionHolder): AppStateListener, LocationListener {
+    private var appState: String = "bg"
 
     override fun onAppInForeground() {
-        isOnForeground = true
+        appState = "fg"
     }
 
     override fun onAppInBackground() {
-        isOnForeground = false
+        appState = "bg"
     }
 
     override fun onLocationUpdate(location: Location) {
@@ -31,7 +29,7 @@ class LogGeneratorContext(
     }
 
     private fun sendLog(location: Location) {
-        val herowLogContext = HerowLogContext(isOnForeground, location)
+        val herowLogContext = HerowLogContext(appState, location)
         herowLogContext.enrich(applicationData, sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext, TimeHelper.getCurrentTime()))
         val gson = GsonBuilder()

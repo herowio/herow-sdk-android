@@ -24,7 +24,7 @@ class HerowLogContextTest {
         location.latitude = 42.6
         location.longitude = 2.5
 
-        val herowLogContext = HerowLogContext(false, location)
+        val herowLogContext = HerowLogContext("fg", location)
         herowLogContext.enrich(ApplicationData(ApplicationProvider.getApplicationContext()), SessionHolder(
             DataHolder(ApplicationProvider.getApplicationContext())
         ))

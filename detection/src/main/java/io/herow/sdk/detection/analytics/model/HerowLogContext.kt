@@ -2,7 +2,7 @@ package io.herow.sdk.detection.analytics.model
 
 import android.location.Location
 
-class HerowLogContext(appState: Boolean,
+class HerowLogContext(appState: String,
                       location: Location): HerowLogData() {
     companion object {
         const val LOCATION = "lastLocation"
