@@ -1,9 +1,9 @@
 package io.herow.sdk.connection.logs
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 data class Log(private val data: Map<String, Any>,
-               @field:Json(name = "d")
+               @SerializedName("d")
                private val date: Long,
-               @field:Json(name = "t")
+               @SerializedName("t")
                private val type: String = "app_mobile")

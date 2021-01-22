@@ -1,13 +1,12 @@
 package io.herow.sdk.detection.analytics.adapter
 
 import android.location.Location
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.ToJson
+import com.google.gson.*
 import org.json.JSONException
 import org.json.JSONObject
+import java.lang.reflect.Type
 
-class LocationAdapter {
-    @FromJson
+class LocationAdapter: JsonSerializer<Location>, JsonDeserializer<Location> {
     fun fromJson(stringLocation: String): Location {
         try {
             val jsonObject = JSONObject(stringLocation)
@@ -32,22 +31,31 @@ class LocationAdapter {
         return Location("")
     }
 
-    @ToJson
-    fun toJson(location: Location): String {
-        val jsonObject = JSONObject()
-        jsonObject.put("lat", location.latitude)
-        jsonObject.put("lng", location.longitude)
-        jsonObject.put("alt", location.altitude)
-        jsonObject.put("horizontalAccuracy", location.accuracy)
-        jsonObject.put("speed", location.speed)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            jsonObject.put("verticalAccuracy", location.verticalAccuracyMeters)
-            jsonObject.put("speedAccuracy", location.speedAccuracyMetersPerSecond)
-            jsonObject.put("bearingAccuracy", location.bearingAccuracyDegrees)
+    override fun serialize(location: Location?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
+        val jsonObject = JsonObject()
+        location?.let {
+            jsonObject.addProperty("lat", location.latitude)
+            jsonObject.addProperty("lng", location.longitude)
+            jsonObject.addProperty("alt", location.altitude)
+            jsonObject.addProperty("horizontalAccuracy", location.accuracy)
+            jsonObject.addProperty("speed", location.speed)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                jsonObject.addProperty("verticalAccuracy", location.verticalAccuracyMeters)
+                jsonObject.addProperty("speedAccuracy", location.speedAccuracyMetersPerSecond)
+                jsonObject.addProperty("bearingAccuracy", location.bearingAccuracyDegrees)
+            }
+            jsonObject.addProperty("bearing", location.bearing)
+            jsonObject.addProperty("timestamp", location.time)
+            jsonObject.addProperty("provider", location.provider)
         }
-        jsonObject.put("bearing", location.bearing)
-        jsonObject.put("timestamp", location.time)
-        jsonObject.put("provider", location.provider)
-        return jsonObject.toString()
+        return jsonObject
+    }
+
+    override fun deserialize(
+        json: JsonElement?,
+        typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ): Location {
+        return Location("")
     }
 }

@@ -3,7 +3,7 @@ package io.herow.sdk.connection
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitBuilder {
@@ -14,7 +14,7 @@ object RetrofitBuilder {
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl(apiURL)
             .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
             .client(getOkHttpClient(sessionHolder, addLoggingInterceptor))
             .build()
         return retrofit.create(apiClass)

@@ -3,8 +3,7 @@ package io.herow.sdk.detection.network
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
+import com.google.gson.Gson
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.common.helpers.TimeHelper
@@ -82,9 +81,7 @@ class ConfigWorker(context: Context,
             sessionHolder.getAdvertiserId(), customId, TimeHelper.getUtcOffset()
         )
 
-        val moshi = Moshi.Builder().build()
-        val jsonAdapter: JsonAdapter<UserInfo> = moshi.adapter(UserInfo::class.java)
-        val jsonString = jsonAdapter.toJson(userInfo)
+        val jsonString = Gson().toJson(userInfo)
 
         val userInfoResponse = herowAPI.userInfo(jsonString)
         if (userInfoResponse.isSuccessful) {

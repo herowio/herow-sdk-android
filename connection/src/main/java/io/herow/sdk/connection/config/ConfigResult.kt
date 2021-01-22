@@ -1,8 +1,8 @@
 package io.herow.sdk.connection.config
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 data class ConfigResult(val cacheInterval: Long,
                         val configInterval: Long,
-                        @field:Json(name = "enabled")
+                        @SerializedName("enabled")
                         val isGeofenceEnable: Boolean)

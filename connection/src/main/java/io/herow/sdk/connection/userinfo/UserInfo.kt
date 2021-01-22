@@ -1,11 +1,11 @@
 package io.herow.sdk.connection.userinfo
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 // TODO: add location_status
 data class UserInfo(private val optins: List<Optin>,
-                    @field:Json(name = "adId")
+                    @SerializedName("adId")
                     private val advertiserId: String?,
                     private val customId: String,
-                    @field:Json(name = "offset")
+                    @SerializedName("offset")
                     private val utcOffsetMs: Int)

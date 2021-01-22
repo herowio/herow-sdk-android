@@ -1,15 +1,13 @@
-package io.herow.sdk.detection.helpers
+package io.herow.sdk.detection.analytics
 
 import android.location.Location
 import androidx.test.core.app.ApplicationProvider
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
+import com.google.gson.GsonBuilder
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.connection.logs.Logs
-import io.herow.sdk.detection.analytics.ApplicationData
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.analytics.adapter.LocationAdapter
 import org.junit.Test
@@ -25,15 +23,15 @@ class HerowLogContextTest {
         val location = Location("tus")
         location.latitude = 42.6
         location.longitude = 2.5
+
         val herowLogContext = HerowLogContext(false, location)
         herowLogContext.enrich(ApplicationData(ApplicationProvider.getApplicationContext()), SessionHolder(
             DataHolder(ApplicationProvider.getApplicationContext())
         ))
         val listOfLogs = listOf(Log(herowLogContext, TimeHelper.getCurrentTime()))
-        val moshi = Moshi.Builder().add(LocationAdapter()).build()
+        val gson = GsonBuilder().registerTypeAdapter(Location::class.java, LocationAdapter()).create()
         val logs = Logs(listOfLogs)
-        val logAdapter: JsonAdapter<Logs> = moshi.adapter(Logs::class.java)
-        val logJsonString = logAdapter.toJson(logs)
+        val logJsonString = gson.toJson(logs)
         println(logJsonString)
     }
 }
