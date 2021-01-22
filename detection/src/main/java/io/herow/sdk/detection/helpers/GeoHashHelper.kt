@@ -51,8 +51,8 @@ object GeoHashHelper {
      * base-32 string representing it. The precision must be a multiple of 5 for
      * this to be accurate.
      */
-    private fun toBase32(gh: Long, bits: Int): String {
-        var gh = gh
+    private fun toBase32(newGh: Long, bits: Int): String {
+        var gh = newGh
         val chars = CharArray(bits / 5)
         for (i in chars.indices.reversed()) {
             chars[i] = BASE32[(gh and 0x1fL).toInt()]
@@ -69,7 +69,7 @@ object GeoHashHelper {
      * Takes a latitude, longitude, and precision, and returns a base-32 string
      * representing the encoded geohash. See [.encode] and [ ][.toBase32] for preconditions (but they're pretty obvious).
      */
-    fun encodeBase32(lat: Double, lng: Double, bits: Int = 5 * 12): String {
+    private fun encodeBase32(lat: Double, lng: Double, bits: Int = 5 * 12): String {
         return toBase32(encode(lat, lng, bits), bits)
     }
 
@@ -80,7 +80,7 @@ object GeoHashHelper {
         return decode(fromBase32(base32), base32.length * 5)
     }
 
-    fun decode(gh: Long, bits: Int): Location {
+    private fun decode(gh: Long, bits: Int): Location {
         val shifted = gh shl 61 - bits
         val lat = (unwiden(shifted shr 1) and 0x3fffffffL).toDouble() / 0x40000000L * 180 - 90
         val lng = (unwiden(shifted) and 0x7fffffffL).toDouble() / 0x80000000L * 360 - 180
@@ -107,8 +107,8 @@ object GeoHashHelper {
      * "Widens" each bit by creating a zero to its left. This is the first step
      * in interleaving values. @see: https://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN
      */
-    private fun widen(low32: Long): Long {
-        var low32 = low32
+    private fun widen(newLow32: Long): Long {
+        var low32 = newLow32
         low32 = low32 or (low32 shl 16)
         low32 = low32 and 0x0000ffff0000ffffL
         low32 = low32 or (low32 shl 8)
@@ -126,8 +126,8 @@ object GeoHashHelper {
      * "Unwidens" each bit by removing the zero from its left. This is the
      * inverse of "widen". @see: http://fgiesen.wordpress.com/2009/12/13/decoding-morton-codes/
      */
-    private fun unwiden(wide: Long): Long {
-        var wide = wide
+    private fun unwiden(newWide: Long): Long {
+        var wide = newWide
         wide = wide and 0x5555555555555555L
         wide = wide xor (wide shr 1)
         wide = wide and 0x3333333333333333L

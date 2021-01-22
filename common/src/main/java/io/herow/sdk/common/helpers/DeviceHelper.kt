@@ -9,6 +9,10 @@ object DeviceHelper {
         return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)
     }
 
+    fun getUserAgent(): String {
+        return System.getProperty("http.agent") ?: "unknown user-agent"
+    }
+
     fun getDefaultLanguage(): String {
         return try {
             Locale.getDefault().isO3Language

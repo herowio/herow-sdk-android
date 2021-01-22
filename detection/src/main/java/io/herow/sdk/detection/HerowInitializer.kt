@@ -12,13 +12,16 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
+import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.connection.token.SdkSession
+import io.herow.sdk.detection.analytics.LogsManager
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.CacheWorker
 import io.herow.sdk.detection.network.ConfigWorker
+import io.herow.sdk.detection.network.LogsWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -31,6 +34,7 @@ object HerowInitializer {
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
     private lateinit var locationManager: LocationManager
+    private lateinit var logsManager: LogsManager
     private lateinit var workerManager: WorkManager
 
     fun init(context: Context): HerowInitializer {
@@ -39,6 +43,7 @@ object HerowInitializer {
         activityTransitionDetector.launchTransitionMonitoring(context)
         workerManager = WorkManager.getInstance(context)
         locationManager = LocationManager(context)
+        logsManager = LogsManager(context)
         registerListeners()
         loadIdentifiers(context)
         return this
@@ -136,6 +141,25 @@ object HerowInitializer {
                 .setInputData(workDataOf(
                     CacheWorker.KEY_PLATFORM to platform.name,
                     CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
+                ))
+                .build()
+            workerManager.enqueue(workerRequest)
+        }
+    }
+    /**
+     * Launch the cache request to get the zones the SDK must monitored
+     */
+    fun launchLogsRequest(logs: String) {
+        if (WorkHelper.isWorkNotScheduled(workerManager, NetworkWorkerTags.CACHE)) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
+                .addTag(NetworkWorkerTags.LOGS)
+                .setConstraints(constraints)
+                .setInputData(workDataOf(
+                    LogsWorker.KEY_PLATFORM to platform.name,
+                    LogsWorker.KEY_LOGS to logs
                 ))
                 .build()
             workerManager.enqueue(workerRequest)
