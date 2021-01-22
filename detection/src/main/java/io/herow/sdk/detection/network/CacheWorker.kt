@@ -6,7 +6,7 @@ import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.*
 import io.herow.sdk.connection.cache.CacheResult
-import io.herow.sdk.detection.zones.ZoneDispatcher
+import io.herow.sdk.detection.cache.CacheDispatcher
 
 class CacheWorker(context: Context,
                   workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
@@ -45,7 +45,7 @@ class CacheWorker(context: Context,
             val cacheResponse = herowAPI.cache(geoHash.substring(0,4))
             if (cacheResponse.isSuccessful) {
                 cacheResponse.body()?.let { cacheResult: CacheResult ->
-                    ZoneDispatcher.dispatchNewZones(cacheResult.zones)
+                    CacheDispatcher.dispatchCacheResult(cacheResult)
                 }
             }
         }

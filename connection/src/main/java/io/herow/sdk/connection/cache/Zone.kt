@@ -1,7 +1,16 @@
 package io.herow.sdk.connection.cache
 
-data class Zone(private val hash: String,
-                private val lat: Double,
-                private val lng: Double,
-                private val radius: Int,
-                private val access: Access)
+import android.location.Location
+
+data class Zone(val hash: String,
+                val lat: Double,
+                val lng: Double,
+                val radius: Int,
+                val access: Access) {
+    fun toLocation(): Location {
+        val location = Location(hash)
+        location.latitude = lat
+        location.longitude = lng
+        return location
+    }
+}

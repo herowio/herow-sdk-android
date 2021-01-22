@@ -10,25 +10,27 @@ import com.google.android.gms.location.LocationServices
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.detection.cache.CacheDispatcher
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
 
 class LocationManager(context: Context): AppStateListener, LocationListener {
     companion object {
-        private const val REQUEST_CODE = 1515
+        private const val LOCATION_REQUEST_CODE = 1515
     }
     private var isOnForeground: Boolean = false
     private val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-    private val zoneManager = ZoneManager(ArrayList())
+    private val zoneManager = ZoneManager(context, ArrayList())
     private val pendingIntent = createPendingIntent(context)
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
-        return PendingIntent.getBroadcast(context, REQUEST_CODE, intent, PendingIntent.FLAG_CANCEL_CURRENT)
+        return PendingIntent.getBroadcast(context, LOCATION_REQUEST_CODE, intent, PendingIntent.FLAG_CANCEL_CURRENT)
     }
 
     init {
-        ZoneDispatcher.addZoneListener(zoneManager)
+        CacheDispatcher.addCacheListener(zoneManager)
+        LocationDispatcher.addLocationListener(zoneManager)
     }
 
     @SuppressLint("MissingPermission")
@@ -37,9 +39,15 @@ class LocationManager(context: Context): AppStateListener, LocationListener {
             LocationDispatcher.dispatchLocation(location)
         }
         if (isOnForeground) {
-            fusedLocationProviderClient.requestLocationUpdates(buildForegroundLocationRequest(), pendingIntent)
+            fusedLocationProviderClient.requestLocationUpdates(
+                buildForegroundLocationRequest(),
+                pendingIntent
+            )
         } else {
-            fusedLocationProviderClient.requestLocationUpdates(buildBackgroundLocationRequest(), pendingIntent)
+            fusedLocationProviderClient.requestLocationUpdates(
+                buildBackgroundLocationRequest(),
+                pendingIntent
+            )
         }
     }
 

@@ -9,9 +9,9 @@ object ZoneDispatcher {
     }
     private val zoneListeners = CopyOnWriteArrayList<ZoneListener>()
 
-    fun dispatchNewZones(zones: List<Zone>) {
+    fun dispatchDetectedZones(zones: List<Zone>) {
         for (zoneListener in zoneListeners) {
-            zoneListener.onNewZonesReceive(zones)
+            zoneListener.detectedZones(zones)
         }
     }
 }
