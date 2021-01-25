@@ -24,6 +24,7 @@ class ApplicationData(context: Context) {
             applicationCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 packageInfo.longVersionCode
             } else {
+                @Suppress("DEPRECATION")
                 packageInfo.versionCode.toLong()
             }
         } catch (e: Exception) {
