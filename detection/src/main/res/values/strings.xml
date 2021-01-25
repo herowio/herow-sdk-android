@@ -1,0 +1,6 @@
+<resources>
+    <!-- Click & collect -->
+    <string name="foreground_notification_title">Click &amp; Collect!</string>
+    <string name="foreground_notification_description">Looking for nearby point of interests.</string>
+    <string name="foreground_notification_delete_action">Remove the service</string>
+</resources>

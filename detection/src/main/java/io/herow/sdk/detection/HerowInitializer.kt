@@ -8,15 +8,15 @@ import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.jakewharton.threetenabp.AndroidThreeTen
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
-import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
-import io.herow.sdk.connection.logs.Log
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsManager
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.location.ClickAndCollectWorker
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.CacheWorker
@@ -35,13 +35,13 @@ object HerowInitializer {
     private var sdkSession = SdkSession("", "")
     private lateinit var locationManager: LocationManager
     private lateinit var logsManager: LogsManager
-    private lateinit var workerManager: WorkManager
+    private lateinit var workManager: WorkManager
 
     fun init(context: Context): HerowInitializer {
         AndroidThreeTen.init(context)
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         activityTransitionDetector.launchTransitionMonitoring(context)
-        workerManager = WorkManager.getInstance(context)
+        workManager = WorkManager.getInstance(context)
         locationManager = LocationManager(context)
         logsManager = LogsManager(context)
         registerListeners()
@@ -67,7 +67,9 @@ object HerowInitializer {
             val deviceId = DeviceHelper.getDeviceId(context)
             sessionHolder.saveDeviceId(deviceId)
             try {
-                val advertiserInfo: AdvertisingIdClient.Info = AdvertisingIdClient.getAdvertisingIdInfo(context)
+                val advertiserInfo: AdvertisingIdClient.Info = AdvertisingIdClient.getAdvertisingIdInfo(
+                    context
+                )
                 if (!advertiserInfo.isLimitAdTrackingEnabled) {
                     sessionHolder.saveAdvertiserId(advertiserInfo.id)
                 }
@@ -96,8 +98,10 @@ object HerowInitializer {
         if (sdkSession.hasBeenFilled()) {
             launchConfigRequest()
         } else {
-            println("You need to enter your credentials before being able to use the SDK, with the " +
-                    "configApp & configPlatform methods")
+            println(
+                "You need to enter your credentials before being able to use the SDK, with the " +
+                        "configApp & configPlatform methods"
+            )
         }
     }
 
@@ -120,7 +124,7 @@ object HerowInitializer {
                 )
             )
             .build()
-        workerManager.enqueue(workerRequest)
+        workManager.enqueue(workerRequest)
     }
 
     fun launchGeofencingMonitoring() {
@@ -131,38 +135,49 @@ object HerowInitializer {
      * Launch the cache request to get the zones the SDK must monitored
      */
     fun launchCacheRequest(location: Location) {
-        if (WorkHelper.isWorkNotScheduled(workerManager, NetworkWorkerTags.CACHE)) {
+        if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<CacheWorker>()
                 .addTag(NetworkWorkerTags.CACHE)
                 .setConstraints(constraints)
-                .setInputData(workDataOf(
-                    CacheWorker.KEY_PLATFORM to platform.name,
-                    CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
-                ))
+                .setInputData(
+                    workDataOf(
+                        CacheWorker.KEY_PLATFORM to platform.name,
+                        CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
+                    )
+                )
                 .build()
-            workerManager.enqueue(workerRequest)
+            workManager.enqueue(workerRequest)
         }
     }
     /**
-     * Launch the cache request to get the zones the SDK must monitored
+     * Launch the logs request to send the events to he Herow Platform
      */
     fun launchLogsRequest(logs: String) {
-        if (WorkHelper.isWorkNotScheduled(workerManager, NetworkWorkerTags.CACHE)) {
+        if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
                 .addTag(NetworkWorkerTags.LOGS)
                 .setConstraints(constraints)
-                .setInputData(workDataOf(
-                    LogsWorker.KEY_PLATFORM to platform.name,
-                    LogsWorker.KEY_LOGS to logs
-                ))
+                .setInputData(
+                    workDataOf(
+                        LogsWorker.KEY_PLATFORM to platform.name,
+                        LogsWorker.KEY_LOGS to logs
+                    )
+                )
                 .build()
-            workerManager.enqueue(workerRequest)
+            workManager.enqueue(workerRequest)
         }
+    }
+
+    fun launchClickAndCollect() {
+        val workRequest: WorkRequest = OneTimeWorkRequest.Builder(ClickAndCollectWorker::class.java)
+            .addTag(ClickAndCollectWorker.tag)
+            .build()
+        workManager.enqueue(workRequest)
     }
 }
