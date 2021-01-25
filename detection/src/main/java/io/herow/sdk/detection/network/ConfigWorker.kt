@@ -18,26 +18,39 @@ import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
 import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.detection.helpers.TokenUserInfoHelper
+import java.util.*
 
 /**
  * @see HerowAPI#config()
  */
-class ConfigWorker(context: Context,
-                   workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
+class ConfigWorker(
+    context: Context,
+    workerParameters: WorkerParameters
+) : CoroutineWorker(context, workerParameters) {
     companion object {
-        const val KEY_SDK_ID     = "detection.sdk_id"
-        const val KEY_SDK_KEY    = "detection.sdk_key"
-        const val KEY_CUSTOM_ID  = "detection.custom_id"
-        const val KEY_PLATFORM   = "detection.platform"
+        const val KEY_SDK_ID = "detection.sdk_id"
+        const val KEY_SDK_KEY = "detection.sdk_key"
+        const val KEY_CUSTOM_ID = "detection.custom_id"
+        const val KEY_PLATFORM = "detection.platform"
     }
 
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val platform = getPlatform()
-        val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(sessionHolder, getApiUrl(platform), HerowAPI::class.java)
-        launchTokenRequest(sessionHolder, platform, herowAPI)
-        launchUserInfoRequest(sessionHolder, herowAPI)
-        launchConfigRequest(sessionHolder, herowAPI)
+        val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(
+            sessionHolder,
+            getApiUrl(platform),
+            HerowAPI::class.java
+        )
+
+        if (TokenUserInfoHelper.isTokenUsable(sessionHolder)) {
+            launchUserInfoRequest(sessionHolder, herowAPI)
+            launchConfigRequest(sessionHolder, herowAPI)
+        } else {
+            launchTokenRequest(sessionHolder, platform, herowAPI)
+        }
+
         return Result.success()
     }
 
@@ -58,17 +71,26 @@ class ConfigWorker(context: Context,
         return HerowAPI.PROD_BASE_URL
     }
 
-    private suspend fun launchTokenRequest(sessionHolder: SessionHolder,
-                                           platform: HerowPlatform,
-                                           herowAPI: HerowAPI) {
+    private suspend fun launchTokenRequest(
+        sessionHolder: SessionHolder,
+        platform: HerowPlatform,
+        herowAPI: HerowAPI
+    ) {
         val sdkId = inputData.getString(KEY_SDK_ID) ?: ""
         val sdkKey = inputData.getString(KEY_SDK_KEY) ?: ""
         if (sdkId.isNotEmpty() && sdkKey.isNotEmpty()) {
             val platformData = PlatformData(platform)
-            val tokenResponse = herowAPI.token(sdkId, sdkKey, platformData.clientId, platformData.clientSecret, platformData.redirectUri)
+            val tokenResponse = herowAPI.token(
+                sdkId,
+                sdkKey,
+                platformData.clientId,
+                platformData.clientSecret,
+                platformData.redirectUri
+            )
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
                     sessionHolder.saveAccessToken(tokenResult.getToken())
+                    sessionHolder.saveTimeBeforeTimeOut(tokenResult.getTimeoutTime(TimeHelper.getCurrentTime()))
                 }
             }
         }
@@ -98,7 +120,8 @@ class ConfigWorker(context: Context,
                 if (configResult.isGeofenceEnable) {
                     HerowInitializer.launchGeofencingMonitoring()
                 }
-                val lastTimeCacheWasModified = configResponse.headers()[HerowHeaders.LAST_TIME_CACHE_MODIFIED]
+                val lastTimeCacheWasModified =
+                    configResponse.headers()[HerowHeaders.LAST_TIME_CACHE_MODIFIED]
                 println(lastTimeCacheWasModified)
             }
         }

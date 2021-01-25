@@ -8,6 +8,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_HEROW_ID = "common.herow_id"
         private const val KEY_DEVICE_ID = "common.device_id"
         private const val KEY_ADVERTISER_ID = "detection.ad_id"
+        private const val KEY_TOKEN_TIMEOUT = "common.timeout_token"
     }
 
     fun getDeviceId(): String {
@@ -52,5 +53,13 @@ class SessionHolder(private val dataHolder: DataHolder) {
         if (herowId.isNotEmpty()) {
             dataHolder[KEY_HEROW_ID] = herowId
         }
+    }
+
+    fun saveTimeBeforeTimeOut(time: Long) {
+        dataHolder[KEY_TOKEN_TIMEOUT] = time
+    }
+
+    fun getTimeOutToken(): Long {
+        return dataHolder.get<Long>(KEY_TOKEN_TIMEOUT)
     }
 }
