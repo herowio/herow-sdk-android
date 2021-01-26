@@ -11,12 +11,12 @@ import io.herow.sdk.detection.location.LocationDispatcher
 class LogsManager(context: Context) {
     private val applicationData = ApplicationData(context)
     private val sessionHolder = SessionHolder(DataHolder(context))
-    private val logGeneratorContext = LogGeneratorEvent(applicationData, sessionHolder)
+    private val logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder)
 
     init {
-        AppStateDetector.addAppStateListener(logGeneratorContext)
-        LocationDispatcher.addLocationListener(logGeneratorContext)
-        CacheDispatcher.addCacheListener(logGeneratorContext)
-        GeofenceDispatcher.addGeofenceListener(logGeneratorContext)
+        AppStateDetector.addAppStateListener(logGeneratorEvent)
+        LocationDispatcher.addLocationListener(logGeneratorEvent)
+        CacheDispatcher.addCacheListener(logGeneratorEvent)
+        GeofenceDispatcher.addGeofenceListener(logGeneratorEvent)
     }
 }
