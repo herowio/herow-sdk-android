@@ -6,7 +6,7 @@ import kotlin.time.seconds
 
 data class TokenResult(
     private val accessToken: String,
-    val expiresIn: Int
+    private val expiresIn: Int
 ) {
     fun getToken(): String {
         return "OAuth $accessToken"
