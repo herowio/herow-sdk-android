@@ -11,6 +11,7 @@ import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.cache.CacheDispatcher
+import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
 
@@ -21,6 +22,7 @@ class LocationManager(context: Context): AppStateListener, LocationListener {
     private var isOnForeground: Boolean = false
     private val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
+    private val geofenceEventGenerator = GeofenceEventGenerator()
     private val pendingIntent = createPendingIntent(context)
 
     private fun createPendingIntent(context: Context): PendingIntent {
@@ -31,6 +33,7 @@ class LocationManager(context: Context): AppStateListener, LocationListener {
     init {
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
+        ZoneDispatcher.addZoneListener(geofenceEventGenerator)
     }
 
     @SuppressLint("MissingPermission")

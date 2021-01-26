@@ -69,6 +69,6 @@ class ZoneManager(context: Context, private val zones: ArrayList<Zone>): CacheLi
                 }
             }
         }
-        ZoneDispatcher.dispatchDetectedZones(detectedZones)
+        ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
     }
 }
