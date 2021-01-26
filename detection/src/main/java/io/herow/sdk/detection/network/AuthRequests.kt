@@ -53,7 +53,7 @@ class AuthRequests(
      */
     private fun isTokenUsable(sessionHolder: SessionHolder): Boolean {
         return (sessionHolder.getAccessToken()
-            .isEmpty() || isTokenExpired(sessionHolder.getTimeOutToken())
+            .isNotEmpty() || !isTokenExpired(sessionHolder.getTimeOutToken())
                 )
     }
 
@@ -88,6 +88,7 @@ class AuthRequests(
     ) {
         val sdkId = data.getString(KEY_SDK_ID) ?: ""
         val sdkKey = data.getString(KEY_SDK_KEY) ?: ""
+
         if (sdkId.isNotEmpty() && sdkKey.isNotEmpty()) {
             val platformData = PlatformData(platform)
             val tokenResponse = herowAPI.token(
@@ -97,6 +98,7 @@ class AuthRequests(
                 platformData.clientSecret,
                 platformData.redirectUri
             )
+
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
                     sessionHolder.saveAccessToken(tokenResult.getToken())

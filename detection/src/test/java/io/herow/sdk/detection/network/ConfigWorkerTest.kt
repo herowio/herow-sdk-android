@@ -4,12 +4,15 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
+import androidx.work.workDataOf
 import com.google.android.gms.common.data.DataHolder
+import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import junit.framework.Assert.assertNotNull
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,19 +30,26 @@ class ConfigWorkerTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        dataHolder = io.herow.sdk.common.DataHolder(context, "io.herow.sdk")
+        dataHolder = io.herow.sdk.common.DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
     }
 
     @Test
     fun testConfigWorker() {
-        val worker = TestListenableWorkerBuilder<ConfigWorker>(context).build()
+        val worker = TestListenableWorkerBuilder<ConfigWorker>(context)
+            .setInputData(
+                workDataOf(
+                    AuthRequests.KEY_SDK_ID to "test",
+                    AuthRequests.KEY_SDK_KEY to "test",
+                    AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name
+                )
+            ).build()
 
         runBlocking {
             val result = worker.doWork()
             assertThat(result, `is`(ListenableWorker.Result.success()))
-            assertNotNull(sessionHolder.getAccessToken())
-            assertNotNull(sessionHolder.getHerowId())
+            Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
+            Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
         }
     }
 
