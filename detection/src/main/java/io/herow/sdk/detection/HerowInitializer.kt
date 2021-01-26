@@ -19,10 +19,7 @@ import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.ClickAndCollectWorker
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
-import io.herow.sdk.detection.network.CacheWorker
-import io.herow.sdk.detection.network.ConfigWorker
-import io.herow.sdk.detection.network.LogsWorker
-import io.herow.sdk.detection.network.NetworkWorkerTags
+import io.herow.sdk.detection.network.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -117,10 +114,10 @@ object HerowInitializer {
             .setConstraints(constraints)
             .setInputData(
                 workDataOf(
-                    ConfigWorker.KEY_SDK_ID to sdkSession.sdkId,
-                    ConfigWorker.KEY_SDK_KEY to sdkSession.sdkKey,
-                    ConfigWorker.KEY_CUSTOM_ID to customId,
-                    ConfigWorker.KEY_PLATFORM to platform.name
+                    AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                    AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                    AuthRequests.KEY_CUSTOM_ID to customId,
+                    AuthRequests.KEY_PLATFORM to platform.name
                 )
             )
             .build()

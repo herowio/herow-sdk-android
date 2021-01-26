@@ -1,4 +1,4 @@
-package io.herow.sdk.detection.validator
+package io.herow.sdk.detection.network
 
 import androidx.work.Data
 import com.google.gson.Gson
@@ -12,7 +12,6 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
-import io.herow.sdk.detection.network.ConfigWorker
 
 /**
  * Token and UserInfo workflow

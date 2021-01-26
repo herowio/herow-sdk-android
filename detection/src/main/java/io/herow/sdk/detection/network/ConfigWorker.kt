@@ -7,7 +7,6 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.*
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.detection.HerowInitializer
-import io.herow.sdk.detection.validator.AuthRequests
 
 /**
  * @see HerowAPI#config()
