@@ -14,7 +14,8 @@ import io.herow.sdk.detection.geofencing.GeofencingReceiver
 import io.herow.sdk.detection.helpers.GeofencingHelper
 import io.herow.sdk.detection.location.LocationListener
 
-class ZoneManager(context: Context, private val zones: ArrayList<Zone>): CacheListener, LocationListener {
+class ZoneManager(context: Context,
+                  private val zones: ArrayList<Zone>): CacheListener, LocationListener {
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919
     }

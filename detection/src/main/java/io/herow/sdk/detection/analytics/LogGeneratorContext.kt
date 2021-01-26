@@ -1,7 +1,6 @@
 package io.herow.sdk.detection.analytics
 
 import android.location.Location
-import com.google.gson.GsonBuilder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.SessionHolder
@@ -10,7 +9,6 @@ import io.herow.sdk.connection.cache.Poi
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.connection.logs.Logs
 import io.herow.sdk.detection.HerowInitializer
-import io.herow.sdk.detection.analytics.adapter.LocationAdapter
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.cache.CacheListener
 import io.herow.sdk.detection.location.LocationListener
@@ -44,7 +42,9 @@ class LogGeneratorContext(private val applicationData: ApplicationData,
                 closestPois.add(cachePoi)
             }
         }
-        closestPois.sortBy { it.distance }
+        closestPois.sortBy {
+            it.distance
+        }
         return closestPois
     }
 
@@ -52,11 +52,8 @@ class LogGeneratorContext(private val applicationData: ApplicationData,
         val herowLogContext = HerowLogContext(appState, location, nearbyPois)
         herowLogContext.enrich(applicationData, sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext, TimeHelper.getCurrentTime()))
-        val gson = GsonBuilder()
-            .registerTypeAdapter(Location::class.java, LocationAdapter())
-            .create()
         val logs = Logs(listOfLogs)
-        val logJsonString: String = gson.toJson(logs, Logs::class.java)
+        val logJsonString: String = GsonProvider.toJson(logs, Logs::class.java)
         HerowInitializer.launchLogsRequest(logJsonString)
     }
 

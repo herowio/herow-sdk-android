@@ -7,6 +7,10 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.*
 import io.herow.sdk.connection.cache.CacheResult
 import io.herow.sdk.detection.cache.CacheDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.suspendCoroutine
 
 class CacheWorker(context: Context,
                   workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
