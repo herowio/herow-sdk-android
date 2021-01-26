@@ -180,4 +180,8 @@ object HerowInitializer {
             .build()
         workManager.enqueue(workRequest)
     }
+
+    fun stopClickAndCollect() {
+        workManager.cancelAllWorkByTag(ClickAndCollectWorker.tag)
+    }
 }
