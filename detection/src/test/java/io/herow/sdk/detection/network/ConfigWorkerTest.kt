@@ -35,7 +35,7 @@ class ConfigWorkerTest {
     }
 
     @Test
-    fun testConfigWorker() {
+    fun testLaunchTokenConfigWorker() {
         val worker = TestListenableWorkerBuilder<ConfigWorker>(context)
             .setInputData(
                 workDataOf(
@@ -49,6 +49,23 @@ class ConfigWorkerTest {
             val result = worker.doWork()
             assertThat(result, `is`(ListenableWorker.Result.success()))
             Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
+        }
+    }
+
+    @Test
+    fun testLaunchUserInfoConfigWorker() {
+        val worker = TestListenableWorkerBuilder<ConfigWorker>(context)
+            .setInputData(
+                workDataOf(
+                    AuthRequests.KEY_SDK_ID to "test",
+                    AuthRequests.KEY_SDK_KEY to "test",
+                    AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name
+                )
+            ).build()
+
+        runBlocking {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
             Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
         }
     }

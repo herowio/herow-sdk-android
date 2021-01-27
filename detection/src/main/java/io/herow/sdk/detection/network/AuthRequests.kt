@@ -39,10 +39,12 @@ class AuthRequests(
      * Reusable execute method in any worker that needs a token
      */
     suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit) {
-        if (isTokenUsable(sessionHolder)) {
-            launchUserInfoRequest(sessionHolder, herowAPI)
-        } else {
+        if (!isTokenUsable(sessionHolder)) {
             launchTokenRequest(sessionHolder, platform, herowAPI)
+        }
+
+        if (sessionHolder.isFirstInstance() || !isUserInfoUpToDate()) {
+            launchUserInfoRequest(sessionHolder, herowAPI)
         }
 
         request(herowAPI)
@@ -65,13 +67,8 @@ class AuthRequests(
     }
 
     private suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
-        val customId = data.getString(KEY_CUSTOM_ID) ?: ""
-        val userInfo = UserInfo(
-            listOf(Optin("USER_DATA", true)),
-            sessionHolder.getAdvertiserId(), customId, TimeHelper.getUtcOffset()
-        )
-
-        val jsonString = Gson().toJson(userInfo)
+        val jsonString = Gson().toJson(getCurrentUserInfo())
+        sessionHolder.jsonToStringUserInfo(jsonString)
 
         val userInfoResponse = herowAPI.userInfo(jsonString)
         if (userInfoResponse.isSuccessful) {
@@ -130,4 +127,17 @@ class AuthRequests(
      * ConfigWorker needs an instance of HerowAPI
      */
     fun getHerowAPI(): HerowAPI = herowAPI
+
+    private fun getCurrentUserInfo(): UserInfo {
+        val customId = data.getString(KEY_CUSTOM_ID) ?: ""
+
+        return UserInfo(
+            listOf(Optin("USER_DATA", true)),
+            sessionHolder.getAdvertiserId(), customId, TimeHelper.getUtcOffset()
+        )
+    }
+
+    private fun getSavedUserInfo(): UserInfo? = sessionHolder.stringToJsonUserInfo()
+
+    private fun isUserInfoUpToDate(): Boolean = getSavedUserInfo() == getCurrentUserInfo()
 }
