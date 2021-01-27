@@ -5,19 +5,20 @@ import com.google.gson.GsonBuilder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.connection.cache.CacheResult
-import io.herow.sdk.connection.cache.Poi
+import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.connection.logs.Logs
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.analytics.adapter.LocationAdapter
 import io.herow.sdk.detection.analytics.model.HerowLogContext
-import io.herow.sdk.detection.cache.CacheListener
+import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.detection.location.LocationListener
 import kotlin.collections.ArrayList
 
 class LogGeneratorContext(private val applicationData: ApplicationData,
-                          private val sessionHolder: SessionHolder): AppStateListener, CacheListener, LocationListener {
+                          private val sessionHolder: SessionHolder): AppStateListener,
+    CacheListener, LocationListener {
     companion object {
         private const val DISTANCE_POI_MAX = 20_000
     }

@@ -1,6 +1,6 @@
-package io.herow.sdk.detection.cache
+package io.herow.sdk.connection.cache
 
-import io.herow.sdk.connection.cache.CacheResult
+import io.herow.sdk.connection.cache.model.CacheResult
 import java.util.concurrent.CopyOnWriteArrayList
 
 object CacheDispatcher {

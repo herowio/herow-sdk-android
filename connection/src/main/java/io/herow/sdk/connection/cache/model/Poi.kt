@@ -1,4 +1,4 @@
-package io.herow.sdk.connection.cache
+package io.herow.sdk.connection.cache.model
 
 import android.location.Location
 import com.google.gson.annotations.Expose

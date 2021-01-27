@@ -10,11 +10,12 @@ import com.google.android.gms.location.LocationServices
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.detection.HerowInitializer
-import io.herow.sdk.detection.cache.CacheDispatcher
-import io.herow.sdk.detection.zones.ZoneDispatcher
+import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.config.ConfigListener
+import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.detection.zones.ZoneManager
 
-class LocationManager(context: Context): AppStateListener, LocationListener {
+class LocationManager(context: Context): ConfigListener, AppStateListener, LocationListener {
     companion object {
         private const val LOCATION_REQUEST_CODE = 1515
     }
@@ -33,8 +34,14 @@ class LocationManager(context: Context): AppStateListener, LocationListener {
         LocationDispatcher.addLocationListener(zoneManager)
     }
 
+    override fun onConfigResult(configResult: ConfigResult) {
+        if (configResult.isGeofenceEnable) {
+            startMonitoring()
+        }
+    }
+
     @SuppressLint("MissingPermission")
-    fun startMonitoring() {
+    private fun startMonitoring() {
         fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location ->
             LocationDispatcher.dispatchLocation(location)
         }
