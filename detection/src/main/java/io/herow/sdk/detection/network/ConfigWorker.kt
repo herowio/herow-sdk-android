@@ -11,6 +11,7 @@ import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.RetrofitBuilder
+import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.token.PlatformData
 import io.herow.sdk.connection.token.TokenResult
@@ -95,11 +96,11 @@ class ConfigWorker(context: Context,
         val configResponse = herowAPI.config()
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
-                if (configResult.isGeofenceEnable) {
-                    HerowInitializer.launchGeofencingMonitoring()
+                ConfigDispatcher.dispatchConfigResult(configResult)
+                val headers = configResponse.headers()
+                headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { lastTimeCacheWasModified: String ->
+                    println(lastTimeCacheWasModified)
                 }
-                val lastTimeCacheWasModified = configResponse.headers()[HerowHeaders.LAST_TIME_CACHE_MODIFIED]
-                println(lastTimeCacheWasModified)
             }
         }
     }

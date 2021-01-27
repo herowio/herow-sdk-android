@@ -1,6 +1,6 @@
 package io.herow.sdk.connection
 
-import io.herow.sdk.connection.cache.CacheResult
+import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.UserInfoResult

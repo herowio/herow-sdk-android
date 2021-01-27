@@ -1,7 +1,7 @@
 package io.herow.sdk.detection.analytics.model
 
 import android.location.Location
-import io.herow.sdk.connection.cache.Poi
+import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.detection.location.ClickAndCollectWorker
 
 class HerowLogContext(appState: String,

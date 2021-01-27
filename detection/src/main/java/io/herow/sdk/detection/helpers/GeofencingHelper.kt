@@ -2,7 +2,7 @@ package io.herow.sdk.detection.helpers
 
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingRequest
-import io.herow.sdk.connection.cache.Zone
+import io.herow.sdk.connection.cache.model.Zone
 
 object GeofencingHelper {
     fun buildGeofenceList(zones: List<Zone>): List<Geofence> {

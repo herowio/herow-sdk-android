@@ -4,7 +4,7 @@ import android.content.Context
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.detection.location.LocationDispatcher
 
 class LogsManager(context: Context) {

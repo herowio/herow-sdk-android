@@ -5,8 +5,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.*
-import io.herow.sdk.connection.cache.CacheResult
-import io.herow.sdk.detection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.connection.cache.CacheDispatcher
 
 class CacheWorker(context: Context,
                   workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {

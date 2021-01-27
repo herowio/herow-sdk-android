@@ -1,6 +1,6 @@
 package io.herow.sdk.detection.zones
 
-import io.herow.sdk.connection.cache.Zone
+import io.herow.sdk.connection.cache.model.Zone
 import java.util.concurrent.CopyOnWriteArrayList
 
 object ZoneDispatcher {
