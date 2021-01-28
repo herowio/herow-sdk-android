@@ -66,9 +66,10 @@ object HerowInitializer {
             val deviceId = DeviceHelper.getDeviceId(context)
             sessionHolder.saveDeviceId(deviceId)
             try {
-                val advertiserInfo: AdvertisingIdClient.Info = AdvertisingIdClient.getAdvertisingIdInfo(
-                    context
-                )
+                val advertiserInfo: AdvertisingIdClient.Info =
+                    AdvertisingIdClient.getAdvertisingIdInfo(
+                        context
+                    )
                 if (!advertiserInfo.isLimitAdTrackingEnabled) {
                     sessionHolder.saveAdvertiserId(advertiserInfo.id)
                 }
@@ -139,7 +140,7 @@ object HerowInitializer {
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
-                        CacheWorker.KEY_PLATFORM to platform.name,
+                        AuthRequests.KEY_PLATFORM to platform.name,
                         CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
                     )
                 )
@@ -147,6 +148,7 @@ object HerowInitializer {
             workManager.enqueue(workerRequest)
         }
     }
+
     /**
      * Launch the logs request to send the events to he Herow Platform
      */
@@ -160,7 +162,7 @@ object HerowInitializer {
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
-                        LogsWorker.KEY_PLATFORM to platform.name,
+                        AuthRequests.KEY_PLATFORM to platform.name,
                         LogsWorker.KEY_LOGS to logs
                     )
                 )

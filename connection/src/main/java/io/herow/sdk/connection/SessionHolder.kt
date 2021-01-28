@@ -75,8 +75,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun stringToJsonUserInfo(): UserInfo? {
-        println("Hey" + dataHolder.get<String>(KEY_USER_INFO))
-
             return gson
             .fromJson(dataHolder.get<String>(KEY_USER_INFO), UserInfo::class.java)
     }

@@ -9,35 +9,22 @@ import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.RetrofitBuilder
 import io.herow.sdk.connection.SessionHolder
 
-class LogsWorker(context: Context,
-                 workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
+class LogsWorker(
+    context: Context,
+    workerParameters: WorkerParameters
+) : CoroutineWorker(context, workerParameters) {
     companion object {
-        const val KEY_PLATFORM = "detection.platform"
-        const val KEY_LOGS  = "detection.logs"
+        const val KEY_LOGS = "detection.logs"
     }
+
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
-        val platform = getPlatform()
-        val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(sessionHolder, getApiUrl(platform), HerowAPI::class.java)
-        launchLogsRequest(herowAPI)
+
+        val autRequest = AuthRequests(sessionHolder, inputData)
+        autRequest.execute {
+            launchLogsRequest(autRequest.getHerowAPI())
+        }
         return Result.success()
-    }
-
-    private fun getPlatform(): HerowPlatform {
-        val platformURLString = inputData.getString(KEY_PLATFORM) ?: ""
-        if (platformURLString.isNotEmpty()) {
-            if (HerowPlatform.PRE_PROD == HerowPlatform.valueOf(platformURLString)) {
-                return HerowPlatform.PRE_PROD
-            }
-        }
-        return HerowPlatform.PROD
-    }
-
-    private fun getApiUrl(platform: HerowPlatform): String {
-        if (platform == HerowPlatform.PRE_PROD) {
-            return HerowAPI.PRE_PROD_BASE_URL
-        }
-        return HerowAPI.PROD_BASE_URL
     }
 
     private suspend fun launchLogsRequest(herowAPI: HerowAPI) {

@@ -33,7 +33,7 @@ class ConfigWorker(
         return Result.success()
     }
 
-    private suspend fun launchConfigRequest(herowAPI: HerowAPI) {
+     private suspend fun launchConfigRequest(herowAPI: HerowAPI) {
         val configResponse = herowAPI.config()
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->

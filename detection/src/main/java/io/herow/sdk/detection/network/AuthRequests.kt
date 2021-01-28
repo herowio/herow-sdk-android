@@ -71,6 +71,7 @@ class AuthRequests(
         sessionHolder.jsonToStringUserInfo(jsonString)
 
         val userInfoResponse = herowAPI.userInfo(jsonString)
+
         if (userInfoResponse.isSuccessful) {
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
                 sessionHolder.saveHerowId(userInfoResult.herowId)
