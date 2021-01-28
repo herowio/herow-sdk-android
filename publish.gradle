@@ -1,19 +1,5 @@
 apply plugin: 'maven-publish'
 
-def customMavenRepo = { url ->
-    return new Action<MavenArtifactRepository>() {
-        void execute(MavenArtifactRepository repo) {
-            repo.setUrl(url)
-            repo.credentials(new Action<PasswordCredentials>() {
-                void execute(PasswordCredentials credentials) {
-                    credentials.setUsername("")
-                    credentials.setPassword("")
-                }
-            })
-        }
-    }
-}
-
 afterEvaluate {
     publishing {
         publications {
@@ -41,10 +27,14 @@ afterEvaluate {
             }
         }
         repositories {
-            def releasesRepoUrl = "https://forge.herow.io/nexus/content/repositories/releases"
-            def snapshotsRepoUrl = "https://forge.herow.io/nexus/content/repositories/snapshots"
-            def url = project.version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            maven customMavenRepo(url)
+            maven {
+                name = "GitHub Packages"
+                url = uri("https://maven.pkg.github.com/herowio/herow-sdk-android")
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
         }
     }
 }
