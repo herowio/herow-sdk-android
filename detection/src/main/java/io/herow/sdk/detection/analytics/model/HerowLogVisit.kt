@@ -7,7 +7,7 @@ import io.herow.sdk.detection.geofencing.GeofenceEvent
 class HerowLogVisit(appState: String,
                     geofenceEvent: GeofenceEvent,
                     nearbyPois: List<Poi> = ArrayList()): HerowLogData() {
-    private var duration = TimeHelper.getCurrentTime()
+    private var duration: Long = TimeHelper.getCurrentTime()
 
     companion object {
         const val LOCATION = "lastLocation"

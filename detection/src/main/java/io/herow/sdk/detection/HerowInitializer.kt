@@ -13,6 +13,7 @@ import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.token.SdkSession
+import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.helpers.WorkHelper
@@ -52,6 +53,7 @@ object HerowInitializer {
     private fun registerListeners() {
         AppStateDetector.addAppStateListener(locationManager)
         LocationDispatcher.addLocationListener(locationManager)
+        LogsDispatcher.addLogListener(logsManager)
     }
 
     /**
