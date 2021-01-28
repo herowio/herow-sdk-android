@@ -11,11 +11,14 @@ import io.herow.sdk.connection.logs.Logs
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.analytics.model.HerowLogEnter
+import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.cache.CacheListener
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
+import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.location.LocationListener
 import kotlin.collections.ArrayList
+import kotlin.math.log
 
 class LogGeneratorEvent(private val applicationData: ApplicationData,
                         private val sessionHolder: SessionHolder):
@@ -69,22 +72,39 @@ class LogGeneratorEvent(private val applicationData: ApplicationData,
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
-        sendGeofenceLog(geofenceEvents)
-    }
-
-    private fun sendGeofenceLog(geofenceEvents: List<GeofenceEvent>) {
-        val listOfLogs = ArrayList<Log>()
+        val listOfLogsEnter = ArrayList<Log>()
+        val listOfLogsVisit = ArrayList<Log>()
+        val listOfHerowLogsVisit = ArrayList<HerowLogVisit>()
 
         for (geofenceEvent in geofenceEvents) {
             val nearbyPois = computeNearbyPois(geofenceEvent.location)
             val herowLogEnter = HerowLogEnter(appState, geofenceEvent, nearbyPois)
             herowLogEnter.enrich(applicationData, sessionHolder)
-            listOfLogs.add(Log(herowLogEnter, TimeHelper.getCurrentTime()))
+            listOfLogsEnter.add(Log(herowLogEnter, TimeHelper.getCurrentTime()))
+
+            if (geofenceEvent.type == GeofenceType.ENTER) {
+                val logVisit = HerowLogVisit(appState, geofenceEvent, nearbyPois)
+                listOfHerowLogsVisit.add(logVisit)
+            } else {
+                for (logVisit in listOfHerowLogsVisit) {
+                    if (geofenceEvent.zone.hash == logVisit[HerowLogVisit.PLACE_ID]) {
+                        logVisit.updateDuration()
+                        logVisit.enrich(applicationData, sessionHolder)
+                        listOfLogsVisit.add(Log(logVisit, TimeHelper.getCurrentTime()))
+                    }
+                }
+            }
         }
 
-        val logs = Logs(listOfLogs)
-        val logJsonString: String = GsonProvider.toJson(logs, Logs::class.java)
+        sendLogs(listOfLogsEnter)
+        sendLogs(listOfLogsVisit)
+    }
 
-        HerowInitializer.launchLogsRequest(logJsonString)
+    private fun sendLogs(listOfLogs: ArrayList<Log>) {
+        if (listOfLogs.isNotEmpty()) {
+            val logs = Logs(listOfLogs)
+            val logJsonString: String = GsonProvider.toJson(logs, Logs::class.java)
+            HerowInitializer.launchLogsRequest(logJsonString)
+        }
     }
 }
