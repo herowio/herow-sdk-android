@@ -19,7 +19,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-
+      - name: add platform_secrets 
+        env:
+            PLATFORM_SECRETS: ${{ secrets.PLATFORM_SECRETS }}
+        run: echo $PLATFORM_SECRETS > platform-secrets.properties
       - name: Publish artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
