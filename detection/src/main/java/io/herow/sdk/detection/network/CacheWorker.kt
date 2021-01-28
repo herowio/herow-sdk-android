@@ -7,6 +7,7 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.*
 import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.CacheListener
 
 class CacheWorker(
     context: Context,

@@ -140,6 +140,9 @@ object HerowInitializer {
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
+                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                        AuthRequests.KEY_CUSTOM_ID to customId,
                         AuthRequests.KEY_PLATFORM to platform.name,
                         CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
                     )
