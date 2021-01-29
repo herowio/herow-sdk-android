@@ -20,10 +20,7 @@ import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.ClickAndCollectWorker
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
-import io.herow.sdk.detection.network.CacheWorker
-import io.herow.sdk.detection.network.ConfigWorker
-import io.herow.sdk.detection.network.LogsWorker
-import io.herow.sdk.detection.network.NetworkWorkerTags
+import io.herow.sdk.detection.network.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -69,9 +66,10 @@ object HerowInitializer {
             val deviceId = DeviceHelper.getDeviceId(context)
             sessionHolder.saveDeviceId(deviceId)
             try {
-                val advertiserInfo: AdvertisingIdClient.Info = AdvertisingIdClient.getAdvertisingIdInfo(
-                    context
-                )
+                val advertiserInfo: AdvertisingIdClient.Info =
+                    AdvertisingIdClient.getAdvertisingIdInfo(
+                        context
+                    )
                 if (!advertiserInfo.isLimitAdTrackingEnabled) {
                     sessionHolder.saveAdvertiserId(advertiserInfo.id)
                 }
@@ -119,10 +117,10 @@ object HerowInitializer {
             .setConstraints(constraints)
             .setInputData(
                 workDataOf(
-                    ConfigWorker.KEY_SDK_ID to sdkSession.sdkId,
-                    ConfigWorker.KEY_SDK_KEY to sdkSession.sdkKey,
-                    ConfigWorker.KEY_CUSTOM_ID to customId,
-                    ConfigWorker.KEY_PLATFORM to platform.name
+                    AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                    AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                    AuthRequests.KEY_CUSTOM_ID to customId,
+                    AuthRequests.KEY_PLATFORM to platform.name
                 )
             )
             .build()
@@ -142,7 +140,10 @@ object HerowInitializer {
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
-                        CacheWorker.KEY_PLATFORM to platform.name,
+                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                        AuthRequests.KEY_CUSTOM_ID to customId,
+                        AuthRequests.KEY_PLATFORM to platform.name,
                         CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
                     )
                 )
@@ -150,6 +151,7 @@ object HerowInitializer {
             workManager.enqueue(workerRequest)
         }
     }
+
     /**
      * Launch the logs request to send the events to he Herow Platform
      */
@@ -163,7 +165,7 @@ object HerowInitializer {
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
-                        LogsWorker.KEY_PLATFORM to platform.name,
+                        AuthRequests.KEY_PLATFORM to platform.name,
                         LogsWorker.KEY_LOGS to logs
                     )
                 )
