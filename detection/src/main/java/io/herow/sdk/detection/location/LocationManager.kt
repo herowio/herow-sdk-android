@@ -13,6 +13,8 @@ import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
+import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
 
 class LocationManager(context: Context): ConfigListener, AppStateListener, LocationListener {
@@ -22,6 +24,7 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
     private var isOnForeground: Boolean = false
     private val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
+    private val geofenceEventGenerator = GeofenceEventGenerator()
     private val pendingIntent = createPendingIntent(context)
 
     private fun createPendingIntent(context: Context): PendingIntent {
@@ -32,6 +35,7 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
     init {
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
+        ZoneDispatcher.addZoneListener(geofenceEventGenerator)
     }
 
     override fun onConfigResult(configResult: ConfigResult) {

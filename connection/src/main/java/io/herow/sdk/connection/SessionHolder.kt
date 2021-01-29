@@ -1,12 +1,10 @@
 package io.herow.sdk.connection
 
-import com.google.gson.Gson
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.userinfo.UserInfo
 
 class SessionHolder(private val dataHolder: DataHolder) {
-    val gson = Gson()
-
     companion object {
         private const val KEY_ACCESS_TOKEN = "common.access_token"
         private const val KEY_HEROW_ID = "common.herow_id"
@@ -71,11 +69,10 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun isFirstInstance(): Boolean = !dataHolder.containsKey(KEY_USER_INFO)
 
     fun jsonToStringUserInfo(userInfo: String) {
-        dataHolder[KEY_USER_INFO] = gson.toJson(userInfo)
+        dataHolder[KEY_USER_INFO] = GsonProvider.toJson(userInfo)
     }
 
     fun stringToJsonUserInfo(): UserInfo? {
-            return gson
-            .fromJson(dataHolder.get<String>(KEY_USER_INFO), UserInfo::class.java)
+        return GsonProvider.fromJson(dataHolder.get<String>(KEY_USER_INFO), UserInfo::class.java)
     }
 }

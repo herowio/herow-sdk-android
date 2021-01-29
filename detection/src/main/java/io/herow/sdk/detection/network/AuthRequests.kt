@@ -1,7 +1,6 @@
 package io.herow.sdk.detection.network
 
 import androidx.work.Data
-import com.google.gson.Gson
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowPlatform
@@ -12,6 +11,7 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
+import io.herow.sdk.common.json.GsonProvider
 
 /**
  * Token and UserInfo workflow
@@ -67,7 +67,7 @@ class AuthRequests(
     }
 
     private suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
-        val jsonString = Gson().toJson(getCurrentUserInfo())
+        val jsonString = GsonProvider.toJson(getCurrentUserInfo())
         sessionHolder.jsonToStringUserInfo(jsonString)
 
         val userInfoResponse = herowAPI.userInfo(jsonString)

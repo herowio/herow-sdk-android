@@ -1,4 +1,4 @@
-package io.herow.sdk.detection.analytics.adapter
+package io.herow.sdk.common.json
 
 import android.location.Location
 import com.google.gson.*

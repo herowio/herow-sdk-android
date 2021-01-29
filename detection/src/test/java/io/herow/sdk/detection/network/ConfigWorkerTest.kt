@@ -24,15 +24,10 @@ import java.util.*
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class ConfigWorkerTest {
-
     private lateinit var context: Context
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder
     private lateinit var worker: ConfigWorker
-
-    private val username = "test"
-    private val password = "test"
-    private val customID = "randomCustom"
 
     @Before
     fun setUp() {
@@ -45,10 +40,10 @@ class ConfigWorkerTest {
         worker = TestListenableWorkerBuilder<ConfigWorker>(context)
             .setInputData(
                 workDataOf(
-                    AuthRequests.KEY_SDK_ID to username,
-                    AuthRequests.KEY_SDK_KEY to password,
+                    AuthRequests.KEY_SDK_ID to NetworkConstants.USERNAME,
+                    AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
                     AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name,
-                    AuthRequests.KEY_CUSTOM_ID to customID
+                    AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID
                 )
             ).build()
     }

@@ -11,6 +11,7 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.crypto.prng.RandomGenerator
@@ -28,16 +29,11 @@ import java.util.*
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class CacheWorkerTest {
-
     private lateinit var context: Context
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder
     private lateinit var worker: CacheWorker
     private lateinit var location: Location
-
-    private val username = "test"
-    private val password = "test"
-    private val customID = "randomCustom"
 
     @Before
     fun setUp() {
@@ -47,19 +43,15 @@ class CacheWorkerTest {
 
         // Mandatory to test testLaunchUser
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
-
-        location = Location(sessionHolder.getDeviceId()).apply {
-            latitude = 48.11705624819015
-            longitude = -1.6757520432921995
-        }
+        location = MockLocation.buildLocation()
 
         worker = TestListenableWorkerBuilder<CacheWorker>(context)
             .setInputData(
                 workDataOf(
-                    AuthRequests.KEY_SDK_ID to username,
-                    AuthRequests.KEY_SDK_KEY to password,
+                    AuthRequests.KEY_SDK_ID to NetworkConstants.USERNAME,
+                    AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
                     AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name,
-                    AuthRequests.KEY_CUSTOM_ID to customID,
+                    AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID,
                     CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
                 )
             ).build()
