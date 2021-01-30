@@ -66,13 +66,14 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return dataHolder.get<Long>(KEY_TOKEN_TIMEOUT)
     }
 
-    fun isFirstInstance(): Boolean = !dataHolder.containsKey(KEY_USER_INFO)
+    fun hasNoUserInfoSaved(): Boolean = !dataHolder.containsKey(KEY_USER_INFO)
 
-    fun jsonToStringUserInfo(userInfo: String) {
-        dataHolder[KEY_USER_INFO] = GsonProvider.toJson(userInfo)
+    fun saveStringUserInfo(userInfo: String) {
+        dataHolder[KEY_USER_INFO] = userInfo
     }
 
-    fun stringToJsonUserInfo(): UserInfo? {
-        return GsonProvider.fromJson(dataHolder.get<String>(KEY_USER_INFO), UserInfo::class.java)
+    fun loadSaveStringToUserInfo(): UserInfo {
+        val savedUserInfo = dataHolder.get<String>(KEY_USER_INFO)
+        return GsonProvider.fromJson(savedUserInfo, UserInfo::class.java)
     }
 }

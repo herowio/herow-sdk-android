@@ -11,4 +11,3 @@
 	<img alt="Quality Gate Status" src="https://sonarcloud.io/api/project_badges/measure?project=herowio_herow-sdk-android&metric=alert_status"/>
   </a>
 </p>
-

@@ -19,6 +19,7 @@ class ZoneManager(context: Context,
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919
     }
+    private var hasGeofencesAlreadyBeenAdded = false
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
 
@@ -39,22 +40,36 @@ class ZoneManager(context: Context,
 
     @SuppressLint("MissingPermission")
     private fun updateGeofencesMonitoring() {
-        geofencingClient.removeGeofences(pendingIntent)?.run {
-            addOnSuccessListener {
-                val geofences = GeofencingHelper.buildGeofenceList(zones)
-                val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
-                geofencingClient.addGeofences(geofenceRequest, pendingIntent)?.run {
-                    addOnSuccessListener {
-                        println("The geofences has been correctly added.")
-                    }
-                    addOnFailureListener {
-                        println("An exception occurred: ${it.message}.")
-                        println("An exception occurred: ${it.localizedMessage}.")
-                    }
+        if (hasGeofencesAlreadyBeenAdded) {
+            geofencingClient.removeGeofences(pendingIntent)?.run {
+                addOnSuccessListener {
+                    addGeofences()
+                }
+                addOnFailureListener {
+                    print("An exception occurred: ${it.message}")
                 }
             }
-            addOnFailureListener {
-                print("An exception occurred: ${it.message}")
+        } else {
+            addGeofences()
+            hasGeofencesAlreadyBeenAdded = true
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun addGeofences() {
+        if (zones.isNotEmpty()) {
+            val geofences = GeofencingHelper.buildGeofenceList(zones)
+            val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
+
+            geofencingClient.addGeofences(geofenceRequest, pendingIntent)?.run {
+                addOnSuccessListener {
+                    println("The geofences has been correctly added.")
+
+                }
+                addOnFailureListener {
+                    println("An exception occurred: ${it.message}.")
+                    println("An exception occurred: ${it.localizedMessage}.")
+                }
             }
         }
     }

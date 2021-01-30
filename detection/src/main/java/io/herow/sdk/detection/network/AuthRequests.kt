@@ -16,10 +16,8 @@ import io.herow.sdk.common.json.GsonProvider
 /**
  * Token and UserInfo workflow
  */
-class AuthRequests(
-    private val sessionHolder: SessionHolder,
-    private val data: Data
-) {
+class AuthRequests(private val sessionHolder: SessionHolder,
+                   private val data: Data) {
     companion object {
         const val KEY_SDK_ID = "detection.sdk_id"
         const val KEY_SDK_KEY = "detection.sdk_key"
@@ -36,27 +34,46 @@ class AuthRequests(
     )
 
     /**
+     * ConfigWorker needs an instance of HerowAPI
+     */
+    fun getHerowAPI(): HerowAPI = herowAPI
+
+    /**
      * Reusable execute method in any worker that needs a token
      */
     suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit) {
         if (!isTokenUsable(sessionHolder)) {
             launchTokenRequest(sessionHolder, platform, herowAPI)
         }
-
-        if (sessionHolder.isFirstInstance() || !isUserInfoUpToDate()) {
+        if (sessionHolder.hasNoUserInfoSaved() || isUserInfoNotUpToDate()) {
             launchUserInfoRequest(sessionHolder, herowAPI)
         }
-
         request(herowAPI)
+    }
+
+    private fun getPlatform(): HerowPlatform {
+        val platformURLString = data.getString(KEY_PLATFORM) ?: ""
+        if (platformURLString.isNotEmpty()) {
+            if (HerowPlatform.PRE_PROD == HerowPlatform.valueOf(platformURLString)) {
+                return HerowPlatform.PRE_PROD
+            }
+        }
+        return HerowPlatform.PROD
+    }
+
+    private fun getApiUrl(platform: HerowPlatform): String {
+        if (platform == HerowPlatform.PRE_PROD) {
+            return HerowAPI.PRE_PROD_BASE_URL
+        }
+        return HerowAPI.PROD_BASE_URL
     }
 
     /**
      * Check if token is usable
      */
     private fun isTokenUsable(sessionHolder: SessionHolder): Boolean {
-        return (sessionHolder.getAccessToken()
-            .isNotEmpty() || !isTokenExpired(sessionHolder.getTimeOutToken())
-                )
+        return (sessionHolder.getAccessToken().isNotEmpty()
+                || !isTokenExpired(sessionHolder.getTimeOutToken()))
     }
 
     /**
@@ -66,24 +83,9 @@ class AuthRequests(
         return (timeoutTime < TimeHelper.getCurrentTime())
     }
 
-    private suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
-        val jsonString = GsonProvider.toJson(getCurrentUserInfo())
-        sessionHolder.jsonToStringUserInfo(jsonString)
-
-        val userInfoResponse = herowAPI.userInfo(jsonString)
-
-        if (userInfoResponse.isSuccessful) {
-            userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
-                sessionHolder.saveHerowId(userInfoResult.herowId)
-            }
-        }
-    }
-
-    private suspend fun launchTokenRequest(
-        sessionHolder: SessionHolder,
-        platform: HerowPlatform,
-        herowAPI: HerowAPI
-    ) {
+    private suspend fun launchTokenRequest(sessionHolder: SessionHolder,
+                                           platform: HerowPlatform,
+                                           herowAPI: HerowAPI) {
         val sdkId = data.getString(KEY_SDK_ID) ?: ""
         val sdkKey = data.getString(KEY_SDK_KEY) ?: ""
 
@@ -106,39 +108,37 @@ class AuthRequests(
         }
     }
 
-    @JvmName("getPlatform1")
-    private fun getPlatform(): HerowPlatform {
-        val platformURLString = data.getString(KEY_PLATFORM) ?: ""
-        if (platformURLString.isNotEmpty()) {
-            if (HerowPlatform.PRE_PROD == HerowPlatform.valueOf(platformURLString)) {
-                return HerowPlatform.PRE_PROD
+    private suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
+        val userInfo = getCurrentUserInfo()
+        val jsonString = GsonProvider.toJson(userInfo, UserInfo::class.java)
+        sessionHolder.saveStringUserInfo(jsonString)
+
+        val userInfoResponse = herowAPI.userInfo(jsonString)
+        if (userInfoResponse.isSuccessful) {
+            userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
+                sessionHolder.saveHerowId(userInfoResult.herowId)
             }
         }
-        return HerowPlatform.PROD
     }
 
-    private fun getApiUrl(platform: HerowPlatform): String {
-        if (platform == HerowPlatform.PRE_PROD) {
-            return HerowAPI.PRE_PROD_BASE_URL
-        }
-        return HerowAPI.PROD_BASE_URL
-    }
-
-    /**
-     * ConfigWorker needs an instance of HerowAPI
-     */
-    fun getHerowAPI(): HerowAPI = herowAPI
-
+    // TODO: update Optin with user choice by providing a method inside the HerowInitializer
     private fun getCurrentUserInfo(): UserInfo {
         val customId = data.getString(KEY_CUSTOM_ID) ?: ""
-
         return UserInfo(
-            listOf(Optin("USER_DATA", true)),
+            arrayListOf(Optin("USER_DATA", true)),
             sessionHolder.getAdvertiserId(), customId, TimeHelper.getUtcOffset()
         )
     }
 
-    private fun getSavedUserInfo(): UserInfo? = sessionHolder.stringToJsonUserInfo()
+    private fun isUserInfoUpToDate(): Boolean {
+        val currentUserInfo = getCurrentUserInfo()
+        val savedUserInfo = getSavedUserInfo()
+         return currentUserInfo == savedUserInfo
+    }
 
-    private fun isUserInfoUpToDate(): Boolean = getSavedUserInfo() == getCurrentUserInfo()
+    private fun isUserInfoNotUpToDate(): Boolean {
+        return !isUserInfoUpToDate()
+    }
+
+    private fun getSavedUserInfo(): UserInfo = sessionHolder.loadSaveStringToUserInfo()
 }
