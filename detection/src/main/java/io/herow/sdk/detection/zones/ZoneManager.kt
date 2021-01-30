@@ -19,7 +19,6 @@ class ZoneManager(context: Context,
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919
     }
-    private var hasGeofencesAlreadyBeenAdded = false
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
 
@@ -40,18 +39,13 @@ class ZoneManager(context: Context,
 
     @SuppressLint("MissingPermission")
     private fun updateGeofencesMonitoring() {
-        if (hasGeofencesAlreadyBeenAdded) {
-            geofencingClient.removeGeofences(pendingIntent)?.run {
-                addOnSuccessListener {
-                    addGeofences()
-                }
-                addOnFailureListener {
-                    print("An exception occurred: ${it.message}")
-                }
+        geofencingClient.removeGeofences(pendingIntent)?.run {
+            addOnSuccessListener {
+                addGeofences()
             }
-        } else {
-            addGeofences()
-            hasGeofencesAlreadyBeenAdded = true
+            addOnFailureListener {
+                print("An exception occurred: ${it.message}")
+            }
         }
     }
 
@@ -64,7 +58,6 @@ class ZoneManager(context: Context,
             geofencingClient.addGeofences(geofenceRequest, pendingIntent)?.run {
                 addOnSuccessListener {
                     println("The geofences has been correctly added.")
-
                 }
                 addOnFailureListener {
                     println("An exception occurred: ${it.message}.")
