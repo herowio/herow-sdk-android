@@ -17,34 +17,40 @@ class CacheWorker(
         const val KEY_GEOHASH = "detection.geohash"
     }
 
+    private lateinit var geoHash: String
+
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
 
         val authRequest = AuthRequests(sessionHolder, inputData)
+
         authRequest.execute {
-            launchCacheRequest(authRequest.getHerowAPI())
+            launchCacheRequest(sessionHolder, authRequest.getHerowAPI())
         }
 
         return Result.success()
     }
 
-    private suspend fun launchCacheRequest(herowAPI: HerowAPI) {
-        val geoHash = extractGeoHash()
-        if (geoHash.isNotEmpty()) {
-            val cacheResponse = herowAPI.cache(geoHash.substring(0, 4))
-            if (cacheResponse.isSuccessful) {
-                cacheResponse.body()?.let { cacheResult: CacheResult ->
-                    CacheDispatcher.dispatchCacheResult(cacheResult)
+    private suspend fun launchCacheRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
+        if (sessionHolder.getUpdateCacheStatus()) {
+            geoHash = extractGeoHash()
+            if (geoHash.isNotEmpty()) {
+                val cacheResponse = herowAPI.cache(geoHash.substring(0, 4))
+                if (cacheResponse.isSuccessful) {
+                    cacheResponse.body()?.let { cacheResult: CacheResult ->
+                        CacheDispatcher.dispatchCacheResult(cacheResult)
+                    }
                 }
             }
         }
     }
 
     private fun extractGeoHash(): String {
-        val geoHash = inputData.getString(KEY_GEOHASH) ?: ""
-        if (geoHash.isNotEmpty()) {
-            return geoHash
+        val geoHashExtracted = inputData.getString(KEY_GEOHASH) ?: ""
+        if (geoHashExtracted.isNotEmpty()) {
+            return geoHashExtracted
         }
         return ""
     }
+
 }
