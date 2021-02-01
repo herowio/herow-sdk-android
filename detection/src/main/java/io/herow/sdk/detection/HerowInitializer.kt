@@ -14,6 +14,7 @@ import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.token.SdkSession
+import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.helpers.WorkHelper
@@ -51,6 +52,7 @@ object HerowInitializer {
         AppStateDetector.addAppStateListener(locationManager)
         LocationDispatcher.addLocationListener(locationManager)
         ConfigDispatcher.addConfigListener(locationManager)
+        LogsDispatcher.addLogListener(logsManager)
     }
 
     /**
@@ -165,6 +167,9 @@ object HerowInitializer {
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
+                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                        AuthRequests.KEY_CUSTOM_ID to customId,
                         AuthRequests.KEY_PLATFORM to platform.name,
                         LogsWorker.KEY_LOGS to logs
                     )

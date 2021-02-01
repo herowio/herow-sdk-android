@@ -14,7 +14,8 @@ import io.herow.sdk.detection.geofencing.GeofencingReceiver
 import io.herow.sdk.detection.helpers.GeofencingHelper
 import io.herow.sdk.detection.location.LocationListener
 
-class ZoneManager(context: Context, private val zones: ArrayList<Zone>): CacheListener, LocationListener {
+class ZoneManager(context: Context,
+                  private val zones: ArrayList<Zone>): CacheListener, LocationListener {
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919
     }
@@ -40,20 +41,28 @@ class ZoneManager(context: Context, private val zones: ArrayList<Zone>): CacheLi
     private fun updateGeofencesMonitoring() {
         geofencingClient.removeGeofences(pendingIntent)?.run {
             addOnSuccessListener {
-                val geofences = GeofencingHelper.buildGeofenceList(zones)
-                val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
-                geofencingClient.addGeofences(geofenceRequest, pendingIntent)?.run {
-                    addOnSuccessListener {
-                        println("The geofences has been correctly added.")
-                    }
-                    addOnFailureListener {
-                        println("An exception occurred: ${it.message}.")
-                        println("An exception occurred: ${it.localizedMessage}.")
-                    }
-                }
+                addGeofences()
             }
             addOnFailureListener {
                 print("An exception occurred: ${it.message}")
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun addGeofences() {
+        if (zones.isNotEmpty()) {
+            val geofences = GeofencingHelper.buildGeofenceList(zones)
+            val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
+
+            geofencingClient.addGeofences(geofenceRequest, pendingIntent)?.run {
+                addOnSuccessListener {
+                    println("The geofences has been correctly added.")
+                }
+                addOnFailureListener {
+                    println("An exception occurred: ${it.message}.")
+                    println("An exception occurred: ${it.localizedMessage}.")
+                }
             }
         }
     }
@@ -69,6 +78,6 @@ class ZoneManager(context: Context, private val zones: ArrayList<Zone>): CacheLi
                 }
             }
         }
-        ZoneDispatcher.dispatchDetectedZones(detectedZones)
+        ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
     }
 }

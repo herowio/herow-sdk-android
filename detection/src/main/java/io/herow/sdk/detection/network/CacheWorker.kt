@@ -7,12 +7,13 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.*
 import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.CacheDispatcher
-import io.herow.sdk.connection.cache.CacheListener
 
-class CacheWorker(
-    context: Context,
-    workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters) {
+/**
+ * Allow use to receive the zones to monitor and the pois to add in the HerowLogContext from the
+ * Herow platform. You need to use a geohash to call the corresponding API.
+ */
+class CacheWorker(context: Context,
+                  workerParameters: WorkerParameters): CoroutineWorker(context, workerParameters) {
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
     }

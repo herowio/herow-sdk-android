@@ -7,12 +7,15 @@ import android.content.Intent
 import android.location.Location
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.Task
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
+import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
 
 class LocationManager(context: Context): ConfigListener, AppStateListener, LocationListener {
@@ -20,8 +23,11 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
         private const val LOCATION_REQUEST_CODE = 1515
     }
     private var isOnForeground: Boolean = false
+    private var isGeofencingEnable: Boolean = false
+
     private val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
+    private val geofenceEventGenerator = GeofenceEventGenerator()
     private val pendingIntent = createPendingIntent(context)
 
     private fun createPendingIntent(context: Context): PendingIntent {
@@ -32,11 +38,17 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
     init {
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
+        ZoneDispatcher.addZoneListener(geofenceEventGenerator)
     }
 
     override fun onConfigResult(configResult: ConfigResult) {
-        if (configResult.isGeofenceEnable) {
+        synchronized(isGeofencingEnable) {
+            isGeofencingEnable = configResult.isGeofenceEnable
+        }
+        if (isGeofencingEnable) {
             startMonitoring()
+        } else {
+            stopMonitoring()
         }
     }
 
@@ -45,16 +57,23 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
         fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location ->
             LocationDispatcher.dispatchLocation(location)
         }
-        if (isOnForeground) {
-            fusedLocationProviderClient.requestLocationUpdates(
-                buildForegroundLocationRequest(),
-                pendingIntent
-            )
+        updateMonitoring()
+    }
+
+    /**
+     * We want to update the monitoring based on the application state. In foreground, as the application
+     * is currently being used by the user, we can make frequent location update. In background, we
+     * only want to be able to track the user and thus improve native geofence performances.
+     */
+    @SuppressLint("MissingPermission")
+    private fun updateMonitoring() {
+        val locationRequest = if (isOnForeground) {
+            buildForegroundLocationRequest()
         } else {
-            fusedLocationProviderClient.requestLocationUpdates(
-                buildBackgroundLocationRequest(),
-                pendingIntent
-            )
+            buildBackgroundLocationRequest()
+        }
+        fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
 
@@ -74,12 +93,26 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
         return request
     }
 
+    private fun stopMonitoring() {
+        fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener { task: Task<Void> ->
+            if (task.isSuccessful) {
+                println("Stop making location update")
+            }
+        }
+    }
+
     override fun onAppInForeground() {
         isOnForeground = true
+        if (isGeofencingEnable) {
+            updateMonitoring()
+        }
     }
 
     override fun onAppInBackground() {
         isOnForeground = false
+        if (isGeofencingEnable) {
+            updateMonitoring()
+        }
     }
 
     override fun onLocationUpdate(location: Location) {
