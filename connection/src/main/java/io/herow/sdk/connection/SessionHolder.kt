@@ -1,6 +1,7 @@
 package io.herow.sdk.connection
 
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.userinfo.UserInfo
 
@@ -15,6 +16,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_CACHE_TIMEOUT = "common.timeout_cache"
         private const val KEY_UPDATE_CACHE = "common_update_cache"
         private const val KEY_SAVED_GEOHASH = "common.saved_geohash"
+        private const val KEY_REPEAT_INTERVAL = "common.repeat_interval"
     }
 
     fun getDeviceId(): String {
@@ -96,7 +98,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         dataHolder[KEY_UPDATE_CACHE] = update
     }
 
-    fun isCacheTimeSaved(): Boolean = dataHolder.containsKey(KEY_CACHE_TIMEOUT)
+    fun hasNoCacheTimeSaved(): Boolean = !dataHolder.containsKey(KEY_CACHE_TIMEOUT)
 
     fun getUpdateCacheStatus(): Boolean {
         return dataHolder.get<Boolean>(KEY_UPDATE_CACHE)
@@ -110,5 +112,15 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return dataHolder.get<String>(KEY_SAVED_GEOHASH)
     }
 
-    fun isGeoHashSaved(): Boolean = dataHolder.containsKey(KEY_SAVED_GEOHASH)
+    fun hasNoGeoHashSaved(): Boolean = !dataHolder.containsKey(KEY_SAVED_GEOHASH)
+
+    fun hasNoRepeatIntervalSaved(): Boolean = !dataHolder.containsKey(KEY_REPEAT_INTERVAL)
+
+    fun saveRepeatInterval(repeatInterval: Long) {
+        dataHolder[KEY_REPEAT_INTERVAL] = repeatInterval
+    }
+
+    fun getRepeatInterval(): Long {
+        return dataHolder.get<Long>(KEY_REPEAT_INTERVAL)
+    }
 }

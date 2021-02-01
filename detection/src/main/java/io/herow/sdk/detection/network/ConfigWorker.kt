@@ -5,14 +5,10 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
-import io.herow.sdk.connection.HerowPlatform
-import io.herow.sdk.connection.RetrofitBuilder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
-import io.herow.sdk.detection.HerowInitializer
 
 /**
  * @see HerowAPI#config()
@@ -39,6 +35,8 @@ class ConfigWorker(
             configResponse.body()?.let { configResult: ConfigResult ->
                 ConfigDispatcher.dispatchConfigResult(configResult)
 
+                sessionHolder.saveRepeatInterval(configResult.configInterval)
+
                 val headers = configResponse.headers()
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { lastTimeCacheWasModified: String ->
                     checkCacheState(sessionHolder, lastTimeCacheWasModified.toLong())
@@ -49,7 +47,7 @@ class ConfigWorker(
     }
 
     private fun checkCacheState(sessionHolder: SessionHolder, lastTimeCacheWasModified: Long) {
-        if (sessionHolder.isCacheTimeSaved()) {
+        if (sessionHolder.hasNoCacheTimeSaved()) {
             if (sessionHolder.shouldCacheBeUpdated(lastTimeCacheWasModified))
                 sessionHolder.updateCache(true)
         } else {
