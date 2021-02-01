@@ -27,22 +27,38 @@ class ConfigWorker(
 
         val authRequest = AuthRequests(sessionHolder, inputData)
         authRequest.execute {
-            launchConfigRequest(authRequest.getHerowAPI())
+            launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
         }
 
         return Result.success()
     }
 
-     private suspend fun launchConfigRequest(herowAPI: HerowAPI) {
+    private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
         val configResponse = herowAPI.config()
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
                 ConfigDispatcher.dispatchConfigResult(configResult)
+
                 val headers = configResponse.headers()
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { lastTimeCacheWasModified: String ->
-                    println(lastTimeCacheWasModified)
+                    checkCacheState(sessionHolder, lastTimeCacheWasModified.toLong())
+                    println(lastTimeCacheWasModified.toLong())
                 }
             }
         }
+    }
+
+    private fun checkCacheState(sessionHolder: SessionHolder, lastTimeCacheWasModified: Long) {
+        if (sessionHolder.isCacheTimeSaved()) {
+            if (sessionHolder.shouldCacheBeUpdated(lastTimeCacheWasModified))
+                sessionHolder.updateCache(true)
+        } else {
+            sessionHolder.updateCache(false)
+        }
+
+        sessionHolder.saveModifiedCacheTime(lastTimeCacheWasModified)
+    }
+
+    private fun checkIntervalState(sessionHolder: SessionHolder, interval: Long) {
     }
 }
