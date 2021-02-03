@@ -7,7 +7,7 @@ buildscript {
         play_services_ads = "19.7.0"
         play_services_location = "17.1.0"
         retrofit_version = "2.9.0"
-        worker_version = "2.4.0"
+        worker_version = "2.5.0"
     }
     repositories {
         google()

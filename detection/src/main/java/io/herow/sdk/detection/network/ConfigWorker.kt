@@ -9,6 +9,7 @@ import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.detection.helpers.DateHelper
 
 /**
  * @see HerowAPI#config()
@@ -38,23 +39,49 @@ class ConfigWorker(
                 sessionHolder.saveRepeatInterval(configResult.configInterval)
 
                 val headers = configResponse.headers()
-                headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { lastTimeCacheWasModified: String ->
-                    checkCacheState(sessionHolder, lastTimeCacheWasModified.toLong())
-                    println(lastTimeCacheWasModified.toLong())
+                headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->
+                    checkCacheState(
+                        sessionHolder,
+                        remoteCachedTime
+                    )
                 }
             }
         }
     }
 
-    private fun checkCacheState(sessionHolder: SessionHolder, lastTimeCacheWasModified: Long) {
-        if (sessionHolder.hasNoCacheTimeSaved()) {
-            if (sessionHolder.shouldCacheBeUpdated(lastTimeCacheWasModified))
+    /**
+     * Check if cache time has already been saved into SP
+     */
+    private fun checkCacheState(
+        sessionHolder: SessionHolder,
+        remoteCachedTime: String
+    ) {
+        if (!sessionHolder.hasNoCacheTimeSaved()) {
+            if (shouldCacheBeUpdated(remoteCachedTime, sessionHolder)) {
                 sessionHolder.updateCache(true)
+            } else {
+                sessionHolder.updateCache(false)
+            }
         } else {
-            sessionHolder.updateCache(false)
+            sessionHolder.updateCache(true)
         }
 
-        sessionHolder.saveModifiedCacheTime(lastTimeCacheWasModified)
+        sessionHolder.saveModifiedCacheTime(remoteCachedTime)
+    }
+
+    /**
+     * Both saved cache time & remote cache time are converted to Timestamp
+     * in order to compare them
+     */
+    private fun shouldCacheBeUpdated(
+        remoteCachedTime: String,
+        sessionHolder: SessionHolder
+    ): Boolean {
+        val savedTimeStamp =
+            DateHelper.convertStringToTimeStamp(sessionHolder.getLastSavedModifiedDateTimeCache())
+        val remoteCachedTimeToLong = DateHelper.convertStringToTimeStamp(remoteCachedTime)
+
+        return (remoteCachedTimeToLong > savedTimeStamp)
     }
 
     private fun checkIntervalState(sessionHolder: SessionHolder, interval: Long) {

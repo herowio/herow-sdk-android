@@ -88,6 +88,49 @@ class CacheWorkerTest {
         }
     }
 
+    @Test
+    fun testCacheIsCalledIfUpdateStatusTrue() {
+        sessionHolder.updateCache(true)
+
+        val cacheWorkerListener = CacheWorkerListener()
+        CacheDispatcher.addCacheListener(cacheWorkerListener)
+        Assert.assertNull(cacheWorkerListener.cacheResult)
+
+        runBlocking {
+            val result = worker.doWork()
+            Assert.assertNotNull(cacheWorkerListener.cacheResult)
+        }
+    }
+
+    @Test
+    fun testCacheIsCalledIfUpdateStatusTrueAndGeoHashIsKnownAndDifferent() {
+        sessionHolder.updateCache(true)
+        sessionHolder.saveGeohash("123a")
+
+        val cacheWorkerListener = CacheWorkerListener()
+        CacheDispatcher.addCacheListener(cacheWorkerListener)
+        Assert.assertNull(cacheWorkerListener.cacheResult)
+
+        runBlocking {
+            worker.doWork()
+            Assert.assertNotNull(cacheWorkerListener.cacheResult)
+        }
+    }
+
+    @Test
+    fun testCacheIsNotCalledIfUpdateStatusFalseAndGeoHashIsNotDifferent() {
+        sessionHolder.updateCache(false)
+        sessionHolder.saveGeohash(GeoHashHelper.encodeBase32(location))
+
+        val cacheWorkerListener = CacheWorkerListener()
+        CacheDispatcher.addCacheListener(cacheWorkerListener)
+        Assert.assertNull(cacheWorkerListener.cacheResult)
+
+        runBlocking {
+            worker.doWork()
+            Assert.assertNull(cacheWorkerListener.cacheResult)
+        }
+    }
 
 }
 

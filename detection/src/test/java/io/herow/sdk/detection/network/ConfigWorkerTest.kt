@@ -79,6 +79,39 @@ class ConfigWorkerTest {
         }
 
     }
+
+    @Test
+    fun testWithCacheTimeSaved() {
+        sessionHolder.saveModifiedCacheTime("Tue, 25 Aug 2020 12:57:38 GMT")
+
+        runBlocking {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Assert.assertTrue(!sessionHolder.hasNoCacheTimeSaved())
+        }
+    }
+
+    @Test
+    fun testWithCacheTimeSuperiorToRemoteTime() {
+        sessionHolder.saveModifiedCacheTime("Fri, 28 Aug 2020 12:57:38 GMT")
+
+        runBlocking {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Assert.assertFalse(sessionHolder.getUpdateCacheStatus())
+        }
+    }
+
+    @Test
+    fun testWithCacheTimeLowerToRemoteTime() {
+        sessionHolder.saveModifiedCacheTime("Mon, 24 Aug 2020 12:57:38 GMT")
+
+        runBlocking {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Assert.assertTrue(sessionHolder.getUpdateCacheStatus())
+        }
+    }
 }
 
 class ConfigWorkerListener(var configResult: ConfigResult? = null) : ConfigListener {
