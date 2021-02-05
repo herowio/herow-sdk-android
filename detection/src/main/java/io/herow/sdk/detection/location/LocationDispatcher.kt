@@ -22,8 +22,8 @@ object LocationDispatcher {
         if (lastLocation != null) {
             val distance = newLocation.distanceTo(lastLocation!!)
 
-            if (distance > 20 || newLocation.time - lastLocation!!.time > TimeHelper.FIVE_MINUTES_MS) {
-                skip = false
+            if (distance < 20 || newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS) {
+                skip = true
             }
         }
 
