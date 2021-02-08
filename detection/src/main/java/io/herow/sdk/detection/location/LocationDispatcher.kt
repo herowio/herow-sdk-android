@@ -11,10 +11,11 @@ object LocationDispatcher {
     fun addLocationListener(locationListener: LocationListener) {
         locationListeners.add(locationListener)
     }
+
     private val locationListeners = CopyOnWriteArrayList<LocationListener>()
 
     /**
-     * Update location only if distance is >20m or time is >5 minutes
+     * Update location only if distance is >20m or if distance is <20 & time is >5 minutes
      */
     fun dispatchLocation(newLocation: Location) {
         var skip = false
@@ -22,9 +23,8 @@ object LocationDispatcher {
         if (lastLocation != null) {
             val distance = newLocation.distanceTo(lastLocation!!)
 
-            if (distance < 20 || newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS) {
-                skip = true
-            }
+            skip =
+                distance < 20 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS
         }
 
         if (!skip) {
