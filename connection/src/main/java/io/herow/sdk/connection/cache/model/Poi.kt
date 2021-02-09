@@ -9,6 +9,7 @@ data class Poi(val id: String,
                @Expose(serialize = false)
                val lng: Double,
                val tags: List<String>) {
+
     @Expose(deserialize = false)
     var distance: Float = 0f
 
