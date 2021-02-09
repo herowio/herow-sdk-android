@@ -25,6 +25,7 @@ import io.herow.sdk.detection.network.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 object HerowInitializer {
     private val activityTransitionDetector = ActivityTransitionDetector()
@@ -35,6 +36,9 @@ object HerowInitializer {
     private lateinit var locationManager: LocationManager
     private lateinit var logsManager: LogsManager
     private lateinit var workManager: WorkManager
+
+    private lateinit var sessionHolder: SessionHolder
+    private val initialRepeatInterval: Long = 900000
 
     fun init(context: Context): HerowInitializer {
         AndroidThreeTen.init(context)
@@ -64,7 +68,7 @@ object HerowInitializer {
      */
     private fun loadIdentifiers(context: Context) {
         GlobalScope.launch(Dispatchers.IO) {
-            val sessionHolder = SessionHolder(DataHolder(context))
+            sessionHolder = SessionHolder(DataHolder(context))
             val deviceId = DeviceHelper.getDeviceId(context)
             sessionHolder.saveDeviceId(deviceId)
             try {
@@ -109,24 +113,33 @@ object HerowInitializer {
 
     /**
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
+     * Interval is by default 15 minutes
      */
     private fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
-        val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
-            .addTag(NetworkWorkerTags.CONFIG)
-            .setConstraints(constraints)
-            .setInputData(
-                workDataOf(
-                    AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-                    AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                    AuthRequests.KEY_CUSTOM_ID to customId,
-                    AuthRequests.KEY_PLATFORM to platform.name
+
+        var repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
+            initialRepeatInterval
+        } else {
+            sessionHolder.getRepeatInterval()
+        }
+
+        val periodicWorkRequest =
+            PeriodicWorkRequest.Builder(ConfigWorker::class.java, repeatInterval, TimeUnit.MILLISECONDS)
+                .addTag(NetworkWorkerTags.CONFIG)
+                .setConstraints(constraints)
+                .setInputData(
+                    workDataOf(
+                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                        AuthRequests.KEY_CUSTOM_ID to customId,
+                        AuthRequests.KEY_PLATFORM to platform.name
+                    )
                 )
-            )
-            .build()
-        workManager.enqueue(workerRequest)
+                .build()
+        workManager.enqueue(periodicWorkRequest)
     }
 
     /**

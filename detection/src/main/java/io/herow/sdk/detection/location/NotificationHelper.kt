@@ -26,7 +26,7 @@ object NotificationHelper {
     fun createNotificationChannel(context: Context) {
         val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance: Int = NotificationManager.IMPORTANCE_DEFAULT
+            val importance: Int = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance)
             channel.setSound(null, null)
             channel.description = CHANNEL_DESCRIPTION

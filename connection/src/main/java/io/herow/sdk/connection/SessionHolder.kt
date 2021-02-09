@@ -3,6 +3,7 @@ package io.herow.sdk.connection
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.userinfo.UserInfo
+import java.time.LocalDateTime
 
 class SessionHolder(private val dataHolder: DataHolder) {
     companion object {
@@ -15,6 +16,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_CACHE_TIMEOUT = "common.timeout_cache"
         private const val KEY_UPDATE_CACHE = "common_update_cache"
         private const val KEY_SAVED_GEOHASH = "common.saved_geohash"
+        private const val KEY_REPEAT_INTERVAL = "common.repeat_interval"
     }
 
     fun getDeviceId(): String {
@@ -80,27 +82,23 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return GsonProvider.fromJson(savedUserInfo, UserInfo::class.java)
     }
 
-    fun saveModifiedCacheTime(time: Long) {
-        dataHolder[KEY_CACHE_TIMEOUT] = time
+    fun saveModifiedCacheTime(date: String) {
+        dataHolder[KEY_CACHE_TIMEOUT] = date
     }
 
-    private fun getModifiedCacheTime(): Long {
-        return dataHolder.get<Long>(KEY_CACHE_TIMEOUT)
-    }
-
-    fun shouldCacheBeUpdated(remoteCacheTime: Long): Boolean {
-        return remoteCacheTime > getModifiedCacheTime()
+    fun getLastSavedModifiedDateTimeCache(): String {
+        return dataHolder.get<String>(KEY_CACHE_TIMEOUT)
     }
 
     fun updateCache(update: Boolean) {
         dataHolder[KEY_UPDATE_CACHE] = update
     }
 
-    fun isCacheTimeSaved(): Boolean = dataHolder.containsKey(KEY_CACHE_TIMEOUT)
-
     fun getUpdateCacheStatus(): Boolean {
         return dataHolder.get<Boolean>(KEY_UPDATE_CACHE)
     }
+
+    fun hasNoCacheTimeSaved(): Boolean = !dataHolder.containsKey(KEY_CACHE_TIMEOUT)
 
     fun saveGeohash(geoHash: String?) {
         dataHolder[KEY_SAVED_GEOHASH] = geoHash
@@ -110,5 +108,15 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return dataHolder.get<String>(KEY_SAVED_GEOHASH)
     }
 
-    fun isGeoHashSaved(): Boolean = dataHolder.containsKey(KEY_SAVED_GEOHASH)
+    fun hasNoGeoHashSaved(): Boolean = !dataHolder.containsKey(KEY_SAVED_GEOHASH)
+
+    fun hasNoRepeatIntervalSaved(): Boolean = !dataHolder.containsKey(KEY_REPEAT_INTERVAL)
+
+    fun saveRepeatInterval(repeatInterval: Long) {
+        dataHolder[KEY_REPEAT_INTERVAL] = repeatInterval
+    }
+
+    fun getRepeatInterval(): Long {
+        return dataHolder.get<Long>(KEY_REPEAT_INTERVAL)
+    }
 }
