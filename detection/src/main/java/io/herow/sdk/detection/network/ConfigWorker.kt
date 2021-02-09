@@ -83,7 +83,4 @@ class ConfigWorker(
 
         return (remoteCachedTimeToLong > savedTimeStamp)
     }
-
-    private fun checkIntervalState(sessionHolder: SessionHolder, interval: Long) {
-    }
 }

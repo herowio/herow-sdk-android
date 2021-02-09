@@ -1,12 +1,21 @@
 package io.herow.sdk.connection.cache.model
 
 import android.location.Location
+import androidx.room.Embedded
+import androidx.room.Entity
 
-data class Zone(val hash: String,
-                val lat: Double,
-                val lng: Double,
-                val radius: Int,
-                val access: Access
+@Entity(
+    tableName = "Zone"
+)
+data class Zone(
+    val hash: String,
+    val lat: Double,
+    val lng: Double,
+    val radius: Int,
+    val listOfCampaigns: List<Campaign>?,
+
+    @Embedded
+    val access: Access
 ) {
     fun toLocation(): Location {
         val location = Location(hash)
