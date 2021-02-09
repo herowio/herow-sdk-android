@@ -10,7 +10,7 @@ object MockLocation {
                   lng: Double = RandomGenerator.lng(),
                   zoneId: String = RandomGenerator.id(),
                   radius: Int = RandomGenerator.randomInt()): Zone {
-        return Zone(zoneId, lat, lng, radius, buildAccess())
+        return Zone(zoneId, lat, lng, radius, null, buildAccess())
     }
 
     fun buildAccess(name: String = RandomGenerator.alphanumericalString(),
