@@ -3,7 +3,6 @@ package io.herow.sdk.connection
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.userinfo.UserInfo
-import java.time.LocalDateTime
 
 class SessionHolder(private val dataHolder: DataHolder) {
     companion object {

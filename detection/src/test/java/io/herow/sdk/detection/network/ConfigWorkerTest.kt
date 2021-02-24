@@ -10,17 +10,21 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
-import kotlinx.coroutines.runBlocking
+import io.herow.sdk.detection.CoroutineTestRule
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.*
 
+@ExperimentalCoroutinesApi
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class ConfigWorkerTest {
@@ -47,6 +51,7 @@ class ConfigWorkerTest {
                 )
             ).build()
     }
+
 
     @Test
     fun testLaunchTokenConfigWorker() {
@@ -77,7 +82,6 @@ class ConfigWorkerTest {
             assertThat(result, `is`(ListenableWorker.Result.success()))
             Assert.assertNotNull(configWorkerListener.configResult)
         }
-
     }
 
     @Test
@@ -93,7 +97,7 @@ class ConfigWorkerTest {
 
     @Test
     fun testWithCacheTimeSuperiorToRemoteTime() {
-        sessionHolder.saveModifiedCacheTime("Fri, 28 Aug 2020 12:57:38 GMT")
+        sessionHolder.saveModifiedCacheTime("Fri, 19 Feb 2021 15:00:00 GMT")
 
         runBlocking {
             val result = worker.doWork()

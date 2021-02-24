@@ -19,6 +19,7 @@ class SessionInterceptor(private val sessionHolder: SessionHolder): Interceptor 
             requestBuilder.addHeader(HerowHeaders.AUTHORIZATION_HEADER, accessToken)
         }
         val herowId = sessionHolder.getHerowId()
+
         if (herowId.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.HEROW_ID_HEADER, herowId)
         }

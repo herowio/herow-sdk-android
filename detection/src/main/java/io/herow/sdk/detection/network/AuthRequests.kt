@@ -2,6 +2,7 @@ package io.herow.sdk.detection.network
 
 import androidx.work.Data
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.RetrofitBuilder
@@ -11,13 +12,14 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
-import io.herow.sdk.common.json.GsonProvider
 
 /**
  * Token and UserInfo workflow
  */
-class AuthRequests(private val sessionHolder: SessionHolder,
-                   private val data: Data) {
+class AuthRequests(
+    private val sessionHolder: SessionHolder,
+    private val data: Data
+) {
     companion object {
         const val KEY_SDK_ID = "detection.sdk_id"
         const val KEY_SDK_KEY = "detection.sdk_key"
@@ -83,9 +85,11 @@ class AuthRequests(private val sessionHolder: SessionHolder,
         return (timeoutTime < TimeHelper.getCurrentTime())
     }
 
-    private suspend fun launchTokenRequest(sessionHolder: SessionHolder,
-                                           platform: HerowPlatform,
-                                           herowAPI: HerowAPI) {
+    private suspend fun launchTokenRequest(
+        sessionHolder: SessionHolder,
+        platform: HerowPlatform,
+        herowAPI: HerowAPI
+    ) {
         val sdkId = data.getString(KEY_SDK_ID) ?: ""
         val sdkKey = data.getString(KEY_SDK_KEY) ?: ""
 
@@ -133,7 +137,7 @@ class AuthRequests(private val sessionHolder: SessionHolder,
     private fun isUserInfoUpToDate(): Boolean {
         val currentUserInfo = getCurrentUserInfo()
         val savedUserInfo = getSavedUserInfo()
-         return currentUserInfo == savedUserInfo
+        return currentUserInfo == savedUserInfo
     }
 
     private fun isUserInfoNotUpToDate(): Boolean {

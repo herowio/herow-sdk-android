@@ -1,12 +1,14 @@
 package io.herow.sdk.detection.analytics
 
+import android.content.Context
 import android.location.Location
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
-import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.model.Poi
+import io.herow.sdk.connection.cache.repository.PoiRepository
+import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.analytics.model.HerowLogEnter
@@ -15,21 +17,28 @@ import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.location.LocationListener
-import kotlin.collections.ArrayList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT or VISIT) by listening to different
  * geofencing listeners.
  */
-class LogGeneratorEvent(private val applicationData: ApplicationData,
-                        private val sessionHolder: SessionHolder):
+class LogGeneratorEvent(
+    private val applicationData: ApplicationData,
+    private val sessionHolder: SessionHolder,
+    context: Context
+) :
     AppStateListener, CacheListener, LocationListener, GeofenceListener {
     companion object {
         private const val DISTANCE_POI_MAX = 20_000
     }
+
     private var appState: String = "bg"
     private val cachePois = ArrayList<Poi>()
     private val listOfTemporaryLogsVisit = ArrayList<HerowLogVisit>()
+    private val db: HerowDatabase = HerowDatabase.getDatabase(context)
 
     override fun onAppInForeground() {
         appState = "fg"
@@ -60,9 +69,9 @@ class LogGeneratorEvent(private val applicationData: ApplicationData,
         return closestPois
     }
 
-    override fun onCacheReception(cacheResult: CacheResult) {
+    override fun onCacheReception() {
         cachePois.clear()
-        cachePois.addAll(cacheResult.pois)
+        retrievePois()?.let { cachePois.addAll(it) }
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
@@ -92,5 +101,16 @@ class LogGeneratorEvent(private val applicationData: ApplicationData,
 
         LogsDispatcher.dispatchLogsResult(listOfLogsEnter)
         LogsDispatcher.dispatchLogsResult(listOfLogsVisit)
+    }
+
+    private fun retrievePois(): ArrayList<Poi>? {
+        val poiRepository = PoiRepository(db.poiDAO())
+        var poisInDB: ArrayList<Poi>? = null
+
+        CoroutineScope(Dispatchers.IO).launch {
+            poisInDB = poiRepository.getAllPois() as ArrayList<Poi>
+        }
+
+        return poisInDB
     }
 }

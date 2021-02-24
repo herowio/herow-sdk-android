@@ -1,16 +1,18 @@
 package io.herow.sdk.connection.cache.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Transaction
 import io.herow.sdk.connection.cache.model.Campaign
-import io.herow.sdk.connection.cache.model.CampaignWithCappingAndTriggerAndNotification
 
 @Dao
 interface CampaignDAO {
 
     @Insert
-    fun insertCampaign(vararg campaign: Campaign)
+    fun insertCampaign(campaign: Campaign): Long?
 
     @Transaction
     @Query("SELECT * FROM Campaign")
-    fun getAllCampaign(): List<CampaignWithCappingAndTriggerAndNotification>
+    fun getAllCampaign(): List<Campaign>?
 }

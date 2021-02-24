@@ -2,36 +2,32 @@ package io.herow.sdk.connection.cache.model
 
 import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
 
 @Entity(
-    tableName = "Campaign",
-    foreignKeys = [ForeignKey(
-        entity = Zone::class,
-        parentColumns = arrayOf("listOfCampaigns"),
-        childColumns = arrayOf("campaignID"),
-        onDelete = ForeignKey.NO_ACTION
-    )],
+    tableName = "Campaign"
 )
 data class Campaign(
+    @PrimaryKey(autoGenerate = true)
+    val campaignID: Long = 0,
 
-    @PrimaryKey(autoGenerate = false)
-    val campaignID: String,
-    val company: String,
-    val createdDate: Long,
-    val modifiedDate: Long,
-    val deleted: Boolean,
-    val simpleID: String,
-    val name: String,
-    val begin: Long,
+    var id: String? = "",
+    var company: String? = "",
+    var createdDate: Long? = 0,
+    var modifiedDate: Long? = 0,
+    var deleted: Boolean? = false,
+    var simpleID: String? = "",
+    var name: String? = "",
+    var begin: Long? = 0,
+    var recurrenceEnabled: Boolean? = false,
+    var timeZone: String? = "",
 
-    val intervals: List<Interval>,
+    @Embedded
+    var capping: Capping? = null,
+    @Embedded
+    var trigger: Trigger? = null,
+    @Embedded
+    var notification: Notification? = null,
 
-    val recurrenceEnabled: Boolean,
-    val timeZone: String,
-    val capping: Capping,
-    val trigger: Trigger,
-    val notification: Notification
+    var intervals: List<Interval?> = listOf()
 )

@@ -26,27 +26,32 @@ class LogGeneratorEventTest {
     private val herowLogsListener = HerowLogsListener()
     private lateinit var logGeneratorEvent: LogGeneratorEvent
 
+    private lateinit var context: Context
+
     @Before
     fun setUp() {
-        val context: Context = ApplicationProvider.getApplicationContext()
+        context = ApplicationProvider.getApplicationContext()
         val applicationData = ApplicationData(context)
         val sessionHolder = SessionHolder(DataHolder(context))
-        logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder)
+        logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)
         LogsDispatcher.addLogListener(herowLogsListener)
     }
 
     @Test
     fun testGeofenceEvent(): Unit = runBlocking {
-        val firstZone = MockLocation.buildZone()
-        val secondZone = MockLocation.buildZone()
-        val firstGeofenceEvent = GeofenceEvent(firstZone, MockLocation.buildLocation(), GeofenceType.ENTER)
-        val secondGeofenceEvent = GeofenceEvent(secondZone, MockLocation.buildLocation(), GeofenceType.ENTER)
+        val firstZone = MockLocation(context).fetchZone()
+        val secondZone = MockLocation(context).fetchZone()
+        val firstGeofenceEvent =
+            GeofenceEvent(firstZone!!, MockLocation(context).buildLocation(), GeofenceType.ENTER)
+        val secondGeofenceEvent =
+            GeofenceEvent(secondZone!!, MockLocation(context).buildLocation(), GeofenceType.ENTER)
         logGeneratorEvent.onGeofenceEvent(listOf(firstGeofenceEvent, secondGeofenceEvent))
         Assert.assertEquals(0, herowLogsListener.herowLogsVisit.size)
 
         delay(500)
 
-        val updatedFirstGeofenceEvent = GeofenceEvent(firstZone, MockLocation.buildLocation(), GeofenceType.EXIT)
+        val updatedFirstGeofenceEvent =
+            GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
         logGeneratorEvent.onGeofenceEvent(listOf(updatedFirstGeofenceEvent, secondGeofenceEvent))
         Assert.assertEquals(1, herowLogsListener.herowLogsVisit.size)
         val herowLogVisit = herowLogsListener.herowLogsVisit.first()
@@ -57,7 +62,8 @@ class LogGeneratorEventTest {
 
         delay(1_000)
 
-        val updatedSecondGeofenceEvent = GeofenceEvent(secondZone, MockLocation.buildLocation(), GeofenceType.EXIT)
+        val updatedSecondGeofenceEvent =
+            GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
         logGeneratorEvent.onGeofenceEvent(listOf(updatedSecondGeofenceEvent))
         Assert.assertEquals(1, herowLogsListener.herowLogsVisit.size)
         val otherLogVisit = herowLogsListener.herowLogsVisit.first()
@@ -67,7 +73,7 @@ class LogGeneratorEventTest {
         }
     }
 
-    class HerowLogsListener: LogsListener {
+    class HerowLogsListener : LogsListener {
         val herowLogsVisit = ArrayList<HerowLogVisit>()
 
         override fun onLogsToSend(listOfLogs: List<Log>) {

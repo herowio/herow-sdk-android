@@ -4,9 +4,19 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.connection.*
-import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.connection.HerowAPI
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.connection.cache.repository.CampaignRepository
+import io.herow.sdk.connection.cache.repository.PoiRepository
+import io.herow.sdk.connection.cache.repository.ZoneRepository
+import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
+import io.herow.sdk.detection.helpers.DispatcherProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the
@@ -18,13 +28,14 @@ class CacheWorker(
 ) : CoroutineWorker(context, workerParameters) {
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
+        private val dispatcher: DispatcherProvider = DefaultDispatcherProvider()
     }
 
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
+    private var db: HerowDatabase = HerowDatabase.getDatabase(context)
 
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
-
         val authRequest = AuthRequests(sessionHolder, inputData)
 
         authRequest.execute {
@@ -46,9 +57,16 @@ class CacheWorker(
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
                 if (cacheResponse.isSuccessful) {
                     cacheResponse.body()?.let { cacheResult: CacheResult ->
-                        CacheDispatcher.dispatchCacheResult(cacheResult)
+                        val job = CoroutineScope(dispatcher.io()).launch {
+                            clearDatabase()
+                            saveCacheDataInDB(cacheResult)
+                        }
+                        job.join()
+
+                        CacheDispatcher.dispatch()
                     }
                 }
+                db.close()
             }
         }
     }
@@ -79,5 +97,27 @@ class CacheWorker(
         }
 
         return ""
+    }
+
+    private fun clearDatabase() = db.clearAllTables()
+
+    private fun saveCacheDataInDB(cacheResult: CacheResult) {
+        val zoneRepository = ZoneRepository(db.zoneDAO())
+        val poiRepository = PoiRepository(db.poiDAO())
+        val campaignRepository = CampaignRepository(db.campaignDAO())
+
+        db.runInTransaction {
+            for (zone in cacheResult.zones) {
+                zoneRepository.insert(zone)
+            }
+
+            for (poi in cacheResult.pois) {
+                poiRepository.insert(poi)
+            }
+
+            for (campaign in cacheResult.campaigns) {
+                campaignRepository.insert(campaign)
+            }
+        }
     }
 }

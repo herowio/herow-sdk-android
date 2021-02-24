@@ -22,6 +22,6 @@ class HerowLogEnter(appState: String,
         this[APP_STATE] = appState
         this[LOCATION] = geofenceEvent.location
         this[NEAR_BY_POIS] = nearbyPois
-        this[PLACE_ID] = geofenceEvent.zone.hash
+        this[PLACE_ID] = geofenceEvent.zone.hash!!
     }
 }

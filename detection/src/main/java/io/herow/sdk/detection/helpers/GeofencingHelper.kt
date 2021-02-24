@@ -10,7 +10,7 @@ object GeofencingHelper {
         for (zone: Zone in zones) {
             geofenceList.add(Geofence.Builder()
                 .setRequestId(zone.hash)
-                .setCircularRegion(zone.lat, zone.lng, zone.radius.toFloat())
+                .setCircularRegion(zone.lat!!, zone.lng!!, zone.radius!!.toFloat())
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
                 .build())

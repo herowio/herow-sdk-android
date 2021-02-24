@@ -4,11 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.google.android.gms.location.ActivityTransitionResult
-import io.herow.sdk.common.states.app.AppStateDetector
-import io.herow.sdk.common.states.app.AppStateListener
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.concurrent.CopyOnWriteArrayList
 
 class ActivityTransitionReceiver: BroadcastReceiver() {

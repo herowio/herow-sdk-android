@@ -2,13 +2,7 @@ package io.herow.sdk.common.states.motion
 
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
 import androidx.test.core.app.ApplicationProvider
-import com.google.android.gms.common.internal.safeparcel.SafeParcelableSerializer
-import com.google.android.gms.location.ActivityTransition
-import com.google.android.gms.location.ActivityTransitionEvent
-import com.google.android.gms.location.ActivityTransitionResult
-import com.google.android.gms.location.DetectedActivity
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

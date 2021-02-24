@@ -32,8 +32,7 @@ interface HerowAPI {
     suspend fun userInfo(@Body body: String): Response<UserInfoResult>
 
     @Headers(
-        "Content-Type: application/json",
-    )
+        "Content-Type: application/json")
     @GET("v2/sdk/config")
     suspend fun config(): Response<ConfigResult>
 
@@ -44,7 +43,7 @@ interface HerowAPI {
     suspend fun cache(@Path("geohash") geohash: String): Response<CacheResult>
 
     @Headers(
-        "Content-Type: application/json",
+        "Content-Type: application/json"
     )
     @POST("stat/queue/multi")
     suspend fun logs(@Body body: String): Response<Void>

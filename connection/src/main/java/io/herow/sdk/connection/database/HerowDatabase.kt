@@ -4,17 +4,21 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import io.herow.sdk.connection.cache.dao.CampaignDAO
 import io.herow.sdk.connection.cache.dao.PoiDAO
 import io.herow.sdk.connection.cache.dao.ZoneDAO
-import io.herow.sdk.connection.cache.model.*
+import io.herow.sdk.connection.cache.model.Campaign
+import io.herow.sdk.connection.cache.model.Poi
+import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.utils.Converters
 
 @Database(
-    entities = [Access::class, Campaign::class, Capping::class, Interval::class,
-        Notification::class, Poi::class, Trigger::class, Zone::class],
+    entities = [Campaign::class, Poi::class, Zone::class],
     version = 1,
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class HerowDatabase : RoomDatabase() {
 
     abstract fun campaignDAO(): CampaignDAO
