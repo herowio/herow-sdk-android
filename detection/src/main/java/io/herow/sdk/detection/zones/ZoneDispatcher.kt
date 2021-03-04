@@ -1,7 +1,7 @@
 package io.herow.sdk.detection.zones
 
-import io.herow.sdk.connection.cache.model.Zone
 import android.location.Location
+import io.herow.sdk.connection.cache.model.Zone
 import java.util.concurrent.CopyOnWriteArrayList
 
 object ZoneDispatcher {

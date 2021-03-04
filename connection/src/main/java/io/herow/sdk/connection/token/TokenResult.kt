@@ -1,8 +1,6 @@
 package io.herow.sdk.connection.token
 
 import io.herow.sdk.common.helpers.TimeHelper
-import java.util.concurrent.TimeUnit
-import kotlin.time.seconds
 
 data class TokenResult(
     private val accessToken: String,

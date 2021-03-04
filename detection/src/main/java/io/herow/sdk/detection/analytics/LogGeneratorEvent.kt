@@ -15,7 +15,6 @@ import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.location.LocationListener
-import kotlin.collections.ArrayList
 
 /**
  * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT or VISIT) by listening to different

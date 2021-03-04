@@ -10,10 +10,10 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
-import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager

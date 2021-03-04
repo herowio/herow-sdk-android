@@ -13,5 +13,5 @@ dependencies {
     compileOnly "com.google.android.gms:play-services-ads:$play_services_ads"
 
     // Testing Worker
-    testImplementation 'androidx.work:work-testing:2.5.0-rc01'
+    testImplementation 'androidx.work:work-testing:2.5.0'
 }

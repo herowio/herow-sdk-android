@@ -2,6 +2,7 @@ package io.herow.sdk.detection.network
 
 import androidx.work.Data
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.RetrofitBuilder
@@ -11,13 +12,14 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
-import io.herow.sdk.common.json.GsonProvider
 
 /**
  * Token and UserInfo workflow
  */
-class AuthRequests(private val sessionHolder: SessionHolder,
-                   private val data: Data) {
+class AuthRequests(
+    private val sessionHolder: SessionHolder,
+    private val data: Data
+) {
     companion object {
         const val KEY_SDK_ID = "detection.sdk_id"
         const val KEY_SDK_KEY = "detection.sdk_key"
@@ -26,7 +28,6 @@ class AuthRequests(private val sessionHolder: SessionHolder,
     }
 
     private val platform = getPlatform()
-
     private val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(
         sessionHolder,
         getApiUrl(platform),
@@ -45,9 +46,11 @@ class AuthRequests(private val sessionHolder: SessionHolder,
         if (!isTokenUsable(sessionHolder)) {
             launchTokenRequest(sessionHolder, platform, herowAPI)
         }
-        if (sessionHolder.hasNoUserInfoSaved() || isUserInfoNotUpToDate()) {
+
+        if (sessionHolder.hasNoUserInfoSaved() || !isUserInfoUpToDate()) {
             launchUserInfoRequest(sessionHolder, herowAPI)
         }
+
         request(herowAPI)
     }
 
@@ -83,9 +86,11 @@ class AuthRequests(private val sessionHolder: SessionHolder,
         return (timeoutTime < TimeHelper.getCurrentTime())
     }
 
-    private suspend fun launchTokenRequest(sessionHolder: SessionHolder,
-                                           platform: HerowPlatform,
-                                           herowAPI: HerowAPI) {
+    private suspend fun launchTokenRequest(
+        sessionHolder: SessionHolder,
+        platform: HerowPlatform,
+        herowAPI: HerowAPI
+    ) {
         val sdkId = data.getString(KEY_SDK_ID) ?: ""
         val sdkKey = data.getString(KEY_SDK_KEY) ?: ""
 
@@ -108,7 +113,25 @@ class AuthRequests(private val sessionHolder: SessionHolder,
         }
     }
 
-    private suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
+    private fun getCurrentUserInfo(): UserInfo {
+        val adID = if (sessionHolder.getAdvertiserId()!!.isEmpty()) {
+            null
+        } else {
+            sessionHolder.getAdvertiserId()
+        }
+
+        return UserInfo(
+            optins = arrayListOf(Optin(value = sessionHolder.getOptinValue())),
+            advertiserId = adID,
+            customId = data.getString(KEY_CUSTOM_ID) ?: ""
+        )
+    }
+
+    private fun getSavedUserInfo(): UserInfo = sessionHolder.loadSaveStringToUserInfo()
+
+    private fun isUserInfoUpToDate(): Boolean = getCurrentUserInfo() == getSavedUserInfo()
+
+    suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
         val userInfo = getCurrentUserInfo()
         val jsonString = GsonProvider.toJson(userInfo, UserInfo::class.java)
         sessionHolder.saveStringUserInfo(jsonString)
@@ -120,25 +143,4 @@ class AuthRequests(private val sessionHolder: SessionHolder,
             }
         }
     }
-
-    // TODO: update Optin with user choice by providing a method inside the HerowInitializer
-    private fun getCurrentUserInfo(): UserInfo {
-        val customId = data.getString(KEY_CUSTOM_ID) ?: ""
-        return UserInfo(
-            arrayListOf(Optin("USER_DATA", true)),
-            sessionHolder.getAdvertiserId(), customId, TimeHelper.getUtcOffset()
-        )
-    }
-
-    private fun isUserInfoUpToDate(): Boolean {
-        val currentUserInfo = getCurrentUserInfo()
-        val savedUserInfo = getSavedUserInfo()
-         return currentUserInfo == savedUserInfo
-    }
-
-    private fun isUserInfoNotUpToDate(): Boolean {
-        return !isUserInfoUpToDate()
-    }
-
-    private fun getSavedUserInfo(): UserInfo = sessionHolder.loadSaveStringToUserInfo()
 }

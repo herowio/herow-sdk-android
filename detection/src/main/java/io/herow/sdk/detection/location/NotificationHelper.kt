@@ -5,18 +5,16 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
-import androidx.work.impl.foreground.SystemForegroundService
 import io.herow.sdk.detection.R
 import java.util.*
 
 object NotificationHelper {
-    const val FOREGROUND_NOTIFICATION_ID = 15_951
+    private const val FOREGROUND_NOTIFICATION_ID = 15_951
 
     private const val CHANNEL_ID = "com.connecthings.connectplace.geodetection"
     private const val CHANNEL_NAME = "Herow"

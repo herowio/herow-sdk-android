@@ -17,6 +17,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
+//TODO TAKE A LOOK THERE
 class ClickAndCollectWorker(context: Context,
                             workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
     companion object {
@@ -50,7 +51,7 @@ class ClickAndCollectWorker(context: Context,
         }
     }
 
-    private suspend fun ClickAndCollectWorker.launchJob() {
+    private suspend fun launchJob() {
         NotificationHelper.createNotificationChannel(applicationContext)
         val foregroundInfo = NotificationHelper.foregroundNotification(applicationContext, id)
         setForeground(foregroundInfo)

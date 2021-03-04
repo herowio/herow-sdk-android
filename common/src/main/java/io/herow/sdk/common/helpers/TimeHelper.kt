@@ -36,9 +36,4 @@ object TimeHelper {
             DateTimeUtils.toDate(zonedDateTime.toInstant()).time
         }
     }
-
-    fun getUtcOffset(): Int {
-        val timeZone = TimeZone.getDefault()
-        return timeZone.getOffset(System.currentTimeMillis())
-    }
 }

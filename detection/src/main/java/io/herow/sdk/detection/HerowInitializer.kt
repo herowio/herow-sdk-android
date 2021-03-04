@@ -30,15 +30,15 @@ import java.util.concurrent.TimeUnit
 object HerowInitializer {
     private val activityTransitionDetector = ActivityTransitionDetector()
     private val appStateDetector = AppStateDetector()
-    private var customId: String = ""
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
+    private var customID: String = ""
     private lateinit var locationManager: LocationManager
     private lateinit var logsManager: LogsManager
     private lateinit var workManager: WorkManager
 
     private lateinit var sessionHolder: SessionHolder
-    private val initialRepeatInterval: Long = 900000
+    private const val initialRepeatInterval: Long = 900000
 
     fun init(context: Context): HerowInitializer {
         AndroidThreeTen.init(context)
@@ -96,7 +96,13 @@ object HerowInitializer {
     }
 
     fun configCustomId(customId: String): HerowInitializer {
-        this.customId = customId
+        sessionHolder.saveCustomID(customId)
+        this.customID = sessionHolder.getCustomID()
+        return this
+    }
+
+    fun updateOptin(optinAccepted: Boolean?): HerowInitializer {
+        saveOptinValue(optinAccepted)
         return this
     }
 
@@ -120,21 +126,25 @@ object HerowInitializer {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        var repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
+        val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
             initialRepeatInterval
         } else {
             sessionHolder.getRepeatInterval()
         }
 
         val periodicWorkRequest =
-            PeriodicWorkRequest.Builder(ConfigWorker::class.java, repeatInterval, TimeUnit.MILLISECONDS)
+            PeriodicWorkRequest.Builder(
+                ConfigWorker::class.java,
+                repeatInterval,
+                TimeUnit.MILLISECONDS
+            )
                 .addTag(NetworkWorkerTags.CONFIG)
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
                         AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
                         AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customId,
+                        AuthRequests.KEY_CUSTOM_ID to customID,
                         AuthRequests.KEY_PLATFORM to platform.name
                     )
                 )
@@ -157,7 +167,7 @@ object HerowInitializer {
                     workDataOf(
                         AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
                         AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customId,
+                        AuthRequests.KEY_CUSTOM_ID to customID,
                         AuthRequests.KEY_PLATFORM to platform.name,
                         CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
                     )
@@ -182,7 +192,7 @@ object HerowInitializer {
                     workDataOf(
                         AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
                         AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customId,
+                        AuthRequests.KEY_CUSTOM_ID to customID,
                         AuthRequests.KEY_PLATFORM to platform.name,
                         LogsWorker.KEY_LOGS to logs
                     )
@@ -201,5 +211,12 @@ object HerowInitializer {
 
     fun stopClickAndCollect() {
         workManager.cancelAllWorkByTag(ClickAndCollectWorker.tag)
+    }
+
+    /**
+     * Save user choice optin value
+     */
+    private fun saveOptinValue(optinAccepted: Boolean?) {
+        sessionHolder.saveOptinValue(optinAccepted)
     }
 }

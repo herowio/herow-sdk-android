@@ -1,12 +1,11 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.HerowAPI
-import io.herow.sdk.connection.HerowPlatform
-import io.herow.sdk.connection.RetrofitBuilder
 import io.herow.sdk.connection.SessionHolder
 
 class LogsWorker(
@@ -17,10 +16,17 @@ class LogsWorker(
         const val KEY_LOGS = "detection.logs"
     }
 
+    private lateinit var sessionHolder: SessionHolder
+
     override suspend fun doWork(): Result {
-        val sessionHolder = SessionHolder(DataHolder(applicationContext))
+        sessionHolder = SessionHolder(DataHolder(applicationContext))
 
         val autRequest = AuthRequests(sessionHolder, inputData)
+        if (!sessionHolder.getOptinValue()) {
+            Log.d("Optin", "Optin value is set to false")
+            return Result.failure()
+        }
+
         autRequest.execute {
             launchLogsRequest(autRequest.getHerowAPI())
         }

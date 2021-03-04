@@ -1,12 +1,14 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.connection.*
-import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.connection.HerowAPI
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.model.CacheResult
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the
@@ -24,8 +26,12 @@ class CacheWorker(
 
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
-
         val authRequest = AuthRequests(sessionHolder, inputData)
+
+        if (!sessionHolder.getOptinValue()) {
+            Log.d("Optin", "Optin value is set to false")
+            return Result.failure()
+        }
 
         authRequest.execute {
             launchCacheRequest(sessionHolder, authRequest.getHerowAPI())

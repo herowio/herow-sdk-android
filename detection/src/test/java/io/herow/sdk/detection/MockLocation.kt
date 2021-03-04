@@ -13,7 +13,7 @@ object MockLocation {
         return Zone(zoneId, lat, lng, radius, buildAccess())
     }
 
-    fun buildAccess(name: String = RandomGenerator.alphanumericalString(),
+    private fun buildAccess(name: String = RandomGenerator.alphanumericalString(),
                     address: String = RandomGenerator.alphanumericalString(45)): Access {
         return Access(RandomGenerator.id(), name, address)
     }

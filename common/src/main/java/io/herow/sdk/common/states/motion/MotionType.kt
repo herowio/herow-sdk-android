@@ -24,7 +24,7 @@ enum class MotionType {
     WALKING;
 
     companion object {
-        fun getType(detectedActivity: Int): MotionType {
+        private fun getType(detectedActivity: Int): MotionType {
             return when (detectedActivity) {
                 DetectedActivity.IN_VEHICLE -> IN_VEHICLE
                 DetectedActivity.ON_BICYCLE -> ON_BICYCLE

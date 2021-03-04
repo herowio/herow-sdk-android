@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.detection.helpers.DateHelper
@@ -82,8 +82,5 @@ class ConfigWorker(
         val remoteCachedTimeToLong = DateHelper.convertStringToTimeStamp(remoteCachedTime)
 
         return (remoteCachedTimeToLong > savedTimeStamp)
-    }
-
-    private fun checkIntervalState(sessionHolder: SessionHolder, interval: Long) {
     }
 }

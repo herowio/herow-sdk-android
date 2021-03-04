@@ -6,7 +6,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutionException
 
 object WorkHelper {
-    fun isWorkScheduled(workManager: WorkManager, tag: String): Boolean {
+    private fun isWorkScheduled(workManager: WorkManager, tag: String): Boolean {
         val workersList: ListenableFuture<List<WorkInfo>> = workManager.getWorkInfosByTag(tag)
         return try {
             val workInfoList: List<WorkInfo> = workersList.get()

@@ -7,9 +7,9 @@ import android.content.Intent
 import android.location.Location
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
+import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.detection.geofencing.GeofencingReceiver
 import io.herow.sdk.detection.helpers.GeofencingHelper
 import io.herow.sdk.detection.location.LocationListener

@@ -14,8 +14,6 @@ import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import kotlinx.coroutines.runBlocking
-import org.bouncycastle.crypto.prng.RandomGenerator
-import org.hamcrest.MatcherAssert
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
 import org.junit.Assert
@@ -40,6 +38,8 @@ class CacheWorkerTest {
         context = ApplicationProvider.getApplicationContext()
         dataHolder = io.herow.sdk.common.DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
+
+        sessionHolder.saveOptinValue(true)
 
         // Mandatory to test testLaunchUser
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
@@ -97,7 +97,7 @@ class CacheWorkerTest {
         Assert.assertNull(cacheWorkerListener.cacheResult)
 
         runBlocking {
-            val result = worker.doWork()
+            worker.doWork()
             Assert.assertNotNull(cacheWorkerListener.cacheResult)
         }
     }
@@ -129,6 +129,16 @@ class CacheWorkerTest {
         runBlocking {
             worker.doWork()
             Assert.assertNull(cacheWorkerListener.cacheResult)
+        }
+    }
+
+    @Test
+    fun testDoWorkIsNotCalledIfOptinIsFalse() {
+        sessionHolder.saveOptinValue(false)
+        
+        runBlocking {
+            val result = worker.doWork()
+            assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
         }
     }
 
