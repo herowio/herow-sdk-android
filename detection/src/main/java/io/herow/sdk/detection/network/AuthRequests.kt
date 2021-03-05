@@ -114,7 +114,7 @@ class AuthRequests(
     }
 
     private fun getCurrentUserInfo(): UserInfo {
-        val adID = if (sessionHolder.getAdvertiserId()!!.isEmpty()) {
+        val adID = if (sessionHolder.getAdvertiserId().isNullOrEmpty()) {
             null
         } else {
             sessionHolder.getAdvertiserId()
