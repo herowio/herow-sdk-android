@@ -15,7 +15,7 @@ import io.herow.sdk.detection.location.LocationDispatcher
 class LogsManager(context: Context): LogsListener {
     private val applicationData = ApplicationData(context)
     private val sessionHolder = SessionHolder(DataHolder(context))
-    private val logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder)
+    private val logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)
 
     init {
         AppStateDetector.addAppStateListener(logGeneratorEvent)

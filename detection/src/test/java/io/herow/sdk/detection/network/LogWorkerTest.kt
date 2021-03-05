@@ -62,6 +62,4 @@ class LogWorkerTest {
             MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
         }
     }
-
-
 }

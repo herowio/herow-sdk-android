@@ -17,6 +17,7 @@ object RetrofitBuilder {
             .addConverterFactory(GsonConverterFactory.create())
             .client(getOkHttpClient(sessionHolder, addLoggingInterceptor))
             .build()
+
         return retrofit.create(apiClass)
     }
 

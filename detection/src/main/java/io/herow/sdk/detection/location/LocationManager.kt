@@ -11,28 +11,53 @@ import com.google.android.gms.tasks.Task
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.model.Campaign
+import io.herow.sdk.connection.cache.model.Poi
+import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.repository.CampaignRepository
+import io.herow.sdk.connection.cache.repository.PoiRepository
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
+import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
+import io.herow.sdk.detection.helpers.DispatcherProvider
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-class LocationManager(context: Context): ConfigListener, AppStateListener, LocationListener {
+class LocationManager(
+    context: Context,
+    private val dispatcher: DispatcherProvider = DefaultDispatcherProvider()
+) : ConfigListener, AppStateListener, LocationListener {
     companion object {
         private const val LOCATION_REQUEST_CODE = 1515
     }
+
     private var isOnForeground: Boolean = false
     private var isGeofencingEnable: Boolean = false
 
-    private val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+    private val fusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
     private val geofenceEventGenerator = GeofenceEventGenerator()
     private val pendingIntent = createPendingIntent(context)
 
+    private val db: HerowDatabase = HerowDatabase.getDatabase(context)
+
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
-        return PendingIntent.getBroadcast(context, LOCATION_REQUEST_CODE, intent, PendingIntent.FLAG_CANCEL_CURRENT)
+        return PendingIntent.getBroadcast(
+            context,
+            LOCATION_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
     }
 
     init {
@@ -94,11 +119,12 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
     }
 
     private fun stopMonitoring() {
-        fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener { task: Task<Void> ->
-            if (task.isSuccessful) {
-                println("Stop making location update")
+        fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
+            .addOnCompleteListener { task: Task<Void> ->
+                if (task.isSuccessful) {
+                    println("Stop making location update")
+                }
             }
-        }
     }
 
     override fun onAppInForeground() {
@@ -116,8 +142,32 @@ class LocationManager(context: Context): ConfigListener, AppStateListener, Locat
     }
 
     override fun onLocationUpdate(location: Location) {
-        if (zoneManager.isZonesEmpty()) {
+        if (zoneManager.isZonesEmpty() || noDataInDB()) {
             HerowInitializer.launchCacheRequest(location)
         }
+    }
+
+    private fun noDataInDB(): Boolean {
+        val zoneRepository = ZoneRepository(db.zoneDAO())
+        val poiRepository = PoiRepository(db.poiDAO())
+        val campaignRepository = CampaignRepository(db.campaignDAO())
+
+        var zonesInDb: List<Zone>? = null
+        var poisInDb: List<Poi>? = null
+        var campaignsInDb: List<Campaign>? = null
+
+        val job = CoroutineScope(dispatcher.io()).launch {
+            zonesInDb = zoneRepository.getAllZones()
+            poisInDb = poiRepository.getAllPois()
+            campaignsInDb = campaignRepository.getAllCampaigns()
+
+            db.close()
+        }
+
+        runBlocking {
+            job.join()
+        }
+
+        return zonesInDb.isNullOrEmpty() && poisInDb.isNullOrEmpty() && campaignsInDb.isNullOrEmpty()
     }
 }

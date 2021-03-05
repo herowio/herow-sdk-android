@@ -8,22 +8,25 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.connection.cache.CacheDispatcher
-import io.herow.sdk.connection.cache.CacheListener
-import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.connection.cache.model.Poi
+import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.repository.PoiRepository
+import io.herow.sdk.connection.cache.repository.ZoneRepository
+import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.CoroutineTestRule
 import io.herow.sdk.detection.MockLocation
-import io.herow.sdk.detection.helpers.GeoHashHelper
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.*
 
+@ExperimentalCoroutinesApi
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class CacheWorkerTest {
@@ -32,6 +35,17 @@ class CacheWorkerTest {
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder
     private lateinit var worker: CacheWorker
     private lateinit var location: Location
+    private lateinit var db: HerowDatabase
+
+    private lateinit var zoneRepository: ZoneRepository
+    private lateinit var poiRepository: PoiRepository
+    private var zones: List<Zone>? = null
+    private var pois: List<Poi>? = null
+
+    private val RENNES_GEOHASH: String = "gbwc"
+
+    @get:Rule
+    var coroutineTestRule = CoroutineTestRule()
 
     @Before
     fun setUp() {
@@ -40,10 +54,13 @@ class CacheWorkerTest {
         sessionHolder = SessionHolder(dataHolder)
 
         sessionHolder.saveOptinValue(true)
+        db = HerowDatabase.getDatabase(context)
+        zoneRepository = ZoneRepository(db.zoneDAO())
+        poiRepository = PoiRepository(db.poiDAO())
 
         // Mandatory to test testLaunchUser
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
-        location = MockLocation.buildLocation()
+        location = MockLocation(context).buildLocation()
 
         worker = TestListenableWorkerBuilder<CacheWorker>(context)
             .setInputData(
@@ -52,14 +69,16 @@ class CacheWorkerTest {
                     AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
                     AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name,
                     AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID,
-                    CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
+                    CacheWorker.KEY_GEOHASH to RENNES_GEOHASH
+                    //CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
                 )
-            ).build()
+            )
+            .build()
     }
 
     @Test
-    fun testLaunchTokenCacheWorker() {
-        runBlocking {
+    fun testLaunchTokenCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+        CoroutineScope(Dispatchers.IO).launch {
             val result = worker.doWork()
             assertThat(result, Is.`is`(ListenableWorker.Result.success()))
             Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
@@ -68,7 +87,7 @@ class CacheWorkerTest {
 
     @Test
     fun testLaunchUserInfoCacheWorker() {
-        runBlocking {
+        CoroutineScope(Dispatchers.IO).launch {
             val result = worker.doWork()
             assertThat(result, Is.`is`(ListenableWorker.Result.success()))
             Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
@@ -76,59 +95,76 @@ class CacheWorkerTest {
     }
 
     @Test
-    fun testLaunchCacheWorker() {
-        val cacheWorkerListener = CacheWorkerListener()
-        CacheDispatcher.addCacheListener(cacheWorkerListener)
-        Assert.assertNull(cacheWorkerListener.cacheResult)
-
-        runBlocking {
+    fun testLaunchCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+        CoroutineScope(Dispatchers.IO).launch {
             val result = worker.doWork()
             assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-            Assert.assertNotNull(cacheWorkerListener.cacheResult)
         }
     }
 
     @Test
-    fun testCacheIsCalledIfUpdateStatusTrue() {
-        sessionHolder.updateCache(true)
+    fun testCacheResultIsSavedInDB() = coroutineTestRule.testDispatcher.runBlockingTest {
+        CoroutineScope(Dispatchers.IO).launch {
+            db.runInTransaction {
+                zones = zoneRepository.getAllZones()
+                pois = poiRepository.getAllPois()
+            }
 
-        val cacheWorkerListener = CacheWorkerListener()
-        CacheDispatcher.addCacheListener(cacheWorkerListener)
-        Assert.assertNull(cacheWorkerListener.cacheResult)
+            Assert.assertTrue(zones.isNullOrEmpty())
+            Assert.assertTrue(pois.isNullOrEmpty())
 
-        runBlocking {
             worker.doWork()
-            Assert.assertNotNull(cacheWorkerListener.cacheResult)
+            zones = zoneRepository.getAllZones()
+            pois = poiRepository.getAllPois()
+            Assert.assertTrue(!zones.isNullOrEmpty())
+            Assert.assertTrue(!pois.isNullOrEmpty())
         }
     }
 
     @Test
-    fun testCacheIsCalledIfUpdateStatusTrueAndGeoHashIsKnownAndDifferent() {
+    fun testCacheIsCalledIfUpdateStatusTrue() = coroutineTestRule.testDispatcher.runBlockingTest {
         sessionHolder.updateCache(true)
-        sessionHolder.saveGeohash("123a")
 
-        val cacheWorkerListener = CacheWorkerListener()
-        CacheDispatcher.addCacheListener(cacheWorkerListener)
-        Assert.assertNull(cacheWorkerListener.cacheResult)
+        CoroutineScope(Dispatchers.IO).launch {
+            zones = zoneRepository.getAllZones()
+            Assert.assertTrue(zones.isNullOrEmpty())
 
-        runBlocking {
             worker.doWork()
-            Assert.assertNotNull(cacheWorkerListener.cacheResult)
+            zones = zoneRepository.getAllZones()
+            Assert.assertTrue(!zones.isNullOrEmpty())
         }
     }
+
+    @Test
+    fun testCacheIsCalledIfUpdateStatusTrueAndGeoHashIsKnownAndDifferent() =
+        coroutineTestRule.testDispatcher.runBlockingTest {
+            sessionHolder.updateCache(true)
+            sessionHolder.saveGeohash("123a")
+
+            CoroutineScope(Dispatchers.IO).launch {
+                zones = zoneRepository.getAllZones()
+                Assert.assertTrue(zones.isNullOrEmpty())
+
+                worker.doWork()
+                zones = zoneRepository.getAllZones()
+                Assert.assertTrue(!zones.isNullOrEmpty())
+            }
+        }
 
     @Test
     fun testCacheIsNotCalledIfUpdateStatusFalseAndGeoHashIsNotDifferent() {
-        sessionHolder.updateCache(false)
-        sessionHolder.saveGeohash(GeoHashHelper.encodeBase32(location))
+        CoroutineScope(Dispatchers.IO).launch {
+            sessionHolder.updateCache(false)
+            sessionHolder.saveGeohash(RENNES_GEOHASH)
 
-        val cacheWorkerListener = CacheWorkerListener()
-        CacheDispatcher.addCacheListener(cacheWorkerListener)
-        Assert.assertNull(cacheWorkerListener.cacheResult)
+            CoroutineScope(Dispatchers.IO).launch {
+                zones = zoneRepository.getAllZones()
+                Assert.assertTrue(zones.isNullOrEmpty())
 
-        runBlocking {
-            worker.doWork()
-            Assert.assertNull(cacheWorkerListener.cacheResult)
+                worker.doWork()
+                zones = zoneRepository.getAllZones()
+                Assert.assertTrue(zones.isNullOrEmpty())
+            }
         }
     }
 
@@ -142,11 +178,10 @@ class CacheWorkerTest {
         }
     }
 
-}
-
-class CacheWorkerListener(var cacheResult: CacheResult? = null) : CacheListener {
-    override fun onCacheReception(cacheResult: CacheResult) {
-        this.cacheResult = cacheResult
+    @After
+    fun close() {
+        coroutineTestRule.testDispatcher.cleanupTestCoroutines()
+        db.close()
     }
 }
 

@@ -6,7 +6,11 @@ import kotlin.random.Random
 object RandomGenerator {
     private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 
-    fun id(): String {
+    fun id(): Long {
+        return UUID.randomUUID().mostSignificantBits
+    }
+
+    fun idString(): String {
         return UUID.randomUUID().toString()
     }
 
