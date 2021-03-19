@@ -13,11 +13,7 @@ import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
-import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
-import io.herow.sdk.detection.helpers.DispatcherProvider
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the
@@ -27,17 +23,18 @@ class CacheWorker(
     context: Context,
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters) {
+
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
-        private val dispatcher: DispatcherProvider = DefaultDispatcherProvider()
+        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
-    private var db: HerowDatabase = HerowDatabase.getDatabase(context)
 
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val authRequest = AuthRequests(sessionHolder, inputData)
+        val database: HerowDatabase = HerowDatabase.getDatabase(applicationContext)
 
         if (!sessionHolder.getOptinValue()) {
             Log.d("Optin", "Optin value is set to false")
@@ -45,7 +42,7 @@ class CacheWorker(
         }
 
         authRequest.execute {
-            launchCacheRequest(sessionHolder, authRequest.getHerowAPI())
+            launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
         }
 
         return Result.success()
@@ -55,24 +52,31 @@ class CacheWorker(
      * If GeoHash is unknown or different from the saved one, cache is updated
      * If cache interval has been reached, cache is updated
      */
-    private suspend fun launchCacheRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
+    private suspend fun launchCacheRequest(
+        sessionHolder: SessionHolder,
+        herowAPI: HerowAPI,
+        database: HerowDatabase
+    ) {
         if (sessionHolder.getUpdateCacheStatus() || isGeoHashUnknownOrDifferent(sessionHolder)) {
             val extractedGeoHash = extractGeoHash(sessionHolder)
 
             if (extractedGeoHash.isNotEmpty()) {
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
+
                 if (cacheResponse.isSuccessful) {
                     cacheResponse.body()?.let { cacheResult: CacheResult ->
-                        val job = CoroutineScope(dispatcher.io()).launch {
-                            clearDatabase()
-                            saveCacheDataInDB(cacheResult)
+                        val job = scope.launch {
+                            database.clearAllTables()
+                            println("Data has been deleted")
+                            saveCacheDataInDB(database, cacheResult)
                         }
                         job.join()
 
+                        println("I should be called after data saved")
                         CacheDispatcher.dispatch()
                     }
                 }
-                db.close()
+                database.close()
             }
         }
     }
@@ -105,25 +109,23 @@ class CacheWorker(
         return ""
     }
 
-    private fun clearDatabase() = db.clearAllTables()
+    suspend fun saveCacheDataInDB(database: HerowDatabase, cacheResult: CacheResult) {
+        val zoneRepository = ZoneRepository(database.zoneDAO())
+        val poiRepository = PoiRepository(database.poiDAO())
+        val campaignRepository = CampaignRepository(database.campaignDAO())
 
-    private fun saveCacheDataInDB(cacheResult: CacheResult) {
-        val zoneRepository = ZoneRepository(db.zoneDAO())
-        val poiRepository = PoiRepository(db.poiDAO())
-        val campaignRepository = CampaignRepository(db.campaignDAO())
-
-        db.runInTransaction {
-            for (zone in cacheResult.zones) {
-                zoneRepository.insert(zone)
-            }
-
-            for (poi in cacheResult.pois) {
-                poiRepository.insert(poi)
-            }
-
-            for (campaign in cacheResult.campaigns) {
-                campaignRepository.insert(campaign)
-            }
+        for (zone in cacheResult.zones) {
+            zoneRepository.insert(zone)
         }
+
+        for (poi in cacheResult.pois) {
+            poiRepository.insert(poi)
+        }
+
+        for (campaign in cacheResult.campaigns) {
+            campaignRepository.insert(campaign)
+        }
+
+        println("Data has been saved")
     }
 }

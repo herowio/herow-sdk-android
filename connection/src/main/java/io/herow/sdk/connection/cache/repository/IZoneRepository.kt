@@ -4,7 +4,6 @@ import io.herow.sdk.connection.cache.model.Zone
 
 interface IZoneRepository {
 
-    fun insert(zone: Zone)
-
-    fun getAllZones(): List<Zone>?
+    suspend fun insert(zone: Zone)
+    suspend fun getAllZones(): List<Zone>?
 }

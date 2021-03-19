@@ -4,9 +4,11 @@ import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 
-class HerowLogVisit(appState: String,
-                    geofenceEvent: GeofenceEvent,
-                    nearbyPois: List<Poi> = ArrayList()): HerowLogData() {
+class HerowLogVisit(
+    appState: String,
+    geofenceEvent: GeofenceEvent,
+    nearbyPois: List<Poi> = ArrayList()
+) : HerowLogData() {
     private var duration: Long = TimeHelper.getCurrentTime()
 
     companion object {

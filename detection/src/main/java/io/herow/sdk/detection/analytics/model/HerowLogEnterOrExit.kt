@@ -4,13 +4,15 @@ import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 
-class HerowLogEnter(appState: String,
-                    geofenceEvent: GeofenceEvent,
-                    nearbyPois: List<Poi> = ArrayList()): HerowLogData() {
+class HerowLogEnterOrExit(
+    appState: String,
+    geofenceEvent: GeofenceEvent,
+    nearbyPois: List<Poi> = ArrayList()
+) : HerowLogData() {
     companion object {
         const val LOCATION = "lastLocation"
-        const val PLACE_ID = "place_id"
         const val NEAR_BY_POIS = "nearbyPois"
+        const val PLACE = "place"
     }
 
     init {
@@ -22,6 +24,6 @@ class HerowLogEnter(appState: String,
         this[APP_STATE] = appState
         this[LOCATION] = geofenceEvent.location
         this[NEAR_BY_POIS] = nearbyPois
-        this[PLACE_ID] = geofenceEvent.zone.hash!!
+        this[PLACE] = geofenceEvent.zone
     }
 }

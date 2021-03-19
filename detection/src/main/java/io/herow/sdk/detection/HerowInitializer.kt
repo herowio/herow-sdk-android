@@ -16,31 +16,36 @@ import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
+import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
+import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
+import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
+import io.herow.sdk.detection.geofencing.GeofenceDispatcher
+import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.helpers.WorkHelper
-import io.herow.sdk.detection.location.ClickAndCollectWorker
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-object HerowInitializer {
+class HerowInitializer private constructor(context: Context) {
     private val activityTransitionDetector = ActivityTransitionDetector()
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
     private var customID: String = ""
-    private lateinit var locationManager: LocationManager
-    private lateinit var logsManager: LogsManager
-    private lateinit var workManager: WorkManager
+    private var locationManager: LocationManager
+    private var logsManager: LogsManager
+    private var workManager: WorkManager
 
     private lateinit var sessionHolder: SessionHolder
-    private const val initialRepeatInterval: Long = 900000
+    private val initialRepeatInterval: Long = 900000
 
-    fun init(context: Context): HerowInitializer {
+    init {
         AndroidThreeTen.init(context)
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         activityTransitionDetector.launchTransitionMonitoring(context)
@@ -49,7 +54,18 @@ object HerowInitializer {
         logsManager = LogsManager(context)
         registerListeners()
         loadIdentifiers(context)
-        return this
+    }
+
+    companion object {
+        private lateinit var herowInitializer: HerowInitializer
+
+        fun getInstance(context: Context): HerowInitializer {
+            if (!::herowInitializer.isInitialized) {
+                herowInitializer = HerowInitializer(context)
+            }
+
+            return herowInitializer
+        }
     }
 
     private fun registerListeners() {
@@ -67,8 +83,9 @@ object HerowInitializer {
      * to be able to use it only if the developer has already the library include in his project.
      */
     private fun loadIdentifiers(context: Context) {
+        sessionHolder = SessionHolder(DataHolder(context))
+
         GlobalScope.launch(Dispatchers.IO) {
-            sessionHolder = SessionHolder(DataHolder(context))
             val deviceId = DeviceHelper.getDeviceId(context)
             sessionHolder.saveDeviceId(deviceId)
             try {
@@ -95,14 +112,23 @@ object HerowInitializer {
         return this
     }
 
-    fun configCustomId(customId: String): HerowInitializer {
+    fun setCustomId(customId: String): HerowInitializer {
         sessionHolder.saveCustomID(customId)
         this.customID = sessionHolder.getCustomID()
         return this
     }
 
-    fun updateOptin(optinAccepted: Boolean?): HerowInitializer {
-        saveOptinValue(optinAccepted)
+    fun getCustomId(): String = sessionHolder.getCustomID()
+
+    fun getOptinValue(): Boolean = sessionHolder.getOptinValue()
+
+    fun acceptOptin(): HerowInitializer {
+        saveOptinValue(true)
+        return this
+    }
+
+    fun refuseOptin(): HerowInitializer {
+        saveOptinValue(false)
         return this
     }
 
@@ -121,7 +147,7 @@ object HerowInitializer {
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
      */
-    private fun launchConfigRequest() {
+    fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -207,10 +233,26 @@ object HerowInitializer {
             .addTag(ClickAndCollectWorker.tag)
             .build()
         workManager.enqueue(workRequest)
+        sessionHolder.saveClickAndCollectProgress(true)
     }
 
     fun stopClickAndCollect() {
         workManager.cancelAllWorkByTag(ClickAndCollectWorker.tag)
+        sessionHolder.saveClickAndCollectProgress(false)
+    }
+
+    fun isOnClickAndCollect(): Boolean = sessionHolder.getClickAndCollectProgress()
+
+    fun registerClickAndCollectListener(listener: ClickAndCollectListener) {
+        ClickAndCollectDispatcher.registerClickAndCollectListener(listener)
+    }
+
+    fun unregisterClickAndCollectListener(listener: ClickAndCollectListener) {
+        ClickAndCollectDispatcher.unregisterClickAndCollectListener(listener)
+    }
+
+    fun registerEventListener(geofenceListener: GeofenceListener) {
+        GeofenceDispatcher.addGeofenceListener(geofenceListener)
     }
 
     /**

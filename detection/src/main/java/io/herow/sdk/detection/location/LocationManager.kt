@@ -11,9 +11,6 @@ import com.google.android.gms.tasks.Task
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.cache.CacheDispatcher
-import io.herow.sdk.connection.cache.model.Campaign
-import io.herow.sdk.connection.cache.model.Poi
-import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
@@ -22,23 +19,20 @@ import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
-import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
-import io.herow.sdk.detection.helpers.DispatcherProvider
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 
 class LocationManager(
-    context: Context,
-    private val dispatcher: DispatcherProvider = DefaultDispatcherProvider()
+    private val context: Context
 ) : ConfigListener, AppStateListener, LocationListener {
+
     companion object {
         private const val LOCATION_REQUEST_CODE = 1515
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
     private var isOnForeground: Boolean = false
     private var isGeofencingEnable: Boolean = false
 
@@ -142,32 +136,31 @@ class LocationManager(
     }
 
     override fun onLocationUpdate(location: Location) {
-        if (zoneManager.isZonesEmpty() || noDataInDB()) {
-            HerowInitializer.launchCacheRequest(location)
+        scope.launch {
+            if (zoneManager.isZonesEmpty() || noDataInDB()) {
+                HerowInitializer.getInstance(context).launchCacheRequest(location)
+            }
         }
     }
 
-    private fun noDataInDB(): Boolean {
+    private suspend fun noDataInDB(): Boolean {
         val zoneRepository = ZoneRepository(db.zoneDAO())
         val poiRepository = PoiRepository(db.poiDAO())
         val campaignRepository = CampaignRepository(db.campaignDAO())
 
-        var zonesInDb: List<Zone>? = null
-        var poisInDb: List<Poi>? = null
-        var campaignsInDb: List<Campaign>? = null
-
-        val job = CoroutineScope(dispatcher.io()).launch {
-            zonesInDb = zoneRepository.getAllZones()
-            poisInDb = poiRepository.getAllPois()
-            campaignsInDb = campaignRepository.getAllCampaigns()
-
-            db.close()
+        val zonesInDb = scope.async(dispatcher) {
+            zoneRepository.getAllZones()
         }
 
-        runBlocking {
-            job.join()
+        val poisInDb = scope.async(dispatcher) {
+            poiRepository.getAllPois()
         }
 
-        return zonesInDb.isNullOrEmpty() && poisInDb.isNullOrEmpty() && campaignsInDb.isNullOrEmpty()
+        val campaignsInDb = scope.async(dispatcher) {
+            campaignRepository.getAllCampaigns()
+        }
+
+        return zonesInDb.await().isNullOrEmpty() && poisInDb.await()
+            .isNullOrEmpty() && campaignsInDb.await().isNullOrEmpty()
     }
 }

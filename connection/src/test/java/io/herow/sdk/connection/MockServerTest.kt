@@ -11,6 +11,8 @@ import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -77,40 +79,46 @@ class MockServerTest {
 
     @Test
     fun saveZoneIntoDBAndCheckResult() {
-        for (zone in result.body()?.zones!!) {
-            zoneRepository.insert(zone)
+        runBlocking {
+            for (zone in result.body()?.zones!!) {
+                zoneRepository.insert(zone)
+            }
+
+            val zonesInDB = zoneRepository.getAllZones()
+
+            Assert.assertNotEquals(zonesInDB?.size, "0")
         }
-
-        val zonesInDB = zoneRepository.getAllZones()
-
-        Assert.assertNotEquals(zonesInDB?.size, "0")
     }
 
     @Test
     fun savePOIIntoDBAndCheckResult() {
-        for (poi in result.body()?.pois!!) {
-            poiRepository.insert(poi)
+        runBlocking {
+            for (poi in result.body()?.pois!!) {
+                poiRepository.insert(poi)
+            }
+
+            val poisInDB = poiRepository.getAllPois()
+
+            Assert.assertNotEquals(poisInDB?.size, "0")
         }
-
-        val poisInDB = poiRepository.getAllPois()
-
-        Assert.assertNotEquals(poisInDB?.size, "0")
     }
 
 
     @Test
     fun saveCampaignAndCheckResult() {
-        for (campaign in result.body()?.campaigns!!) {
-            campaignRepository.insert(campaign)
+        runBlocking {
+            for (campaign in result.body()?.campaigns!!) {
+                campaignRepository.insert(campaign)
+            }
+
+            val campaignsInDB = campaignRepository.getAllCampaigns()
+            Assert.assertNotEquals(campaignsInDB?.size, 0)
+
+            herowDatabase.clearAllTables()
+
+            val deletedCampaign = campaignRepository.getAllCampaigns()
+            Assert.assertTrue(deletedCampaign.isNullOrEmpty())
         }
-
-        val campaignsInDB = campaignRepository.getAllCampaigns()
-        Assert.assertNotEquals(campaignsInDB?.size, 0)
-
-        herowDatabase.clearAllTables()
-
-        val deletedCampaign = campaignRepository.getAllCampaigns()
-        Assert.assertTrue(deletedCampaign.isNullOrEmpty())
     }
 
     @After

@@ -20,7 +20,7 @@ import org.robolectric.annotation.Config
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class LogWorkerTest {
+class LogsWorkerTest {
     private lateinit var context: Context
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: DataHolder
@@ -39,7 +39,7 @@ class LogWorkerTest {
                     AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
                     AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name,
                     AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID,
-                    LogsWorker.KEY_LOGS to LogsHelper.createTestLogs()
+                    LogsWorker.KEY_LOGS to LogsHelper(sessionHolder).createTestLogs(context)
                 )
             )
             .build()

@@ -22,7 +22,8 @@ object NotificationHelper {
 
     @SuppressLint("NewApi")
     fun createNotificationChannel(context: Context) {
-        val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager: NotificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance: Int = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance)
@@ -38,8 +39,10 @@ object NotificationHelper {
     fun foregroundNotification(context: Context, id: UUID): ForegroundInfo {
         val pendingIntent = WorkManager.getInstance(context).createCancelPendingIntent(id)
         val notificationTitle = context.resources.getString(R.string.foreground_notification_title)
-        val notificationDescription = context.resources.getString(R.string.foreground_notification_description)
-        val deleteActionTitle = context.resources.getString(R.string.foreground_notification_delete_action)
+        val notificationDescription =
+            context.resources.getString(R.string.foreground_notification_description)
+        val deleteActionTitle =
+            context.resources.getString(R.string.foreground_notification_delete_action)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.icon_notification)

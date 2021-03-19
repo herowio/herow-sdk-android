@@ -10,7 +10,7 @@ import io.herow.sdk.connection.cache.model.Campaign
 interface CampaignDAO {
 
     @Insert
-    fun insertCampaign(campaign: Campaign): Long?
+    fun insertCampaign(campaign: Campaign)
 
     @Transaction
     @Query("SELECT * FROM Campaign")

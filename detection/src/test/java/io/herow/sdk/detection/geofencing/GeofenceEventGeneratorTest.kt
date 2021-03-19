@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.detection.MockLocation
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -18,6 +20,7 @@ class GeofenceEventGeneratorTest {
     private lateinit var geofenceEventGenerator: GeofenceEventGenerator
 
     private lateinit var context: Context
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     @Before
     fun setUp() {

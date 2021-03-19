@@ -12,21 +12,21 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.geofencing.GeofencingReceiver
-import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
-import io.herow.sdk.detection.helpers.DispatcherProvider
 import io.herow.sdk.detection.helpers.GeofencingHelper
 import io.herow.sdk.detection.location.LocationListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class ZoneManager(
     context: Context,
-    private val zones: ArrayList<Zone>,
-    private val dispatcher: DispatcherProvider = DefaultDispatcherProvider()
+    private val zones: ArrayList<Zone>
 ) : CacheListener, LocationListener {
+
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
+
+    private val ioDispatcher = Dispatchers.IO
 
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
@@ -50,8 +50,10 @@ class ZoneManager(
     override fun onCacheReception() {
         zones.clear()
 
-        retrieveZones()?.let { zones.addAll(it) }
-        updateGeofencesMonitoring()
+        scope.launch(ioDispatcher) {
+            retrieveZones().let { zones.addAll(it) }
+            updateGeofencesMonitoring()
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -98,14 +100,13 @@ class ZoneManager(
         ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
     }
 
-    private fun retrieveZones(): ArrayList<Zone>? {
+    private suspend fun retrieveZones(): ArrayList<Zone> {
         val zoneRepository = ZoneRepository(db.zoneDAO())
-        var zonesInDB: ArrayList<Zone>? = null
 
-        CoroutineScope(dispatcher.io()).launch {
-            zonesInDB = zoneRepository.getAllZones() as ArrayList<Zone>
+        val zonesInDb = scope.async(ioDispatcher) {
+            zoneRepository.getAllZones() as ArrayList<Zone>
         }
 
-        return zonesInDB
+        return zonesInDb.await()
     }
 }

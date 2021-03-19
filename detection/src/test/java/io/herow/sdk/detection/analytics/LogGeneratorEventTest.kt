@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.connection.cache.model.Access
+import io.herow.sdk.connection.cache.model.Poi
+import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
@@ -34,17 +37,66 @@ class LogGeneratorEventTest {
         val applicationData = ApplicationData(context)
         val sessionHolder = SessionHolder(DataHolder(context))
         logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)
+
+        //CreateZone
+        val fakeZone = Zone(
+            hash = "ivbxbhxm8rnk",
+            lat = 48.875741,
+            lng = 2.349255,
+            radius = 300.0,
+            campaigns = null,
+            access = Access(
+                address = "54 Rue de Paradis, 75010 Paris, France",
+                id = "6004957256eb6779115b6d8a",
+                name = "HEROW"
+            )
+        )
+
+        //CreatePOI
+        val fakePOI = Poi(
+            id = "7515771363",
+            lat = 48.84748,
+            lng = 2.35231
+        )
+
+        logGeneratorEvent.cacheZones = arrayListOf(fakeZone)
+        logGeneratorEvent.cachePois = arrayListOf(fakePOI)
+
         LogsDispatcher.addLogListener(herowLogsListener)
     }
 
     @Test
     fun testGeofenceEvent(): Unit = runBlocking {
-        val firstZone = MockLocation(context).fetchZone()
-        val secondZone = MockLocation(context).fetchZone()
+        val firstZone = Zone(
+            hash = "ivbxbhxm8rnk",
+            lat = 48.875741,
+            lng = 2.349255,
+            radius = 300.0,
+            campaigns = null,
+            access = Access(
+                address = "54 Rue de Paradis, 75010 Paris, France",
+                id = "6004957256eb6779115b6d8a",
+                name = "HEROW"
+            )
+        )
+
+        val secondZone = Zone(
+            hash = "ivbxbhxm8rnk",
+            lat = 48.875741,
+            lng = 2.349255,
+            radius = 300.0,
+            campaigns = null,
+            access = Access(
+                address = "54 Rue de Paradis, 75010 Paris, France",
+                id = "6004957256eb6779115b6d8a",
+                name = "HEROW"
+            )
+        )
+
         val firstGeofenceEvent =
-            GeofenceEvent(firstZone!!, MockLocation(context).buildLocation(), GeofenceType.ENTER)
+            GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
         val secondGeofenceEvent =
-            GeofenceEvent(secondZone!!, MockLocation(context).buildLocation(), GeofenceType.ENTER)
+            GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
         logGeneratorEvent.onGeofenceEvent(listOf(firstGeofenceEvent, secondGeofenceEvent))
         Assert.assertEquals(0, herowLogsListener.herowLogsVisit.size)
 

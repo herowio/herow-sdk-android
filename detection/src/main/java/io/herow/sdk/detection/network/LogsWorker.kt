@@ -36,7 +36,7 @@ class LogsWorker(
     private suspend fun launchLogsRequest(herowAPI: HerowAPI) {
         val logs = extractLogs()
         if (logs.isNotEmpty()) {
-            val logsResponse = herowAPI.logs(logs)
+            val logsResponse = herowAPI.log(logs)
             if (logsResponse.isSuccessful) {
                 println("Request has been sent")
             } else {

@@ -7,14 +7,21 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <application>
-        <receiver android:name=".location.LocationReceiver" />
+    <application android:name=".DetectionMainApplication">
 
+        <receiver android:name=".location.LocationReceiver" />
         <receiver android:name=".geofencing.GeofencingReceiver" />
 
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="location"
             tools:node="merge" />
+
+        <provider
+            android:name="androidx.work.impl.WorkManagerInitializer"
+            android:authorities="${applicationId}.workmanager-init"
+            android:exported="false"
+            tools:node="remove" />
+
     </application>
 </manifest>

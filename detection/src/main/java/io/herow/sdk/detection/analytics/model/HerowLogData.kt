@@ -18,7 +18,6 @@ open class HerowLogData: HashMap<String, Any>() {
         const val APPLICATION_PACKAGE = "application_package"
         const val APPLICATION_CODE = "application_code"
         const val PHONE_ID = "phone_id"
-        const val HEROW_ID = "herow_id"
     }
 
     fun enrich(applicationData: ApplicationData,
@@ -31,6 +30,5 @@ open class HerowLogData: HashMap<String, Any>() {
         this[APPLICATION_VERSION] = applicationData.applicationVersion
         this[APPLICATION_CODE] = applicationData.applicationCode
         this[PHONE_ID] = sessionHolder.getDeviceId()
-        this[HEROW_ID] = sessionHolder.getHerowId()
     }
 }

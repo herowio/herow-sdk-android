@@ -12,7 +12,7 @@ import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.location.LocationDispatcher
 
-class LogsManager(context: Context): LogsListener {
+class LogsManager(private val context: Context): LogsListener {
     private val applicationData = ApplicationData(context)
     private val sessionHolder = SessionHolder(DataHolder(context))
     private val logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)
@@ -28,7 +28,7 @@ class LogsManager(context: Context): LogsListener {
         if (listOfLogs.isNotEmpty()) {
             val logs = Logs(listOfLogs)
             val logJsonString: String = GsonProvider.toJson(logs, Logs::class.java)
-            HerowInitializer.launchLogsRequest(logJsonString)
+            HerowInitializer.getInstance(context).launchLogsRequest(logJsonString)
         }
     }
 }

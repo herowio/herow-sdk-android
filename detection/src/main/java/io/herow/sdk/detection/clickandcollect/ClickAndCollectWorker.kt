@@ -1,4 +1,4 @@
-package io.herow.sdk.detection.location
+package io.herow.sdk.detection.clickandcollect
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -11,55 +11,70 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.location.LocationReceiver
+import io.herow.sdk.detection.location.NotificationHelper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
-//TODO TAKE A LOOK THERE
-class ClickAndCollectWorker(context: Context,
-                            workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
+class ClickAndCollectWorker(
+    context: Context,
+    workerParameters: WorkerParameters
+) : CoroutineWorker(context, workerParameters) {
     companion object {
         private const val LOCATION_REQUEST_CODE = 2021
         const val tag = "detection_ForegroundLocationWorker"
-
-        var isClickAndCollectInProgress: Boolean = false
     }
+
     private val pendingIntent = createPendingIntent(applicationContext)
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
-        return PendingIntent.getBroadcast(context, LOCATION_REQUEST_CODE, intent, PendingIntent.FLAG_CANCEL_CURRENT)
+        return PendingIntent.getBroadcast(
+            context,
+            LOCATION_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
     }
 
     override suspend fun doWork(): Result {
+        val sessionHolder = SessionHolder(DataHolder(applicationContext))
+
         return coroutineScope {
             val job = async {
+                ClickAndCollectDispatcher.didStartClickAndCollect()
                 launchJob()
                 return@async Result.success()
             }
             job.invokeOnCompletion { exception: Throwable? ->
                 when (exception) {
                     is CancellationException -> {
-                        isClickAndCollectInProgress = false
+                        sessionHolder.saveClickAndCollectProgress(false)
+                        ClickAndCollectDispatcher.didStopClickAndCollect()
                     }
-                    else -> { }
+                    else -> {
+                    }
                 }
             }
             job.await()
         }
     }
 
+    //TODO Update time to Two HOURS (not seconds)
     private suspend fun launchJob() {
         NotificationHelper.createNotificationChannel(applicationContext)
         val foregroundInfo = NotificationHelper.foregroundNotification(applicationContext, id)
         setForeground(foregroundInfo)
-        isClickAndCollectInProgress = true
+
         if (hasLocationPermission()) {
             launchLocationsUpdate()
         }
-        delay(TimeHelper.TWO_HOUR_MS)
+        delay(TimeHelper.TWO_SECONDS_MS)
         if (hasLocationPermission()) {
             stopLocationsUpdate()
         }
@@ -68,14 +83,21 @@ class ClickAndCollectWorker(context: Context,
     private fun hasLocationPermission(): Boolean {
         val accessFineLocation = Manifest.permission.ACCESS_FINE_LOCATION
         val coarseLocation = Manifest.permission.ACCESS_COARSE_LOCATION
-        return ActivityCompat.checkSelfPermission(applicationContext, accessFineLocation) == PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(applicationContext, coarseLocation) == PackageManager.PERMISSION_GRANTED
+        return ActivityCompat.checkSelfPermission(
+            applicationContext,
+            accessFineLocation
+        ) == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(
+            applicationContext,
+            coarseLocation
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     @SuppressLint("MissingPermission")
     private fun launchLocationsUpdate() {
         val locationRequest = buildLocationRequest()
-        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(applicationContext)
+        val fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(applicationContext)
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
     }
 
@@ -89,7 +111,8 @@ class ClickAndCollectWorker(context: Context,
 
     @SuppressLint("MissingPermission")
     private fun stopLocationsUpdate() {
-        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(applicationContext)
+        val fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(applicationContext)
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
     }
 }

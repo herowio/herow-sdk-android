@@ -7,14 +7,22 @@ import io.herow.sdk.connection.cache.model.Access
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 
-class MockLocation(private val context: Context) {
+class MockLocation(
+    private val context: Context
+) {
+
+    private val ioDispatcher = Dispatchers.IO
+
     private fun buildZone(
         lat: Double = RandomGenerator.lat(),
         lng: Double = RandomGenerator.lng(),
         zoneId: Long = RandomGenerator.id(),
-        radius: Int = RandomGenerator.randomInt()
+        radius: Double = RandomGenerator.randomInt().toDouble()
     ): Zone {
         return Zone(zoneId, "", lat, lng, radius, null, buildAccess())
     }
@@ -27,8 +35,8 @@ class MockLocation(private val context: Context) {
     }
 
     fun buildLocation(
-        lat: Double = RandomGenerator.lat(),
-        lng: Double = RandomGenerator.lng()
+        lat: Double = 48.875516,
+        lng: Double = 2.349096
     ): Location {
         val location = Location(RandomGenerator.idString())
         location.latitude = lat
@@ -42,12 +50,13 @@ class MockLocation(private val context: Context) {
         val zoneRepository = ZoneRepository(db.zoneDAO())
         var zone: Zone? = buildZone()
 
-        val job: Job = CoroutineScope(Dispatchers.IO).launch {
-            zone = zoneRepository.getAllZones()!![0]
-        }
-
         runBlocking {
-            job.join()
+            val job = async(ioDispatcher) {
+                zoneRepository.insert(zone!!)
+                zone = zoneRepository.getAllZones()!![0]
+            }
+
+            job.await()
         }
 
         return zone

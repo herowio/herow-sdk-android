@@ -14,6 +14,9 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.After
@@ -47,7 +50,7 @@ class HerowDatabaseTest {
 
     @Before
     fun createDB() {
-        context = ApplicationProvider.getApplicationContext<Context>()
+        context = ApplicationProvider.getApplicationContext()
         db = Room
             .inMemoryDatabaseBuilder(context, HerowDatabase::class.java)
             .allowMainThreadQueries()
@@ -66,12 +69,14 @@ class HerowDatabaseTest {
             hash = "testHashZone",
             lat = 48.11198,
             lng = -1.67429,
-            radius = 1,
+            radius = 1.0,
             access = Access("accessID", "Home", "Random address, 75000 Paris"),
             campaigns = null
         )
 
-        zoneRepository.insert(zone)
+        runBlocking {
+            zoneRepository.insert(zone)
+        }
 
         interval = Interval(
             start = TimeHelper.getCurrentTime() - 20000,
@@ -133,30 +138,41 @@ class HerowDatabaseTest {
             intervals = listOf(interval, interval2)
         )
 
-        campaignRepository.insert(campaign)
+        runBlocking {
+            campaignRepository.insert(campaign)
+        }
+
     }
 
     @Test
     @Throws(Exception::class)
     fun createZoneAndReadInList() {
-        val listOfZone = zoneRepository.getAllZones()
-        assertThat(listOfZone?.get(0)?.hash, equalTo(zone.hash))
+        runBlocking {
+            val listOfZone = zoneRepository.getAllZones()
+            assertThat(listOfZone?.get(0)?.hash, equalTo(zone.hash))
+        }
+
     }
 
     @Test
     @Throws(Exception::class)
     fun campaignTableShouldNotBeEmpty() {
-        val listOfCampaigns = campaignRepository.getAllCampaigns()
-        assertThat(listOfCampaigns?.size, equalTo(1))
+        runBlocking {
+            val listOfCampaigns = campaignRepository.getAllCampaigns()
+            assertThat(listOfCampaigns?.size, equalTo(1))
+        }
+
     }
 
     @Test
     @Throws(Exception::class)
     fun addCampaignToZone() {
-        val listOfCampaigns = campaignRepository.getAllCampaigns()
+        runBlocking {
+            val listOfCampaigns = campaignRepository.getAllCampaigns()
 
-        Assert.assertNotNull(listOfCampaigns)
-        assertThat(listOfCampaigns?.get(0)?.name, equalTo("testCampaign1"))
+            Assert.assertNotNull(listOfCampaigns)
+            assertThat(listOfCampaigns?.get(0)?.name, equalTo("testCampaign1"))
+        }
     }
 
     @Test

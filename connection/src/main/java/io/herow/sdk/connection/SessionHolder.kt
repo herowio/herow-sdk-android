@@ -18,6 +18,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_SAVED_GEOHASH = "common.saved_geohash"
         private const val KEY_REPEAT_INTERVAL = "common.repeat_interval"
         private const val KEY_OPTIN = "common.optin"
+        private const val KEY_CLICK_AND_COLLECT_PROGRESS = "detection.click_and_collect_progress"
     }
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
@@ -50,7 +51,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         }
     }
 
-    fun getHerowId(): String = dataHolder.get(KEY_HEROW_ID)
+    fun getHerowId(): String = dataHolder[KEY_HEROW_ID]
 
     fun saveHerowId(herowId: String) {
         if (herowId.isNotEmpty()) {
@@ -125,5 +126,22 @@ class SessionHolder(private val dataHolder: DataHolder) {
         dataHolder[KEY_OPTIN] = optinAccepted ?: false
     }
 
-    fun getOptinValue(): Boolean = dataHolder[KEY_OPTIN]
+    fun getOptinValue(): Boolean =
+        if (dataHolder.containsKey(KEY_OPTIN)) {
+            dataHolder[KEY_OPTIN]
+        } else {
+            false
+        }
+
+    fun saveClickAndCollectProgress(progress: Boolean) {
+        dataHolder[KEY_CLICK_AND_COLLECT_PROGRESS] = progress
+    }
+
+    fun getClickAndCollectProgress(): Boolean =
+        if (!dataHolder.containsKey(KEY_CLICK_AND_COLLECT_PROGRESS)) {
+            false
+        } else {
+            dataHolder[KEY_CLICK_AND_COLLECT_PROGRESS]
+        }
 }
+
