@@ -38,7 +38,9 @@ class LogsWorker(
         val log = extractLogs()
         if (log.isNotEmpty()) {
             val logResponse = herowAPI.log(log)
+            Log.i("XXX/EVENT", "LogsWorker - LogResponse is: $logResponse")
             if (logResponse.isSuccessful) {
+                Log.i("XXX/EVENT", "LogsWorker - Log has been sent")
                 println("Request has been sent")
             } else {
                 println(logResponse)
