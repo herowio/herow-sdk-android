@@ -14,6 +14,7 @@ import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.MockLocation
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
@@ -23,13 +24,17 @@ import org.mockito.Mockito.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class CacheWorkerTest {
 
-    private val testDispatcher = TestCoroutineDispatcher()
+    @get:Rule
+    var coroutineTestRule = CoroutineTestRule()
+
+    var testDispatcher = TestCoroutineDispatcher()
 
     private lateinit var context: Context
     private lateinit var sessionHolder: SessionHolder
@@ -58,6 +63,8 @@ class CacheWorkerTest {
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
         location = MockLocation(context).buildLocation()
 
+        val cacheWorkerFactory = CacheWorkerFactory(testDispatcher)
+
         worker = TestListenableWorkerBuilder<CacheWorker>(
             context, inputData = workDataOf(
                 AuthRequests.KEY_SDK_ID to NetworkConstants.USERNAME,
@@ -67,65 +74,56 @@ class CacheWorkerTest {
                 CacheWorker.KEY_GEOHASH to rennesGeohash
             )
         )
+            .setWorkerFactory(cacheWorkerFactory)
             .build()
     }
 
     @Test
-    fun testLaunchTokenCacheWorker() {
-        runBlocking {
-            val result = worker.doWork()
-            assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
-        }
+    fun testLaunchTokenCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+        val result = worker.doWork()
+
+        assertThat(result, Is.`is`(ListenableWorker.Result.success()))
+        Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
     }
 
     @Test
-    fun testLaunchUserInfoCacheWorker() {
-        runBlocking {
-            val result = worker.doWork()
+    fun testLaunchUserInfoCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+        val result = worker.doWork()
+        assertThat(result, Is.`is`(ListenableWorker.Result.success()))
+        Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
+    }
 
-            assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
-        }
+
+    @Test
+    fun testLaunchCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+        val result = worker.doWork()
+        assertThat(result, Is.`is`(ListenableWorker.Result.success()))
     }
 
     @Test
-    fun testLaunchCacheWorker() {
-        runBlocking {
-            val result = worker.doWork()
-            assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-        }
-    }
-
-    @Test
-    fun testCacheIsCalledIfUpdateStatusTrue() {
+    fun testCacheIsCalledIfUpdateStatusTrue() = coroutineTestRule.testDispatcher.runBlockingTest {
         sessionHolder.updateCache(true)
 
-        runBlocking {
-            val result = worker.doWork()
-            assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-        }
+        val result = worker.doWork()
+        assertThat(result, Is.`is`(ListenableWorker.Result.success()))
     }
 
     @Test
-    fun testCacheIsCalledIfUpdateStatusTrueAndGeoHashIsKnownAndDifferent() {
-        sessionHolder.updateCache(true)
-        sessionHolder.saveGeohash("123a")
+    fun testCacheIsCalledIfUpdateStatusTrueAndGeoHashIsKnownAndDifferent() =
+        coroutineTestRule.testDispatcher.runBlockingTest {
+            sessionHolder.updateCache(true)
+            sessionHolder.saveGeohash("123a")
 
-        runBlocking {
             val result = worker.doWork()
             assertThat(result, Is.`is`(ListenableWorker.Result.success()))
         }
-    }
 
     @Test
-    fun testWorkerIsNotCalledIfOptinIsFalse() {
+    fun testWorkerIsNotCalledIfOptinIsFalse() = coroutineTestRule.testDispatcher.runBlockingTest {
         sessionHolder.saveOptinValue(false)
 
-        runBlocking {
-            val result = worker.doWork()
-            assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
-        }
+        val result = worker.doWork()
+        assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
     }
 
     @After

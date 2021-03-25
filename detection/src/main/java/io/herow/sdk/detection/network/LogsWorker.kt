@@ -33,22 +33,27 @@ class LogsWorker(
         return Result.success()
     }
 
+    // TODO Extract EACH log in order to send log by log
     private suspend fun launchLogsRequest(herowAPI: HerowAPI) {
-        val logs = extractLogs()
-        if (logs.isNotEmpty()) {
-            val logsResponse = herowAPI.log(logs)
-            if (logsResponse.isSuccessful) {
+        val log = extractLogs()
+        if (log.isNotEmpty()) {
+            val logResponse = herowAPI.log(log)
+            if (logResponse.isSuccessful) {
                 println("Request has been sent")
             } else {
-                println(logsResponse)
+                println(logResponse)
             }
+
+            /* for (log in logs) {
+
+            } */
         }
     }
 
     private fun extractLogs(): String {
-        val logs = inputData.getString(KEY_LOGS) ?: ""
-        if (logs.isNotEmpty()) {
-            return logs
+        val log = inputData.getString(KEY_LOGS) ?: ""
+        if (log.isNotEmpty()) {
+            return log
         }
         return ""
     }

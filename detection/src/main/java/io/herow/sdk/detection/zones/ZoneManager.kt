@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.location.Location
+import android.util.Log
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
 import io.herow.sdk.connection.cache.CacheListener
@@ -54,6 +55,8 @@ class ZoneManager(
             retrieveZones().let { zones.addAll(it) }
             updateGeofencesMonitoring()
         }
+
+        Log.i("XXX/EVENT", "ZoneManager - zones from BDD are: $zones")
     }
 
     @SuppressLint("MissingPermission")

@@ -67,14 +67,6 @@ class ConfigWorkerTest {
             val result = worker.doWork()
             assertThat(result, `is`(ListenableWorker.Result.success()))
             Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
-        }
-    }
-
-    @Test
-    fun testLaunchUserInfoConfigWorker() {
-        runBlocking {
-            val result = worker.doWork()
-            assertThat(result, `is`(ListenableWorker.Result.success()))
             Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
         }
     }
@@ -105,7 +97,7 @@ class ConfigWorkerTest {
 
     @Test
     fun testWithCacheTimeSuperiorToRemoteTime() {
-        sessionHolder.saveModifiedCacheTime("Fri, 5 Mar 2021 12:57:38 GMT")
+        sessionHolder.saveModifiedCacheTime("Wed, 24 Mar 2021 12:57:38 GMT")
 
         runBlocking {
             val result = worker.doWork()
@@ -116,7 +108,7 @@ class ConfigWorkerTest {
 
     @Test
     fun testWithCacheTimeLowerToRemoteTime() {
-        sessionHolder.saveModifiedCacheTime("Mon, 24 Aug 2020 12:57:38 GMT")
+        sessionHolder.saveModifiedCacheTime("Tue, 9 Jun 2020 12:57:38 GMT")
 
         runBlocking {
             val result = worker.doWork()

@@ -10,9 +10,9 @@ class CampaignRepository constructor(
 ) :
     ICampaignRepository {
 
-    override suspend fun insert(campaign: Campaign) {
+    override fun insert(campaign: Campaign) {
         campaignDAO.insertCampaign(campaign)
     }
 
-    override suspend fun getAllCampaigns(): List<Campaign>? = campaignDAO.getAllCampaign()
+    override fun getAllCampaigns(): List<Campaign>? = campaignDAO.getAllCampaign()
 }

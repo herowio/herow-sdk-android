@@ -73,7 +73,7 @@ class LocationManager(
 
     @SuppressLint("MissingPermission")
     private fun startMonitoring() {
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location ->
+        fusedLocationProviderClient.lastLocation?.addOnSuccessListener { location: Location ->
             LocationDispatcher.dispatchLocation(location)
         }
         updateMonitoring()

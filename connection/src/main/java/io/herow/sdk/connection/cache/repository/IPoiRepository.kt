@@ -4,6 +4,6 @@ import io.herow.sdk.connection.cache.model.Poi
 
 interface IPoiRepository {
 
-    suspend fun insert(poi: Poi)
-    suspend fun getAllPois(): List<Poi>?
+    fun insert(poi: Poi)
+    fun getAllPois(): List<Poi>?
 }

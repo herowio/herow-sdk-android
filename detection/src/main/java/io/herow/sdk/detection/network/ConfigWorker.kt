@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
@@ -22,8 +23,10 @@ class ConfigWorker(
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
 
+        Log.i("XXX/EVENT", "ConfigWorker - Before launchingConfigRequest")
         val authRequest = AuthRequests(sessionHolder, inputData)
         authRequest.execute {
+            Log.i("XXX/EVENT", "ConfigWorker - Launching configRequest")
             launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
         }
 
@@ -32,9 +35,14 @@ class ConfigWorker(
 
     private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
         val configResponse = herowAPI.config()
+        Log.i("XXX/EVENT", "ConfigWorker - ConfigResponse: $configResponse")
+
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
+                Log.i("XXX/EVENT", "ConfigWorker - ConfigResponse is successful")
+
                 ConfigDispatcher.dispatchConfigResult(configResult)
+                Log.i("XXX/EVENT", "ConfigWorker - Dispatcher method has been called")
 
                 sessionHolder.saveRepeatInterval(configResult.configInterval)
 

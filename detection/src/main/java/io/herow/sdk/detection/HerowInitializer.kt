@@ -2,6 +2,7 @@ package io.herow.sdk.detection
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
@@ -158,6 +159,8 @@ class HerowInitializer private constructor(context: Context) {
             sessionHolder.getRepeatInterval()
         }
 
+        Log.i("XXX/EVENT", "HerowInitializer - launchConfigRequest is called")
+
         val periodicWorkRequest =
             PeriodicWorkRequest.Builder(
                 ConfigWorker::class.java,
@@ -176,12 +179,14 @@ class HerowInitializer private constructor(context: Context) {
                 )
                 .build()
         workManager.enqueue(periodicWorkRequest)
+        Log.i("XXX/EVENT", "HerowInitializer - launchConfigRequest is enqueued")
     }
 
     /**
      * Launch the cache request to get the zones the SDK must monitored
      */
     fun launchCacheRequest(location: Location) {
+        Log.i("XXX/EVENT", "HerowInitializer - launchCacheRequest is called")
         if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -201,16 +206,20 @@ class HerowInitializer private constructor(context: Context) {
                 .build()
             workManager.enqueue(workerRequest)
         }
+        Log.i("XXX/EVENT", "HerowInitializer - launchCacheRequest is enqueued")
     }
 
     /**
      * Launch the logs request to send the events to he Herow Platform
      */
-    fun launchLogsRequest(logs: String) {
+    fun launchLogsRequest(log: String) {
+        Log.i("XXX/EVENT", "HerowInitializer - launchLogsRequest is called")
         if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
+
+            Log.i("XXX/EVENT", "HerowInitializer - Log to send: $log")
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
                 .addTag(NetworkWorkerTags.LOGS)
                 .setConstraints(constraints)
@@ -220,11 +229,12 @@ class HerowInitializer private constructor(context: Context) {
                         AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
                         AuthRequests.KEY_CUSTOM_ID to customID,
                         AuthRequests.KEY_PLATFORM to platform.name,
-                        LogsWorker.KEY_LOGS to logs
+                        LogsWorker.KEY_LOGS to log
                     )
                 )
                 .build()
             workManager.enqueue(workerRequest)
+            Log.i("XXX/EVENT", "HerowInitializer - launchLogsRequest is enqueued")
         }
     }
 
@@ -252,6 +262,7 @@ class HerowInitializer private constructor(context: Context) {
     }
 
     fun registerEventListener(geofenceListener: GeofenceListener) {
+        Log.i("XXX/EVENT", "HerowInitializer - Register event listener called")
         GeofenceDispatcher.addGeofenceListener(geofenceListener)
     }
 

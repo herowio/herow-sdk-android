@@ -14,8 +14,8 @@ data class Zone(
     @PrimaryKey(autoGenerate = true)
     val zoneID: Long = 0,
 
-    @SerializedName("place_id")
-    var hash: String? = "",
+    @SerializedName(value = "place_id", alternate = ["hash"])
+    var hash: String = "",
     var lat: Double? = 0.0,
     var lng: Double? = 0.0,
     var radius: Double? = 0.0,

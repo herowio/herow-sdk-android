@@ -10,6 +10,6 @@ class PoiRepository constructor(
 ) :
     IPoiRepository {
 
-    override suspend fun insert(poi: Poi) = poiDAO.insertPOI(poi)
-    override suspend fun getAllPois(): List<Poi>? = poiDAO.getAllPois()
+    override fun insert(poi: Poi) = poiDAO.insertPOI(poi)
+    override fun getAllPois(): List<Poi>? = poiDAO.getAllPois()
 }

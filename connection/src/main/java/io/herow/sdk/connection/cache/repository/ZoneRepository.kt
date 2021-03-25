@@ -11,6 +11,6 @@ class ZoneRepository constructor(
 ) :
     IZoneRepository {
 
-    override suspend fun insert(zone: Zone) = zoneDAO.insertZone(zone)
-    override suspend fun getAllZones(): List<Zone>? = zoneDAO.getAllZones()
+    override fun insert(zone: Zone) = zoneDAO.insertZone(zone)
+    override fun getAllZones(): List<Zone>? = zoneDAO.getAllZones()
 }

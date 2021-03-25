@@ -105,6 +105,9 @@ class LogGeneratorEvent(
 
             job.await()
         }
+
+        android.util.Log.i("XXX/EVENT", "LogGeneratorEvent - cachePois from BDD are: $cachePois")
+        android.util.Log.i("XXX/EVENT", "LogGeneratorEvent - cacheZones from BDD are: $cacheZones")
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {

@@ -13,6 +13,8 @@ import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
+import io.herow.sdk.detection.helpers.DispatcherProvider
 import kotlinx.coroutines.*
 
 /**
@@ -24,17 +26,24 @@ class CacheWorker(
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters) {
 
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private lateinit var zoneRepository: ZoneRepository
+    private lateinit var poiRepository: PoiRepository
+    private lateinit var campaignRepository: CampaignRepository
+    private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
+
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
-        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
-
-    private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
 
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val authRequest = AuthRequests(sessionHolder, inputData)
         val database: HerowDatabase = HerowDatabase.getDatabase(applicationContext)
+
+        zoneRepository = ZoneRepository(database.zoneDAO())
+        poiRepository = PoiRepository(database.poiDAO())
+        campaignRepository = CampaignRepository(database.campaignDAO())
 
         if (!sessionHolder.getOptinValue()) {
             Log.d("Optin", "Optin value is set to false")
@@ -42,7 +51,11 @@ class CacheWorker(
         }
 
         authRequest.execute {
-            launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
+            withContext(dispatcher) {
+                Log.i("XXX/EVENT", "CacheWorker - Launching cacheRequest")
+                launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
+            }
+
         }
 
         return Result.success()
@@ -62,21 +75,28 @@ class CacheWorker(
 
             if (extractedGeoHash.isNotEmpty()) {
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
+                Log.i("XXX/EVENT", "CacheWorker - CacheResponse: $cacheResponse")
 
                 if (cacheResponse.isSuccessful) {
+                    Log.i("XXX/EVENT", "CacheWorker - CacheResponse is successful")
                     cacheResponse.body()?.let { cacheResult: CacheResult ->
-                        val job = scope.launch {
+                        withContext(dispatcher) {
                             database.clearAllTables()
-                            println("Data has been deleted")
-                            saveCacheDataInDB(database, cacheResult)
-                        }
-                        job.join()
+                            Log.i("XXX/EVENT", "CacheWorker - Database has been cleared")
 
-                        println("I should be called after data saved")
-                        CacheDispatcher.dispatch()
+                            for (zone in cacheResult.zones) {
+                                Log.i("XXX/EVENT", "CacheWorker - Zone is: $zone")
+                            }
+
+                            saveCacheDataInDB(cacheResult)
+
+                            Log.i("XXX/EVENT", "CacheWorker - CacheResult has been saved in BDD")
+
+                            CacheDispatcher.dispatch()
+                            Log.i("XXX/EVENT", "CacheWorker - Dispatcher method has been called")
+                        }
                     }
                 }
-                database.close()
             }
         }
     }
@@ -109,11 +129,7 @@ class CacheWorker(
         return ""
     }
 
-    suspend fun saveCacheDataInDB(database: HerowDatabase, cacheResult: CacheResult) {
-        val zoneRepository = ZoneRepository(database.zoneDAO())
-        val poiRepository = PoiRepository(database.poiDAO())
-        val campaignRepository = CampaignRepository(database.campaignDAO())
-
+    private fun saveCacheDataInDB(cacheResult: CacheResult) {
         for (zone in cacheResult.zones) {
             zoneRepository.insert(zone)
         }
@@ -125,7 +141,6 @@ class CacheWorker(
         for (campaign in cacheResult.campaigns) {
             campaignRepository.insert(campaign)
         }
-
-        println("Data has been saved")
     }
+
 }
