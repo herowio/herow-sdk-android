@@ -1,12 +1,15 @@
 package io.herow.sdk.detection.location
 
 import android.location.Location
+import android.util.Log
 import io.herow.sdk.common.helpers.TimeHelper
+import okhttp3.internal.checkOffsetAndCount
 import java.util.concurrent.CopyOnWriteArrayList
 
 object LocationDispatcher {
 
     private var lastLocation: Location? = null
+    private var countdown = 2
 
     fun addLocationListener(locationListener: LocationListener) {
         locationListeners.add(locationListener)
@@ -20,19 +23,44 @@ object LocationDispatcher {
     fun dispatchLocation(newLocation: Location) {
         var skip = false
 
+        Log.i("XXX/EVENT", "LocationDispatcher - Value of skip at beginning: $skip")
+
         if (lastLocation != null) {
-            val distance = newLocation.distanceTo(lastLocation!!)
 
-            skip =
-                distance < 20 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS
-        }
+            Log.i("XXX/EVENT", "LocationDispatcher - LastLocation is: $lastLocation")
+            Log.i("XXX/EVENT", "LocationDispatcher - NewLocation is: $newLocation")
 
-        if (!skip) {
-            for (locationListener in locationListeners) {
-                locationListener.onLocationUpdate(newLocation)
+            if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
+                Log.i("XXX/EVENT", "LocationDispatcher - New and Last locations are different")
+                val distance = newLocation.distanceTo(lastLocation!!)
+
+
+                Log.i("XXX/EVENT", "LocationDispatcher - Distance is: $distance")
+                val time = newLocation.time - lastLocation!!.time
+                val timeInSeconds = time / 1000
+
+                Log.i("XXX/EVENT", "LocationDispatcher - Time is: $timeInSeconds")
+
+                skip =
+                    distance < 20 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS
             }
         }
 
-        lastLocation = newLocation
+        Log.i("XXX/EVENT", "LocationDispatcher - Value of skip: $skip")
+
+        if (!skip) {
+            for (locationListener in locationListeners) {
+                Log.i(
+                    "XXX/EVENT",
+                    "LocationDispatcher - Calling onLocationUpdated: $locationListener"
+                )
+
+                locationListener.onLocationUpdate(newLocation)
+            }
+
+            lastLocation = newLocation
+        }
+
+        Log.i("XXX/EVENT", "LocationDispatcher - End value of skip: $skip")
     }
 }

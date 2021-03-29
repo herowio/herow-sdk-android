@@ -1,5 +1,6 @@
 package io.herow.sdk.connection.cache
 
+import io.herow.sdk.connection.cache.model.CacheResult
 import java.util.concurrent.CopyOnWriteArrayList
 
 object CacheDispatcher {
@@ -8,9 +9,9 @@ object CacheDispatcher {
     }
     private val cacheListeners = CopyOnWriteArrayList<CacheListener>()
 
-    fun dispatch() {
+    fun dispatch(cacheResult: CacheResult?) {
         for (cacheListener in cacheListeners) {
-            cacheListener.onCacheReception()
+            cacheListener.onCacheReception(cacheResult!!)
         }
     }
 }

@@ -47,22 +47,19 @@ class AuthRequests(
      */
     suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit) {
         Log.i("XXX/EVENT", "AuthRequests - Beginning of execute method in AuthRequests")
-
-        Log.i("XXX/EVENT", "AuthRequests - Is token empty?: ${sessionHolder.getAccessToken()}")
-
-        val timeout: Boolean = sessionHolder.getTimeOutToken() < TimeHelper.getCurrentTime()
-
-        Log.i("XXX/EVENT", "AuthRequests - Saved timeOut: ${sessionHolder.getTimeOutToken()}")
-        Log.i("XXX/EVENT", "AuthRequests - CurrentTime: ${TimeHelper.getCurrentTime()}")
-        Log.i("XXX/EVENT", "AuthRequests - Is token timeout?: $timeout")
-        Log.i("XXX/EVENT", "AuthRequests - Is token usable?: ${isTokenUsable(sessionHolder)}")
+        Log.i("XXX/EVENT", "AuthRequests - Token, before isTokenUsable, is: ${sessionHolder.getAccessToken()}")
 
         if (!isTokenUsable(sessionHolder)) {
             Log.i("XXX/EVENT", "AuthRequests - Token is not usable")
             withContext(Dispatchers.IO) {
                 launchTokenRequest(sessionHolder, platform, herowAPI)
             }
+        } else {
+            Log.i("XXX/EVENT", "AuthRequets - Token is usable")
         }
+
+        Log.i("XXX/EVENT", "AuthRequests - Token, after isTokenUsable, is: ${sessionHolder.getAccessToken()}")
+        Log.i("XXX/EVENT", "AuthRequests - getTimeOutTime = ${sessionHolder.getTimeOutTime()}")
 
         if (sessionHolder.hasNoUserInfoSaved() || !isUserInfoUpToDate()) {
             Log.i("XXX/EVENT", "AuthRequests - Launching userInfoRequest")
@@ -94,15 +91,19 @@ class AuthRequests(
     /**
      * Check if token is usable
      */
-    private fun isTokenUsable(sessionHolder: SessionHolder): Boolean =
-        (sessionHolder.getAccessToken().isNotEmpty()
-                && !isTokenExpired(sessionHolder.getTimeOutToken()))
+    private fun isTokenUsable(sessionHolder: SessionHolder): Boolean {
+        Log.i("XXX/EVENT", "AuthRequest - AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}")
+        Log.i("XXX/EVENT", "AuthRequest - AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}")
+       return (sessionHolder.getAccessToken().isNotEmpty()
+                && isTokenValid(sessionHolder.getTimeOutTime()))
+    }
+
 
     /**
      * Check if token time is still valid
      */
-    private fun isTokenExpired(timeoutTime: Long): Boolean =
-        timeoutTime < TimeHelper.getCurrentTime()
+    private fun isTokenValid(recordedTime: Long): Boolean =
+        recordedTime > TimeHelper.getCurrentTime()
 
     private suspend fun launchTokenRequest(
         sessionHolder: SessionHolder,
@@ -128,7 +129,8 @@ class AuthRequests(
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
                     sessionHolder.saveAccessToken(tokenResult.getToken())
-                    sessionHolder.saveTimeBeforeTimeOut(tokenResult.getTimeoutTime(TimeHelper.getCurrentTime()))
+                    sessionHolder.saveTimeOutTime(tokenResult.getTimeoutTime())
+                    Log.i("XXX/EVENT", "AuthRequests - savedTimeOutTime = ${tokenResult.getTimeoutTime()}")
                 }
             }
         }

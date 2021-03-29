@@ -2,6 +2,7 @@ package io.herow.sdk.connection
 
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
+import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.userinfo.UserInfo
 
 class SessionHolder(private val dataHolder: DataHolder) {
@@ -19,6 +20,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_REPEAT_INTERVAL = "common.repeat_interval"
         private const val KEY_OPTIN = "common.optin"
         private const val KEY_CLICK_AND_COLLECT_PROGRESS = "detection.click_and_collect_progress"
+        private const val KEY_PREVIOUS_DETECTED_ZONES = "detection.detected_zones"
     }
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
@@ -73,11 +75,11 @@ class SessionHolder(private val dataHolder: DataHolder) {
         }
     }
 
-    fun saveTimeBeforeTimeOut(time: Long) {
+    fun saveTimeOutTime(time: Long) {
         dataHolder[KEY_TOKEN_TIMEOUT] = time
     }
 
-    fun getTimeOutToken(): Long = dataHolder[KEY_TOKEN_TIMEOUT]
+    fun getTimeOutTime(): Long = dataHolder[KEY_TOKEN_TIMEOUT]
 
     fun hasNoUserInfoSaved(): Boolean = !dataHolder.containsKey(KEY_USER_INFO)
 

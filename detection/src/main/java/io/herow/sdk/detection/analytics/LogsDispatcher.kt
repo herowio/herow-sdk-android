@@ -7,9 +7,11 @@ object LogsDispatcher {
     fun addLogListener(logsListener: LogsListener) {
         logsListeners.add(logsListener)
     }
+
     private val logsListeners = CopyOnWriteArrayList<LogsListener>()
 
     fun dispatchLogsResult(listOfLogs: List<Log>) {
+        android.util.Log.i("XXX/EVENT", "LogsDispatcher - dispatchLogsResult: $listOfLogs")
         for (logsListener in logsListeners) {
             logsListener.onLogsToSend(listOfLogs)
         }

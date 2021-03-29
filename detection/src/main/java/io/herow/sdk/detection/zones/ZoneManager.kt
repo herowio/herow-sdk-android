@@ -8,7 +8,10 @@ import android.location.Location
 import android.util.Log
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
+import io.herow.sdk.common.DataHolder
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
@@ -48,21 +51,24 @@ class ZoneManager(
         return zones.isEmpty()
     }
 
-    override fun onCacheReception() {
+    override fun onCacheReception(cacheResult: CacheResult?) {
         zones.clear()
 
-        scope.launch(ioDispatcher) {
-            retrieveZones().let { zones.addAll(it) }
-            updateGeofencesMonitoring()
+        runBlocking {
+            withContext(ioDispatcher) {
+                retrieveZones().let { zones.addAll(it) }
+            }
         }
-
         Log.i("XXX/EVENT", "ZoneManager - zones from BDD are: $zones")
+        updateGeofencesMonitoring()
+
     }
 
     @SuppressLint("MissingPermission")
     private fun updateGeofencesMonitoring() {
         geofencingClient.removeGeofences(pendingIntent)?.run {
             addOnSuccessListener {
+                Log.i("XXX/EVENT", "ZoneManager - addOnSuccessListener")
                 addGeofences()
             }
             addOnFailureListener {
@@ -74,6 +80,7 @@ class ZoneManager(
     @SuppressLint("MissingPermission")
     private fun addGeofences() {
         if (zones.isNotEmpty()) {
+            Log.i("XXX/EVENT", "ZoneManager - Zones is not empty: $zones")
             val geofences = GeofencingHelper.buildGeofenceList(zones)
             val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
 
@@ -90,17 +97,21 @@ class ZoneManager(
     }
 
     override fun onLocationUpdate(location: Location) {
+        Log.i("XXX/EVENT", "ZoneManager - onLocationUpdate method")
         val detectedZones = ArrayList<Zone>()
         synchronized(zones) {
+            Log.i("XXX/EVENT", "ZoneManager - Zones synchronization: $zones")
             for (zone in zones) {
                 val zoneLocation = zone.toLocation()
                 val distanceToCenterOfZone = location.distanceTo(zoneLocation)
                 if (distanceToCenterOfZone - zone.radius!! <= 0) {
+                    Log.i("XXX/EVENT", "ZoneManager - Adding zone before: $zone")
                     detectedZones.add(zone)
                 }
             }
         }
         ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
+        Log.i("XXX/EVENT", "ZoneManager - Zones dispatched: $detectedZones")
     }
 
     private suspend fun retrieveZones(): ArrayList<Zone> {

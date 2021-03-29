@@ -2,9 +2,11 @@ package io.herow.sdk.detection.analytics
 
 import android.content.Context
 import android.location.Location
+import android.util.Log.i
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.PoiRepository
@@ -51,6 +53,7 @@ class LogGeneratorEvent(
     }
 
     override fun onLocationUpdate(location: Location) {
+        i("XXX/EVENT", "LogGeneratorEvent - onLocationUpdate method called")
         val herowLogContext = HerowLogContext(
             sessionHolder,
             appState,
@@ -93,7 +96,8 @@ class LogGeneratorEvent(
         return closestZones
     }
 
-    override fun onCacheReception() {
+    override fun onCacheReception(cacheResult: CacheResult?) {
+        i("XXX/EVENT", "LogGeneratorEvent - CacheResult is: $cacheResult")
         cachePois.clear()
         cacheZones.clear()
 
@@ -106,8 +110,8 @@ class LogGeneratorEvent(
             job.await()
         }
 
-        android.util.Log.i("XXX/EVENT", "LogGeneratorEvent - cachePois from BDD are: $cachePois")
-        android.util.Log.i("XXX/EVENT", "LogGeneratorEvent - cacheZones from BDD are: $cacheZones")
+        i("XXX/EVENT", "LogGeneratorEvent - cachePois from BDD are: $cachePois")
+        i("XXX/EVENT", "LogGeneratorEvent - cacheZones from BDD are: $cacheZones")
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {

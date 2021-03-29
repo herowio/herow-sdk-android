@@ -14,6 +14,7 @@ class LogsWorker(
 ) : CoroutineWorker(context, workerParameters) {
     companion object {
         const val KEY_LOGS = "detection.logs"
+        var companionLog: String? = null
     }
 
     private lateinit var sessionHolder: SessionHolder
@@ -53,7 +54,8 @@ class LogsWorker(
     }
 
     private fun extractLogs(): String {
-        val log = inputData.getString(KEY_LOGS) ?: ""
+        //val log = inputData.getString(KEY_LOGS) ?: ""
+        val log = companionLog ?: ""
         if (log.isNotEmpty()) {
             return log
         }

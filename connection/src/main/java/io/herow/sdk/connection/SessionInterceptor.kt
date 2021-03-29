@@ -1,5 +1,6 @@
 package io.herow.sdk.connection
 
+import android.util.Log
 import io.herow.sdk.common.DataHolder
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -27,6 +28,7 @@ class SessionInterceptor(private val sessionHolder: SessionHolder): Interceptor 
         if (deviceId.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.DEVICE_ID_HEADER, deviceId)
         }
+
         return chain.proceed(requestBuilder.build())
     }
 }

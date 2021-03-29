@@ -79,21 +79,26 @@ class CacheWorker(
 
                 if (cacheResponse.isSuccessful) {
                     Log.i("XXX/EVENT", "CacheWorker - CacheResponse is successful")
-                    cacheResponse.body()?.let { cacheResult: CacheResult ->
+                    cacheResponse.body()?.let { cacheResult: CacheResult? ->
+                        Log.i("XXX/EVENT", "CacheWorker - CacheResult is $cacheResult")
                         withContext(dispatcher) {
-                            database.clearAllTables()
-                            Log.i("XXX/EVENT", "CacheWorker - Database has been cleared")
+                            try {
+                                database.clearAllTables()
+                                Log.i("XXX/EVENT", "CacheWorker - Database has been cleared")
 
-                            for (zone in cacheResult.zones) {
-                                Log.i("XXX/EVENT", "CacheWorker - Zone is: $zone")
+                                for (zone in cacheResult!!.zones) {
+                                    Log.i("XXX/EVENT", "CacheWorker - Zone is: $zone")
+                                }
+
+                                saveCacheDataInDB(cacheResult)
+
+                                Log.i("XXX/EVENT", "CacheWorker - CacheResult has been saved in BDD")
+
+                                CacheDispatcher.dispatch(cacheResult)
+                                Log.i("XXX/EVENT", "CacheWorker - Dispatcher method has been called")
+                            } catch (e: Exception) {
+                                Log.e("EXCEPTION", "Exception is ${e.message}")
                             }
-
-                            saveCacheDataInDB(cacheResult)
-
-                            Log.i("XXX/EVENT", "CacheWorker - CacheResult has been saved in BDD")
-
-                            CacheDispatcher.dispatch()
-                            Log.i("XXX/EVENT", "CacheWorker - Dispatcher method has been called")
                         }
                     }
                 }

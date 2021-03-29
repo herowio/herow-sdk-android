@@ -213,6 +213,8 @@ class HerowInitializer private constructor(context: Context) {
      * Launch the logs request to send the events to he Herow Platform
      */
     fun launchLogsRequest(log: String) {
+        LogsWorker.companionLog = log
+
         Log.i("XXX/EVENT", "HerowInitializer - launchLogsRequest is called")
         if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
@@ -228,8 +230,7 @@ class HerowInitializer private constructor(context: Context) {
                         AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
                         AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
                         AuthRequests.KEY_CUSTOM_ID to customID,
-                        AuthRequests.KEY_PLATFORM to platform.name,
-                        LogsWorker.KEY_LOGS to log
+                        AuthRequests.KEY_PLATFORM to platform.name
                     )
                 )
                 .build()

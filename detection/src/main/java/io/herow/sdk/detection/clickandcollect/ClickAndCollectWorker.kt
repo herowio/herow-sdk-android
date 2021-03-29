@@ -65,7 +65,6 @@ class ClickAndCollectWorker(
         }
     }
 
-    //TODO Update time to Two HOURS (not seconds)
     private suspend fun launchJob() {
         NotificationHelper.createNotificationChannel(applicationContext)
         val foregroundInfo = NotificationHelper.foregroundNotification(applicationContext, id)
@@ -74,7 +73,7 @@ class ClickAndCollectWorker(
         if (hasLocationPermission()) {
             launchLocationsUpdate()
         }
-        delay(TimeHelper.TWO_SECONDS_MS)
+        delay(TimeHelper.TWO_HOUR_MS)
         if (hasLocationPermission()) {
             stopLocationsUpdate()
         }
