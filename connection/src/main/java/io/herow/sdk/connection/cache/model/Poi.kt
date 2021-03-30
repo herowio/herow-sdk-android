@@ -10,6 +10,7 @@ import com.google.gson.annotations.Expose
     tableName = "POI"
 )
 data class Poi(
+    @Expose
     @PrimaryKey(autoGenerate = false)
     @ColumnInfo(index = true)
     var id: String = "",
@@ -17,7 +18,8 @@ data class Poi(
     var lat: Double? = 0.0,
     @Expose(serialize = false)
     var lng: Double? = 0.0,
-    var tags: List<String>? = listOf()
+    @Expose
+    var tags: List<String>? = null
 ) {
 
     @Expose(deserialize = false)

@@ -13,6 +13,7 @@ import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
 import io.herow.sdk.detection.helpers.DispatcherProvider
 import kotlinx.coroutines.*
@@ -91,11 +92,12 @@ class CacheWorker(
                                 }
 
                                 saveCacheDataInDB(cacheResult)
+                                Log.i(
+                                    "XXX/EVENT",
+                                    "CacheWorker - CacheResult has been saved in BDD"
+                                )
 
-                                Log.i("XXX/EVENT", "CacheWorker - CacheResult has been saved in BDD")
-
-                                CacheDispatcher.dispatch(cacheResult)
-                                Log.i("XXX/EVENT", "CacheWorker - Dispatcher method has been called")
+                                CacheDispatcher.dispatch()
                             } catch (e: Exception) {
                                 Log.e("EXCEPTION", "Exception is ${e.message}")
                             }

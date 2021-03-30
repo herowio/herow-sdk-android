@@ -1,6 +1,5 @@
 package io.herow.sdk.connection
 
-import android.util.Log
 import io.herow.sdk.common.DataHolder
 import okhttp3.Interceptor
 import okhttp3.Response

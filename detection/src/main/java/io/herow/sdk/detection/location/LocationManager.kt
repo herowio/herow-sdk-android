@@ -1,13 +1,19 @@
 package io.herow.sdk.detection.location
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
+import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
+import com.vmadalin.easypermissions.EasyPermissions
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.cache.CacheDispatcher
@@ -71,10 +77,20 @@ class LocationManager(
         }
     }
 
+    private fun checkForLocationsPermission(): Boolean {
+        return EasyPermissions.hasPermissions(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+    }
+
     @SuppressLint("MissingPermission")
     private fun startMonitoring() {
         fusedLocationProviderClient.lastLocation?.addOnSuccessListener { location: Location? ->
-            LocationDispatcher.dispatchLocation(location!!)
+            if (location != null) {
+                LocationDispatcher.dispatchLocation(location)
+            }
         }
         updateMonitoring()
     }
@@ -106,8 +122,8 @@ class LocationManager(
 
     private fun buildBackgroundLocationRequest(): LocationRequest {
         val request = LocationRequest()
-        request.fastestInterval = TimeHelper.TEN_MINUTES_MS
-        request.interval = TimeHelper.FIVE_MINUTES_MS
+        request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
+        request.interval = TimeHelper.TEN_SECONDS_MS
         request.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         return request
     }

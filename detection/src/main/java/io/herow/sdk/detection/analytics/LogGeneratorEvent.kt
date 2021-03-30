@@ -77,6 +77,7 @@ class LogGeneratorEvent(
         closestPois.sortBy {
             it.distance
         }
+        i("XXX/EVENT", "LogGeneratorEvent - Closests POIS are $closestPois")
         return closestPois
     }
 
@@ -96,10 +97,11 @@ class LogGeneratorEvent(
         return closestZones
     }
 
-    override fun onCacheReception(cacheResult: CacheResult?) {
-        i("XXX/EVENT", "LogGeneratorEvent - CacheResult is: $cacheResult")
+    override fun onCacheReception() {
         cachePois.clear()
         cacheZones.clear()
+
+        i("XXX/EVENT", "LogGeneratorEvent - cachePois before fetching are: $cachePois")
 
         runBlocking {
             val job = async(ioDispatcher) {
@@ -110,7 +112,7 @@ class LogGeneratorEvent(
             job.await()
         }
 
-        i("XXX/EVENT", "LogGeneratorEvent - cachePois from BDD are: $cachePois")
+        i("XXX/EVENT", "LogGeneratorEvent - cachePois after fetching are: $cachePois")
         i("XXX/EVENT", "LogGeneratorEvent - cacheZones from BDD are: $cacheZones")
     }
 
@@ -119,14 +121,17 @@ class LogGeneratorEvent(
         val listOfLogsVisit = ArrayList<Log>()
 
         for (geofenceEvent in geofenceEvents) {
-            val nearbyPois = computeNearbyPois(geofenceEvent.location)
-            val herowLogEnter = HerowLogEnterOrExit(appState, geofenceEvent, nearbyPois)
+            val herowLogEnter = HerowLogEnterOrExit(appState, geofenceEvent)
             herowLogEnter.enrich(applicationData, sessionHolder)
             listOfLogsEnter.add(Log(herowLogEnter))
 
+            i("", "")
+
             if (geofenceEvent.type == GeofenceType.ENTER) {
+                val nearbyPois = computeNearbyPois(geofenceEvent.location)
                 val logVisit = HerowLogVisit(appState, geofenceEvent, nearbyPois)
                 listOfTemporaryLogsVisit.add(logVisit)
+                i("XXX/EVENT", "LogGeneratorEvent - LogVisit is $logVisit")
             } else {
                 for (logVisit in listOfTemporaryLogsVisit) {
                     if (geofenceEvent.zone.hash == logVisit[HerowLogVisit.PLACE_ID]) {

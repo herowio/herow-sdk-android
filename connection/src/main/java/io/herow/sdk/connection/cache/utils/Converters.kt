@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken
 import io.herow.sdk.connection.cache.model.*
 import java.lang.reflect.Type
 import java.util.*
+import kotlin.collections.ArrayList
 
 class Converters {
 
@@ -21,6 +22,21 @@ class Converters {
 
     @TypeConverter
     fun listServerToString(someObjects: List<Interval?>?): String? {
+        return Gson().toJson(someObjects)
+    }
+
+    @TypeConverter
+    fun stringToListString(data: String?): List<String?>? {
+        if (data == null) {
+            return Collections.emptyList()
+        }
+        val listType: Type = object :
+            TypeToken<List<Interval?>?>() {}.type
+        return Gson().fromJson<List<String?>>(data, listType)
+    }
+
+    @TypeConverter
+    fun listStringToString(someObjects: List<String?>?): String? {
         return Gson().toJson(someObjects)
     }
 
@@ -65,10 +81,4 @@ class Converters {
 
     @TypeConverter
     fun zoneToString(zone: Zone) = Gson().toJson(zone)
-
-    @TypeConverter
-    fun stringToTags(string: String?) = string!!.split(",").map { it }
-
-    @TypeConverter
-    fun listTagsToString(tags: List<String>?) = Gson().toJson(tags)
 }

@@ -7,17 +7,25 @@ import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.SessionHolder
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.util.*
+import kotlin.collections.HashMap
 
 class LogsWorker(
     context: Context,
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters) {
+
     companion object {
         const val KEY_LOGS = "detection.logs"
-        var companionLog: String? = null
+        var logsWorkerHashMap = HashMap<String?, String?>()
+        var workerID: String = "workerID"
     }
 
     private lateinit var sessionHolder: SessionHolder
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 
     override suspend fun doWork(): Result {
         sessionHolder = SessionHolder(DataHolder(applicationContext))
@@ -29,35 +37,35 @@ class LogsWorker(
         }
 
         autRequest.execute {
-            launchLogsRequest(autRequest.getHerowAPI())
+            withContext(dispatcher) {
+                launchLogsRequest(autRequest.getHerowAPI())
+            }
         }
         return Result.success()
     }
 
-    // TODO Extract EACH log in order to send log by log
     private suspend fun launchLogsRequest(herowAPI: HerowAPI) {
-        val log = extractLogs()
-        if (log.isNotEmpty()) {
+        val log = logsWorkerHashMap[inputData.getString(workerID)]
+        Log.i("XXX/EVENT", "LogsWorker - Log to send is: $log")
+        Log.i("XXX/EVENT", "LogsWorker - LogWorkerID is: ${inputData.getString(workerID)}")
+
+        if (!log.isNullOrEmpty()) {
             val logResponse = herowAPI.log(log)
             Log.i("XXX/EVENT", "LogsWorker - LogResponse is: $logResponse")
             if (logResponse.isSuccessful) {
+                logsWorkerHashMap.remove(workerID)
                 Log.i("XXX/EVENT", "LogsWorker - Log has been sent")
                 println("Request has been sent")
             } else {
                 println(logResponse)
             }
-
-            /* for (log in logs) {
-
-            } */
         }
     }
 
     private fun extractLogs(): String {
-        //val log = inputData.getString(KEY_LOGS) ?: ""
-        val log = companionLog ?: ""
-        if (log.isNotEmpty()) {
-            return log
+        val logs = inputData.getString(KEY_LOGS) ?: ""
+        if (logs.isNotEmpty()) {
+            return logs
         }
         return ""
     }

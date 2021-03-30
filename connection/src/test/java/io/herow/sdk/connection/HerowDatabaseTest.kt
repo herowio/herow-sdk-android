@@ -6,16 +6,13 @@ import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.common.helpers.DateHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.dao.CampaignDAO
+import io.herow.sdk.connection.cache.dao.PoiDAO
 import io.herow.sdk.connection.cache.dao.ZoneDAO
-import io.herow.sdk.connection.cache.model.Access
-import io.herow.sdk.connection.cache.model.Campaign
-import io.herow.sdk.connection.cache.model.Interval
-import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.model.*
 import io.herow.sdk.connection.cache.repository.CampaignRepository
+import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
@@ -36,15 +33,18 @@ class HerowDatabaseTest {
 
     private lateinit var zoneDAO: ZoneDAO
     private lateinit var campaignDAO: CampaignDAO
+    private lateinit var poiDAO: PoiDAO
 
     private lateinit var zoneRepository: ZoneRepository
     private lateinit var campaignRepository: CampaignRepository
+    private lateinit var poiRepository: PoiRepository
 
     private lateinit var db: HerowDatabase
 
     private lateinit var zone: Zone
     private lateinit var campaign: Campaign
     private lateinit var interval: Interval
+    private lateinit var poi: Poi
 
     private lateinit var context: Context
 
@@ -58,9 +58,11 @@ class HerowDatabaseTest {
 
         zoneDAO = db.zoneDAO()
         campaignDAO = db.campaignDAO()
+        poiDAO = db.poiDAO()
 
         zoneRepository = ZoneRepository(zoneDAO)
         campaignRepository = CampaignRepository(campaignDAO)
+        poiRepository = PoiRepository(poiDAO)
     }
 
     @Before
@@ -142,6 +144,17 @@ class HerowDatabaseTest {
             campaignRepository.insert(campaign)
         }
 
+        poi = Poi(
+            id = "testIDPoi",
+            lat = 12.0,
+            lng = 13.0,
+            tags = listOf("Tag1", "Tag2")
+        )
+
+        runBlocking {
+            poiRepository.insert(poi)
+        }
+
     }
 
     @Test
@@ -162,6 +175,27 @@ class HerowDatabaseTest {
             assertThat(listOfCampaigns?.size, equalTo(1))
         }
 
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun poiTableShouldNotBeEmpty() {
+        runBlocking {
+            val listOfPois = poiRepository.getAllPois()
+            assertThat(listOfPois?.size, equalTo(1))
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun tagToPoiShouldMatch() {
+        runBlocking {
+            val listOfPois = poiRepository.getAllPois()
+
+            val expected: String = "Tag1"
+
+            assertThat(listOfPois?.first()?.tags?.get(0), equalTo(expected))
+        }
     }
 
     @Test

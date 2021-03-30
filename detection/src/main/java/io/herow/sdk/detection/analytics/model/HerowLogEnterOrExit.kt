@@ -6,8 +6,7 @@ import io.herow.sdk.detection.geofencing.GeofenceType
 
 class HerowLogEnterOrExit(
     appState: String,
-    geofenceEvent: GeofenceEvent,
-    nearbyPois: List<Poi> = ArrayList()
+    geofenceEvent: GeofenceEvent
 ) : HerowLogData() {
     companion object {
         const val LOCATION = "lastLocation"
@@ -23,7 +22,6 @@ class HerowLogEnterOrExit(
         }
         this[APP_STATE] = appState
         this[LOCATION] = geofenceEvent.location
-        this[NEAR_BY_POIS] = nearbyPois
         this[PLACE] = geofenceEvent.zone
     }
 }

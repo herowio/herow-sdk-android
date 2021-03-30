@@ -13,7 +13,12 @@ import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigDispatcher
+import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
@@ -31,6 +36,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class HerowInitializer private constructor(context: Context) {
@@ -42,6 +48,7 @@ class HerowInitializer private constructor(context: Context) {
     private var locationManager: LocationManager
     private var logsManager: LogsManager
     private var workManager: WorkManager
+    private var database: HerowDatabase
 
     private lateinit var sessionHolder: SessionHolder
     private val initialRepeatInterval: Long = 900000
@@ -55,6 +62,7 @@ class HerowInitializer private constructor(context: Context) {
         logsManager = LogsManager(context)
         registerListeners()
         loadIdentifiers(context)
+        database = HerowDatabase.getDatabase(context)
     }
 
     companion object {
@@ -213,7 +221,10 @@ class HerowInitializer private constructor(context: Context) {
      * Launch the logs request to send the events to he Herow Platform
      */
     fun launchLogsRequest(log: String) {
-        LogsWorker.companionLog = log
+        val uuid = UUID.randomUUID().toString()
+        LogsWorker.logsWorkerHashMap[uuid] = log
+
+        Log.i("XXX/EVENT", "HerowInitializer - CurrentID is $uuid")
 
         Log.i("XXX/EVENT", "HerowInitializer - launchLogsRequest is called")
         if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
@@ -230,10 +241,12 @@ class HerowInitializer private constructor(context: Context) {
                         AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
                         AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
                         AuthRequests.KEY_CUSTOM_ID to customID,
-                        AuthRequests.KEY_PLATFORM to platform.name
+                        AuthRequests.KEY_PLATFORM to platform.name,
+                        LogsWorker.workerID to uuid
                     )
                 )
                 .build()
+
             workManager.enqueue(workerRequest)
             Log.i("XXX/EVENT", "HerowInitializer - launchLogsRequest is enqueued")
         }
@@ -265,6 +278,17 @@ class HerowInitializer private constructor(context: Context) {
     fun registerEventListener(geofenceListener: GeofenceListener) {
         Log.i("XXX/EVENT", "HerowInitializer - Register event listener called")
         GeofenceDispatcher.addGeofenceListener(geofenceListener)
+    }
+
+    fun registerCacheListener(cacheListener: CacheListener) {
+        Log.i("XXX/EVENT", "HerowInitializer - Register cache listener called")
+        CacheDispatcher.addCacheListener(cacheListener)
+    }
+
+    fun fetchZonesInDatabase(): List<Zone>? {
+        val zoneRepository = ZoneRepository(database.zoneDAO())
+
+        return zoneRepository.getAllZones()
     }
 
     /**

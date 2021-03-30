@@ -51,7 +51,7 @@ class ZoneManager(
         return zones.isEmpty()
     }
 
-    override fun onCacheReception(cacheResult: CacheResult?) {
+    override fun onCacheReception() {
         zones.clear()
 
         runBlocking {
