@@ -101,18 +101,18 @@ class LocationManager(
      * only want to be able to track the user and thus improve native geofence performances.
      */
     @SuppressLint("MissingPermission")
-    private fun updateMonitoring() {
+    private fun updateMonitoring(location: Location? = null) {
         val locationRequest = if (isOnForeground) {
-            buildForegroundLocationRequest()
+            buildForegroundLocationRequest(location)
         } else {
-            buildBackgroundLocationRequest()
+            buildBackgroundLocationRequest(location)
         }
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
 
-    private fun buildForegroundLocationRequest(): LocationRequest {
+    private fun buildForegroundLocationRequest(location: Location? = null): LocationRequest {
         val request = LocationRequest()
         request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
         request.interval = TimeHelper.TEN_SECONDS_MS
@@ -120,7 +120,7 @@ class LocationManager(
         return request
     }
 
-    private fun buildBackgroundLocationRequest(): LocationRequest {
+    private fun buildBackgroundLocationRequest(location: Location? = null): LocationRequest {
         val request = LocationRequest()
         request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
         request.interval = TimeHelper.TEN_SECONDS_MS
@@ -152,6 +152,7 @@ class LocationManager(
     }
 
     override fun onLocationUpdate(location: Location) {
+        updateMonitoring(location)
         scope.launch {
             if (zoneManager.isZonesEmpty() || noDataInDB()) {
                 HerowInitializer.getInstance(context).launchCacheRequest(location)
