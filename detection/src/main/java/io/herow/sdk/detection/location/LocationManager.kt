@@ -28,6 +28,7 @@ import kotlinx.coroutines.*
 
 class LocationManager(
     private val context: Context
+
 ) : ConfigListener, AppStateListener, LocationListener {
 
     companion object {
@@ -46,7 +47,7 @@ class LocationManager(
     private val pendingIntent = createPendingIntent(context)
 
     private val db: HerowDatabase = HerowDatabase.getDatabase(context)
-
+    private var zones: List<Zone>? = null
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
         return PendingIntent.getBroadcast(
@@ -61,6 +62,10 @@ class LocationManager(
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
+        CoroutineScope(Dispatchers.IO).launch {
+            zones =  zoneManager.getZones()
+
+        }
     }
 
     override fun onConfigResult(configResult: ConfigResult) {
@@ -99,20 +104,19 @@ class LocationManager(
      */
     @SuppressLint("MissingPermission")
     private fun updateMonitoring(location: Location? = null) {
-        val locationRequest = buildLocationRequest(location)
-
-        fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
+            val locationRequest = buildLocationRequest(location)
+            fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
+                fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
 
 
     private fun buildLocationRequest(location: Location? = null): LocationRequest {
+        zones =  zoneManager.getZones()
         val request = LocationRequest()
-        val zonesFromDB: List<Zone> = HerowInitializer.getInstance(context).fetchZonesInDatabase() ?:  ArrayList<Zone>()
         var smallestDistance = Double.MAX_VALUE
-        if (location != null) {
-            for (zone in zonesFromDB) {
+        if (location != null && zones != null) {
+            for (zone in zones!!) {
                 var zoneCenter = Location(
                     "zone"
                 )
@@ -133,9 +137,9 @@ class LocationManager(
             smallestDisplacement = 500.0
             interval =  2 * TimeHelper.ONE_MINUTE_MS
         }
-        if (smallestDistance <1000.0) {
+        if (smallestDistance < 1000.0) {
             smallestDisplacement = 100.0
-            interval =  TimeHelper.ONE_MINUTE_MS
+            interval = TimeHelper.ONE_MINUTE_MS
         }
         if (smallestDistance < 500) {
             interval =  2 * TimeHelper.TEN_SECONDS_MS

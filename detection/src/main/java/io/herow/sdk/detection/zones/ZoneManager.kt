@@ -47,6 +47,10 @@ class ZoneManager(
         )
     }
 
+    public fun getZones(): ArrayList<Zone> {
+        return zones
+    }
+
     fun isZonesEmpty(): Boolean {
         return zones.isEmpty()
     }
