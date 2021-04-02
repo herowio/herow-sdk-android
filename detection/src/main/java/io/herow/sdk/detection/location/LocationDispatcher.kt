@@ -42,6 +42,8 @@ object LocationDispatcher {
 
                 skip =
                     distance < 20 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS
+            } else {
+                skip = true
             }
         }
 

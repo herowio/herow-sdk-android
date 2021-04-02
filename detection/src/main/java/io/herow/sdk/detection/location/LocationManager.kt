@@ -125,7 +125,7 @@ class LocationManager(
                 val radius = zone.radius ?: 0.0
                 val dist = zoneCenter.distanceTo(location)
                 if (dist < smallestDistance) {
-                    smallestDistance = dist - radius
+                    smallestDistance = maxOf((dist - radius), 0.0)
                 }
             }
         }

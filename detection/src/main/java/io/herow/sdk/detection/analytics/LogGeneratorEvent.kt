@@ -159,14 +159,17 @@ class LogGeneratorEvent(
                 listOfTemporaryLogsVisit.add(logVisit)
                 i("XXX/EVENT", "LogGeneratorEvent - LogVisit is $logVisit")
             } else {
+                var logsToRemove = ArrayList<HerowLogVisit>()
                 for (logVisit in listOfTemporaryLogsVisit) {
                     if (geofenceEvent.zone.hash == logVisit[HerowLogVisit.PLACE_ID]) {
                         logVisit.updateDuration()
                         logVisit.enrich(applicationData, sessionHolder)
                         listOfLogsVisit.add(Log(logVisit))
-                        listOfTemporaryLogsVisit.remove(logVisit)
+                        logsToRemove.add(logVisit)
                     }
                 }
+                listOfTemporaryLogsVisit.removeAll(logsToRemove)
+
             }
         }
         LogsDispatcher.dispatchLogsResult(listOfLogsEnter)
