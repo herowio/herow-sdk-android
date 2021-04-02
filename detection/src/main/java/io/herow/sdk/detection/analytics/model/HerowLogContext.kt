@@ -1,18 +1,17 @@
 package io.herow.sdk.detection.analytics.model
 
 import android.location.Location
-import com.google.gson.annotations.Expose
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.connection.cache.model.Poi
-import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.detection.geofencing.model.LocationMediator
+import io.herow.sdk.connection.cache.model.mapper.PoiMapper
+import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
+import io.herow.sdk.detection.geofencing.model.LocationMapper
 
 class HerowLogContext(
     sessionHolder: SessionHolder,
     appState: String,
     location: Location,
-    nearbyPois: List<Poi> = ArrayList(),
-    nearbyPlaces: List<Zone> = ArrayList()
+    nearbyPois: List<PoiMapper> = ArrayList(),
+    nearbyPlaces: List<ZoneMapper> = ArrayList()
 ) : HerowLogData() {
     companion object {
         const val LOCATION = "lastLocation"
@@ -27,7 +26,7 @@ class HerowLogContext(
             this[SUBTYPE] = LogSubtype.CONTEXT
         }
         this[APP_STATE] = appState
-        this[LOCATION] = LocationMediator(
+        this[LOCATION] = LocationMapper(
             location.speed,
             location.accuracy,
             location.longitude,

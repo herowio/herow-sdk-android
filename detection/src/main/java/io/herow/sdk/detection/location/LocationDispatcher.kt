@@ -3,7 +3,6 @@ package io.herow.sdk.detection.location
 import android.location.Location
 import android.util.Log
 import io.herow.sdk.common.helpers.TimeHelper
-import okhttp3.internal.checkOffsetAndCount
 import java.util.concurrent.CopyOnWriteArrayList
 
 object LocationDispatcher {

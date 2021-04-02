@@ -1,9 +1,9 @@
 package io.herow.sdk.detection.analytics.model
 
-import io.herow.sdk.connection.cache.model.Poi
+import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
-import io.herow.sdk.detection.geofencing.model.LocationMediator
+import io.herow.sdk.detection.geofencing.model.LocationMapper
 
 class HerowLogEnterOrExit(
     appState: String,
@@ -21,13 +21,19 @@ class HerowLogEnterOrExit(
             this[SUBTYPE] = LogSubtype.GEOFENCE_EXIT
         }
         this[APP_STATE] = appState
-        this[LOCATION] = LocationMediator(
+        this[LOCATION] = LocationMapper(
             geofenceEvent.location.speed,
             geofenceEvent.location.accuracy,
             geofenceEvent.location.longitude,
             geofenceEvent.location.latitude,
             geofenceEvent.location.time
         )
-        this[PLACE] = geofenceEvent.zone
+        this[PLACE] = ZoneMapper(
+            lng = geofenceEvent.zone.lng,
+            lat = geofenceEvent.zone.lat,
+            place_id = geofenceEvent.zone.hash,
+            distance = geofenceEvent.zone.distance,
+            radius = geofenceEvent.zone.radius
+        )
     }
 }

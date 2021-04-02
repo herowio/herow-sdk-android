@@ -4,8 +4,6 @@ import android.content.Context
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
-import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
-import io.herow.sdk.detection.helpers.DispatcherProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 

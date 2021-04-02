@@ -8,10 +8,7 @@ import android.location.Location
 import android.util.Log
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
-import io.herow.sdk.common.DataHolder
-import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
-import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase

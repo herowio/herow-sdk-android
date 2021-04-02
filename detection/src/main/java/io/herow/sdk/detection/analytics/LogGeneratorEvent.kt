@@ -6,9 +6,10 @@ import android.util.Log.i
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
-import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.model.mapper.PoiMapper
+import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
@@ -77,12 +78,18 @@ class LogGeneratorEvent(
         LogsDispatcher.dispatchLogsResult(listOfLogs)
     }
 
-    private fun computeNearbyPois(location: Location): List<Poi> {
-        val closestPois: MutableList<Poi> = ArrayList()
+    private fun computeNearbyPois(location: Location): List<PoiMapper> {
+        val closestPois: MutableList<PoiMapper> = ArrayList()
         for (cachePoi in cachePois) {
             cachePoi.updateDistance(location)
             if (cachePoi.distance <= DISTANCE_POI_MAX) {
-                closestPois.add(cachePoi)
+                closestPois.add(
+                    PoiMapper(
+                        cachePoi.id,
+                        cachePoi.distance,
+                        cachePoi.tags
+                    )
+                )
             }
         }
         closestPois.sortBy {
@@ -92,12 +99,21 @@ class LogGeneratorEvent(
         return closestPois
     }
 
-    private fun computeNearbyPlaces(location: Location): List<Zone> {
-        val closestZones: MutableList<Zone> = ArrayList()
+    private fun computeNearbyPlaces(location: Location): List<ZoneMapper> {
+        val closestZones: MutableList<ZoneMapper> = ArrayList()
+
         for (cacheZone in cacheZones) {
             cacheZone.updateDistance(location)
             if (cacheZone.distance <= DISTANCE_POI_MAX) {
-                closestZones.add(cacheZone)
+                closestZones.add(
+                    ZoneMapper(
+                        cacheZone.lng,
+                        cacheZone.lat,
+                        cacheZone.hash,
+                        cacheZone.distance,
+                        cacheZone.radius
+                    )
+                )
             }
         }
 
