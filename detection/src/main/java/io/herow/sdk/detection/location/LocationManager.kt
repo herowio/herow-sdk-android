@@ -2,14 +2,10 @@ package io.herow.sdk.detection.location
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.Location
-import android.util.Log
-import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
@@ -17,6 +13,7 @@ import com.vmadalin.easypermissions.EasyPermissions
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
@@ -102,29 +99,56 @@ class LocationManager(
      */
     @SuppressLint("MissingPermission")
     private fun updateMonitoring(location: Location? = null) {
-        val locationRequest = if (isOnForeground) {
-            buildForegroundLocationRequest(location)
-        } else {
-            buildBackgroundLocationRequest(location)
-        }
+        val locationRequest = buildLocationRequest(location)
+
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
 
-    private fun buildForegroundLocationRequest(location: Location? = null): LocationRequest {
-        val request = LocationRequest()
-        request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
-        request.interval = TimeHelper.TEN_SECONDS_MS
-        request.priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-        return request
-    }
 
-    private fun buildBackgroundLocationRequest(location: Location? = null): LocationRequest {
+    private fun buildLocationRequest(location: Location? = null): LocationRequest {
         val request = LocationRequest()
+        val zonesFromDB: List<Zone> = HerowInitializer.getInstance(context).fetchZonesInDatabase() ?:  ArrayList<Zone>()
+        var smallestDistance = Double.MAX_VALUE
+        if (location != null) {
+            for (zone in zonesFromDB) {
+                var zoneCenter = Location(
+                    "zone"
+                )
+                zoneCenter.latitude = zone.lat ?: 0.0
+                zoneCenter.longitude = zone.lng ?: 0.0
+                val radius = zone.radius ?: 0.0
+                val dist = zoneCenter.distanceTo(location)
+                if (dist < smallestDistance) {
+                    smallestDistance = dist - radius
+                }
+            }
+        }
+
+        var priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+        var smallestDisplacement = 1000.0
+        var interval = TimeHelper.FIVE_MINUTES_MS
+        if (smallestDistance < 3000.0) {
+            smallestDisplacement = 500.0
+            interval =  2 * TimeHelper.ONE_MINUTE_MS
+        }
+        if (smallestDistance <1000.0) {
+            smallestDisplacement = 100.0
+            interval =  TimeHelper.ONE_MINUTE_MS
+        }
+        if (smallestDistance < 500) {
+            interval =  2 * TimeHelper.TEN_SECONDS_MS
+            priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+        if (smallestDistance < 100.0) {
+            smallestDisplacement = 20.0
+            interval =   TimeHelper.TEN_SECONDS_MS
+        }
+        request.smallestDisplacement =  smallestDisplacement.toFloat()
         request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
-        request.interval = TimeHelper.TEN_SECONDS_MS
-        request.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        request.interval = interval
+        request.priority = priority
         return request
     }
 
