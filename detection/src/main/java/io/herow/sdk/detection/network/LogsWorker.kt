@@ -10,8 +10,6 @@ import io.herow.sdk.connection.SessionHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
-import kotlin.collections.HashMap
 
 class LogsWorker(
     context: Context,

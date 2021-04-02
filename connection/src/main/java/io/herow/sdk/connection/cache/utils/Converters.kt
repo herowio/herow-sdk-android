@@ -6,7 +6,6 @@ import com.google.gson.reflect.TypeToken
 import io.herow.sdk.connection.cache.model.*
 import java.lang.reflect.Type
 import java.util.*
-import kotlin.collections.ArrayList
 
 class Converters {
 

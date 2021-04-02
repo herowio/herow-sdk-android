@@ -2,7 +2,6 @@ package io.herow.sdk.detection.zones
 
 import android.location.Location
 import android.util.Log
-import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Zone
 import java.util.concurrent.CopyOnWriteArrayList
 

@@ -8,6 +8,8 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Access
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.model.mapper.PoiMapper
+import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.connection.logs.Logs
 import io.herow.sdk.detection.analytics.ApplicationData
@@ -56,8 +58,17 @@ class LogsHelper(val sessionHolder: SessionHolder) {
                 sessionHolder,
                 "fg",
                 location,
-                arrayListOf(poi),
-                arrayListOf(zone, zone2)
+                arrayListOf(
+                    PoiMapper(
+                        poi.id,
+                        poi.distance,
+                        poi.tags
+                    )
+                ),
+                arrayListOf(
+                    ZoneMapper(zone.lng, zone.lat, zone.hash, zone.distance, zone.radius),
+                    ZoneMapper(zone2.lng, zone2.lat, zone2.hash, zone2.distance, zone2.radius)
+                )
             )
         herowLogContext.enrich(
             ApplicationData(context), SessionHolder(

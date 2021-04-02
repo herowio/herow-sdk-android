@@ -1,6 +1,5 @@
 package io.herow.sdk.detection.network
 
-import android.text.TextWatcher
 import io.herow.sdk.detection.helpers.DispatcherProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

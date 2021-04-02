@@ -1,6 +1,6 @@
 package io.herow.sdk.detection.geofencing.model
 
-data class LocationMediator(
+data class LocationMapper(
     var speed: Float,
     var horizontalAccuracy: Float,
     var lng: Double,

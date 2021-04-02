@@ -13,10 +13,9 @@ import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
-import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
-import io.herow.sdk.detection.helpers.DefaultDispatcherProvider
-import io.herow.sdk.detection.helpers.DispatcherProvider
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the
