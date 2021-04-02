@@ -192,7 +192,7 @@ class HerowDatabaseTest {
         runBlocking {
             val listOfPois = poiRepository.getAllPois()
 
-            val expected: String = "Tag1"
+            val expected = "Tag1"
 
             assertThat(listOfPois?.first()?.tags?.get(0), equalTo(expected))
         }
