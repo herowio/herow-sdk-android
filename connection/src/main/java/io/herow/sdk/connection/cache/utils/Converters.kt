@@ -21,23 +21,38 @@ class Converters {
     }
 
     @TypeConverter
-    fun listServerToString(someObjects: List<Interval?>?): String? {
+    fun listServerToString(someObjects: List<Interval>?): String? {
         return Gson().toJson(someObjects)
     }
 
     @TypeConverter
-    fun stringToListString(data: String?): List<String?>? {
-        if (data == null) {
+    fun stringToListString(data: String?): List<String>? {
+        if (data.isNullOrEmpty()) {
             return Collections.emptyList()
         }
         val listType: Type = object :
-            TypeToken<List<Interval?>?>() {}.type
-        return Gson().fromJson<List<String?>>(data, listType)
+            TypeToken<List<String>>() {}.type
+        return Gson().fromJson<List<String>?>(data, listType)
     }
 
     @TypeConverter
-    fun listStringToString(someObjects: List<String?>?): String? {
+    fun listStringToString(someObjects: List<String>): String? {
         return Gson().toJson(someObjects)
+    }
+
+    @TypeConverter
+    fun arrayListStringToString(someObjects: ArrayList<String>?): String? {
+        return Gson().toJson(someObjects)
+    }
+
+    @TypeConverter
+    fun stringToArrayListString(data: String?): ArrayList<String>? {
+        if (data == null) {
+            return arrayListOf()
+        }
+        val listType: Type = object :
+            TypeToken<ArrayList<String>?>() {}.type
+        return Gson().fromJson<ArrayList<String>?>(data, listType)
     }
 
     @TypeConverter

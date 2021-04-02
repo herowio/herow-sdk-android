@@ -11,26 +11,18 @@ import com.google.gson.annotations.SerializedName
     tableName = "Zone"
 )
 data class Zone(
-    @Expose(serialize = false)
     @PrimaryKey(autoGenerate = true)
     val zoneID: Long = 0,
 
-    @Expose
     @SerializedName(value = "place_id", alternate = ["hash"])
     var hash: String = "",
 
-    @Expose
     var lat: Double? = 0.0,
-    @Expose
     var lng: Double? = 0.0,
-    @Expose
     var radius: Double? = 0.0,
-
-    @Expose(serialize = false)
     var campaigns: List<String>? = listOf(),
 
     @Embedded
-    @Expose(serialize = false)
     val access: Access?
 ) {
     @Expose(deserialize = false)

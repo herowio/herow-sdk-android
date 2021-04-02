@@ -2,6 +2,7 @@ package io.herow.sdk.detection.analytics
 
 import android.content.Context
 import android.util.Log.i
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
@@ -36,11 +37,12 @@ class LogsManager(private val context: Context): LogsListener {
             i("XXX/EVENT", "LogsManager - ListOfLogs is not empty: $listOfLogs")
 
             for (log in listOfLogs) {
-                val builder = GsonBuilder()
+                /* val builder = GsonBuilder()
                 builder.excludeFieldsWithoutExposeAnnotation()
                 val gson = builder.create()
 
-                val logJsonString: String = gson.toJson(log, Log::class.java)
+                val logJsonString: String = gson.toJson(log, Log::class.java) */
+                val logJsonString: String = Gson().toJson(log, Log::class.java)
 
                 i("XXX/EVENT", "LogsManager - Log one by one: $logJsonString")
                 HerowInitializer.getInstance(context).launchLogsRequest(logJsonString)

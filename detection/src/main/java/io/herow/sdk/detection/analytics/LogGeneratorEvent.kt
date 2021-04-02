@@ -54,15 +54,26 @@ class LogGeneratorEvent(
 
     override fun onLocationUpdate(location: Location) {
         i("XXX/EVENT", "LogGeneratorEvent - onLocationUpdate method called")
+        i("XXX/EVENT", "LogGeneratorEvent - onLocationUpdate: Location is $location")
+
+        var nearbyPois = computeNearbyPois(location)
+        i("XXX/EVENT", "LogGeneratorEvent - Before sublist $nearbyPois")
+        if (nearbyPois.size > 10) {
+            nearbyPois = nearbyPois.subList(0, 10)
+            i("XXX/EVENT", "LogGeneratorEvent - After sublist $nearbyPois")
+        }
+
         val herowLogContext = HerowLogContext(
             sessionHolder,
             appState,
             location,
-            computeNearbyPois(location),
+            nearbyPois,
             computeNearbyPlaces(location)
         )
+
         herowLogContext.enrich(applicationData, sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext))
+        i("XXX/EVENT", "LogGeneratorEvent - onLocationUpdate: ListofLogs are $listOfLogs")
         LogsDispatcher.dispatchLogsResult(listOfLogs)
     }
 
@@ -128,8 +139,7 @@ class LogGeneratorEvent(
             i("", "")
 
             if (geofenceEvent.type == GeofenceType.ENTER) {
-                val nearbyPois = computeNearbyPois(geofenceEvent.location)
-                val logVisit = HerowLogVisit(appState, geofenceEvent, nearbyPois)
+                val logVisit = HerowLogVisit(appState, geofenceEvent)
                 listOfTemporaryLogsVisit.add(logVisit)
                 i("XXX/EVENT", "LogGeneratorEvent - LogVisit is $logVisit")
             } else {

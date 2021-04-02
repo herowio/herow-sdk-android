@@ -1,5 +1,6 @@
 package io.herow.sdk.detection
 
+import android.app.Activity
 import android.content.Context
 import android.location.Location
 import android.util.Log
@@ -36,6 +37,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.TimeUnit
 

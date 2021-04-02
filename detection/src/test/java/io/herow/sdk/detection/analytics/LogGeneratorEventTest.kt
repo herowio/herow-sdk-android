@@ -56,7 +56,8 @@ class LogGeneratorEventTest {
         val fakePOI = Poi(
             id = "7515771363",
             lat = 48.84748,
-            lng = 2.35231
+            lng = 2.35231,
+            tags = arrayListOf("Tag1", "Tag2")
         )
 
         logGeneratorEvent.cacheZones = arrayListOf(fakeZone)
