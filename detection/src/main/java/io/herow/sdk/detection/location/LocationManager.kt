@@ -130,24 +130,31 @@ class LocationManager(
             }
         }
 
-        var priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+        var priority = LocationRequest.PRIORITY_LOW_POWER
         var smallestDisplacement = 1000.0
+        smallestDisplacement = smallestDistance / 10
         var interval = TimeHelper.FIVE_MINUTES_MS
         if (smallestDistance < 3000.0) {
-            smallestDisplacement = 500.0
-            interval =  2 * TimeHelper.ONE_MINUTE_MS
+            interval =  2 * TimeHelper.THREE_MINUTE_MS
+            priority =  LocationRequest.PRIORITY_LOW_POWER
         }
         if (smallestDistance < 1000.0) {
-            smallestDisplacement = 100.0
             interval = TimeHelper.ONE_MINUTE_MS
+            priority =  LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
         }
         if (smallestDistance < 500) {
-            interval =  2 * TimeHelper.TEN_SECONDS_MS
-            priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
+
+            interval =   TimeHelper.TWENTY_SECONDS_MS
+            priority =  LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
         }
         if (smallestDistance < 100.0) {
-            smallestDisplacement = 20.0
             interval =   TimeHelper.TEN_SECONDS_MS
+            priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+        if (smallestDistance < 50) {
+            priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
+            interval =   TimeHelper.FIVE_SECONDS_MS
         }
         request.smallestDisplacement =  smallestDisplacement.toFloat()
         request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS

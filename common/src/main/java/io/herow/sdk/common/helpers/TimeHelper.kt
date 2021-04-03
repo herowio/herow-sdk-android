@@ -9,6 +9,7 @@ import java.util.*
 
 object TimeHelper {
     const val TWO_SECONDS_MS = 2 * 1000L
+    const val FIVE_SECONDS_MS = 5 * 1000L
     const val TEN_SECONDS_MS = 10 * 1000L
     const val TWENTY_SECONDS_MS = 20 * 1000L
     const val THIRTY_SECONDS_MS = 30 * 1000L
