@@ -154,7 +154,7 @@ class LocationManager(
             interval =   TimeHelper.FIVE_SECONDS_MS
         }
         //TODO remove
-        interval =   TimeHelper.FIVE_SECONDS_MS
+        interval =   TimeHelper.TEN_SECONDS_MS
         val smallestDisplacementtmp = 20.0
 
         request.smallestDisplacement = smallestDisplacementtmp.toFloat() //smallestDisplacement.toFloat()
