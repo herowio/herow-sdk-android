@@ -26,7 +26,7 @@ class CacheWorker(
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters) {
 
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private lateinit var zoneRepository: ZoneRepository
     private lateinit var poiRepository: PoiRepository
     private lateinit var campaignRepository: CampaignRepository
@@ -51,7 +51,7 @@ class CacheWorker(
         }
 
         authRequest.execute {
-            withContext(dispatcher) {
+            withContext(ioDispatcher) {
                 Log.i("XXX/EVENT", "CacheWorker - Launching cacheRequest")
                 launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
             }
@@ -81,7 +81,7 @@ class CacheWorker(
                     Log.i("XXX/EVENT", "CacheWorker - CacheResponse is successful")
                     cacheResponse.body()?.let { cacheResult: CacheResult? ->
                         Log.i("XXX/EVENT", "CacheWorker - CacheResult is $cacheResult")
-                        withContext(dispatcher) {
+                        withContext(ioDispatcher) {
                             try {
                                 database.clearAllTables()
                                 Log.i("XXX/EVENT", "CacheWorker - Database has been cleared")
@@ -97,6 +97,7 @@ class CacheWorker(
                                 )
 
                                 CacheDispatcher.dispatch()
+                                Log.i("XXX/EVENT", "CacheWorker - Dispatching zones")
                             } catch (e: Exception) {
                                 Log.e("EXCEPTION", "Exception is ${e.message}")
                             }
@@ -136,17 +137,25 @@ class CacheWorker(
     }
 
     private fun saveCacheDataInDB(cacheResult: CacheResult) {
-        for (zone in cacheResult.zones) {
-            zoneRepository.insert(zone)
+        if (!cacheResult.zones.isNullOrEmpty()) {
+            for (zone in cacheResult.zones) {
+                zoneRepository.insert(zone)
+            }
+            Log.i("XXX/EVENT", "CacheWorker - Zones have been saved")
         }
 
-        for (poi in cacheResult.pois) {
-            poiRepository.insert(poi)
+        if (!cacheResult.pois.isNullOrEmpty()) {
+            for (poi in cacheResult.pois) {
+                poiRepository.insert(poi)
+            }
+            Log.i("XXX/EVENT", "CacheWorker - Pois have been saved")
         }
 
-        for (campaign in cacheResult.campaigns) {
-            campaignRepository.insert(campaign)
+        if (!cacheResult.campaigns.isNullOrEmpty()) {
+            for (campaign in cacheResult.campaigns) {
+                campaignRepository.insert(campaign)
+            }
+            Log.i("XXX/EVENT", "CacheWorker - Campaigns have been saved")
         }
     }
-
 }
