@@ -41,14 +41,11 @@ object LocationDispatcher {
                 Log.i("XXX/EVENT", "LocationDispatcher - Time is: $timeInSeconds")
 
                 skip =
-                    distance < 20 && newLocation.time - lastLocation!!.time < TimeHelper.THREE_MINUTE_MS
+                    distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.THREE_MINUTE_MS
             } else {
                 skip = true
             }
         }
-
-        //TODO remove
-        skip = false
 
         Log.i("XXX/EVENT", "LocationDispatcher - Value of skip: $skip")
 

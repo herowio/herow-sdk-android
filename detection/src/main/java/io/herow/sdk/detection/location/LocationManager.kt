@@ -107,7 +107,6 @@ class LocationManager(
             val locationRequest = buildLocationRequest(location)
             fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
-
         }
     }
 
@@ -146,19 +145,16 @@ class LocationManager(
             priority =  LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
         }
         if (smallestDistance < 100.0) {
-            interval =   TimeHelper.TEN_SECONDS_MS
+            interval =   TimeHelper.FIVE_SECONDS_MS
             priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
         }
         if (smallestDistance < 50) {
             priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
-            interval =   TimeHelper.FIVE_SECONDS_MS
+            interval =   TimeHelper.TWO_SECONDS_MS
         }
-        //TODO remove
-        interval =   TimeHelper.TEN_SECONDS_MS
-        val smallestDisplacementtmp = 20.0
 
-        request.smallestDisplacement = smallestDisplacementtmp.toFloat() //smallestDisplacement.toFloat()
-        request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
+        request.smallestDisplacement = smallestDisplacement.toFloat()
+        request.fastestInterval = TimeHelper.TEN_SECONDS_MS
         request.interval = interval
         request.priority = priority
         return request
