@@ -47,6 +47,9 @@ object LocationDispatcher {
             }
         }
 
+        //TODO remove
+        skip = false
+
         Log.i("XXX/EVENT", "LocationDispatcher - Value of skip: $skip")
 
         if (!skip) {

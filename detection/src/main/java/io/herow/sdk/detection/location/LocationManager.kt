@@ -107,6 +107,7 @@ class LocationManager(
             val locationRequest = buildLocationRequest(location)
             fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
+
         }
     }
 
@@ -117,9 +118,7 @@ class LocationManager(
         var smallestDistance = Double.MAX_VALUE
         if (location != null && zones != null) {
             for (zone in zones!!) {
-                var zoneCenter = Location(
-                    "zone"
-                )
+                var zoneCenter = Location("zone")
                 zoneCenter.latitude = zone.lat ?: 0.0
                 zoneCenter.longitude = zone.lng ?: 0.0
                 val radius = zone.radius ?: 0.0
@@ -131,9 +130,9 @@ class LocationManager(
         }
 
         var priority = LocationRequest.PRIORITY_LOW_POWER
-        var smallestDisplacement = 1000.0
-        smallestDisplacement = smallestDistance / 10
+        var smallestDisplacement = smallestDistance / 10
         var interval = TimeHelper.FIVE_MINUTES_MS
+
         if (smallestDistance < 3000.0) {
             interval =  2 * TimeHelper.THREE_MINUTE_MS
             priority =  LocationRequest.PRIORITY_LOW_POWER
@@ -143,7 +142,6 @@ class LocationManager(
             priority =  LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
         }
         if (smallestDistance < 500) {
-
             interval =   TimeHelper.TWENTY_SECONDS_MS
             priority =  LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
         }
@@ -151,12 +149,15 @@ class LocationManager(
             interval =   TimeHelper.TEN_SECONDS_MS
             priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
         }
-
         if (smallestDistance < 50) {
             priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
             interval =   TimeHelper.FIVE_SECONDS_MS
         }
-        request.smallestDisplacement =  smallestDisplacement.toFloat()
+        //TODO remove
+        interval =   TimeHelper.FIVE_SECONDS_MS
+        val smallestDisplacementtmp = 20.0
+
+        request.smallestDisplacement = smallestDisplacementtmp.toFloat() //smallestDisplacement.toFloat()
         request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
         request.interval = interval
         request.priority = priority
