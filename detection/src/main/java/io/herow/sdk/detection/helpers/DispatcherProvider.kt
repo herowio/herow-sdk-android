@@ -7,5 +7,3 @@ interface DispatcherProvider {
 
     fun io(): CoroutineDispatcher = Dispatchers.IO
 }
-
-class DefaultDispatcherProvider: DispatcherProvider

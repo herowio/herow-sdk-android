@@ -20,8 +20,6 @@ object RetrofitBuilder {
             .client(getOkHttpClient(sessionHolder, addLoggingInterceptor))
             .build()
 
-
-
         return retrofit.create(apiClass)
     }
 

@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 
-class CacheWorkerFactory(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) :
+class CacheWorkerFactory :
     WorkerFactory() {
 
     override fun createWorker(

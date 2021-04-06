@@ -1,9 +1,9 @@
 package io.herow.sdk.detection.network
 
-import android.util.Log
 import androidx.work.Data
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.RetrofitBuilder
@@ -46,23 +46,53 @@ class AuthRequests(
      * Reusable execute method in any worker that needs a token
      */
     suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit) {
-        Log.i("XXX/EVENT", "AuthRequests - Beginning of execute method in AuthRequests")
-        Log.i("XXX/EVENT", "AuthRequests - Token, before isTokenUsable, is: ${sessionHolder.getAccessToken()}")
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "execute",
+            51,
+            "Beginning of execute method in AuthRequests"
+        )
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "execute",
+            52,
+            "Token, before isTokenUsable, is: ${sessionHolder.getAccessToken()}"
+        )
 
         if (!isTokenUsable(sessionHolder)) {
-            Log.i("XXX/EVENT", "AuthRequests - Token is not usable")
+            GlobalLogger.shared.info(null, "AuthRequests", "execute", 55, "Token is not usable")
             withContext(Dispatchers.IO) {
                 launchTokenRequest(sessionHolder, platform, herowAPI)
             }
         } else {
-            Log.i("XXX/EVENT", "AuthRequets - Token is usable")
+            GlobalLogger.shared.info(null, "AuthRequests", "execute", 60, "Token is usable")
         }
 
-        Log.i("XXX/EVENT", "AuthRequests - Token, after isTokenUsable, is: ${sessionHolder.getAccessToken()}")
-        Log.i("XXX/EVENT", "AuthRequests - getTimeOutTime = ${sessionHolder.getTimeOutTime()}")
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "execute",
+            63,
+            "Token, after isTokenUsable, is: ${sessionHolder.getAccessToken()}"
+        )
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "execute",
+            64,
+            "GetTimeOutTime value is: ${sessionHolder.getTimeOutTime()}"
+        )
 
         if (sessionHolder.hasNoUserInfoSaved() || !isUserInfoUpToDate()) {
-            Log.i("XXX/EVENT", "AuthRequests - Launching userInfoRequest")
+            GlobalLogger.shared.info(
+                null,
+                "AuthRequests",
+                "execute",
+                67,
+                "Launching userInfoRequest method"
+            )
             withContext(Dispatchers.IO) {
                 launchUserInfoRequest(sessionHolder, herowAPI)
             }
@@ -92,9 +122,21 @@ class AuthRequests(
      * Check if token is usable
      */
     private fun isTokenUsable(sessionHolder: SessionHolder): Boolean {
-        Log.i("XXX/EVENT", "AuthRequest - AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}")
-        Log.i("XXX/EVENT", "AuthRequest - AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}")
-       return (sessionHolder.getAccessToken().isNotEmpty()
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "isTokenUsable",
+            97,
+            "AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}"
+        )
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "isTokenUsable",
+            98,
+            "AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}"
+        )
+        return (sessionHolder.getAccessToken().isNotEmpty()
                 && isTokenValid(sessionHolder.getTimeOutTime()))
     }
 
@@ -113,8 +155,20 @@ class AuthRequests(
         val sdkId = data.getString(KEY_SDK_ID) ?: ""
         val sdkKey = data.getString(KEY_SDK_KEY) ?: ""
 
-        Log.i("XXX/EVENT", "AuthRequests - sdkID is $sdkId")
-        Log.i("XXX/EVENT", "AuthRequests - sdkKey is $sdkKey")
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "launchTokenRequest",
+            160,
+            "SdkID is $sdkId"
+        )
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "launchTokenRequest",
+            167,
+            "SdkKey is $sdkKey"
+        )
 
         if (sdkId.isNotEmpty() && sdkKey.isNotEmpty()) {
             val platformData = PlatformData(platform)
@@ -130,7 +184,13 @@ class AuthRequests(
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
                     sessionHolder.saveAccessToken(tokenResult.getToken())
                     sessionHolder.saveTimeOutTime(tokenResult.getTimeoutTime())
-                    Log.i("XXX/EVENT", "AuthRequests - savedTimeOutTime = ${tokenResult.getTimeoutTime()}")
+                    GlobalLogger.shared.info(
+                        null,
+                        "AuthRequests",
+                        "launchTokenRequest",
+                        189,
+                        "SavedTimeOutTime = ${tokenResult.getTimeoutTime()}"
+                    )
                 }
             }
         }
@@ -159,14 +219,32 @@ class AuthRequests(
         val jsonString = GsonProvider.toJson(userInfo, UserInfo::class.java)
         sessionHolder.saveStringUserInfo(jsonString)
 
-        Log.i("XXX/EVENT", "AuthRequests - UserInfo string is $jsonString")
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "launchUserInfoRequest",
+            218,
+            "UserInfo string is $jsonString"
+        )
         val userInfoResponse = herowAPI.userInfo(jsonString)
-        Log.i("XXX/EVENT", "AuthRequests - UserInfoResponse is $userInfoResponse")
+        GlobalLogger.shared.info(
+            null,
+            "AuthRequests",
+            "launchUserInfoRequest",
+            220,
+            "UserInfoResponse is $userInfoResponse"
+        )
 
         if (userInfoResponse.isSuccessful) {
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
                 sessionHolder.saveHerowId(userInfoResult.herowId)
-                Log.i("XXX/EVENT", "AuthRequests - UserInfoResponse is successful")
+                GlobalLogger.shared.info(
+                    null,
+                    "AuthRequests",
+                    "launchUserInfoRequest",
+                    225,
+                    "UserInfoResponse is successful"
+                )
             }
         }
     }

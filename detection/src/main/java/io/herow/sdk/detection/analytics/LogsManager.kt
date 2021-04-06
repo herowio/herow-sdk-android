@@ -1,9 +1,9 @@
 package io.herow.sdk.detection.analytics
 
 import android.content.Context
-import android.util.Log.i
 import com.google.gson.Gson
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
@@ -12,7 +12,7 @@ import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.location.LocationDispatcher
 
-class LogsManager(private val context: Context): LogsListener {
+class LogsManager(private val context: Context) : LogsListener {
     private val applicationData = ApplicationData(context)
     private val sessionHolder = SessionHolder(DataHolder(context))
     private val logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)
@@ -30,17 +30,23 @@ class LogsManager(private val context: Context): LogsListener {
      */
     override fun onLogsToSend(listOfLogs: List<Log>) {
         if (listOfLogs.isNotEmpty()) {
-            i("XXX/EVENT", "LogsManager - ListOfLogs is not empty: $listOfLogs")
+            GlobalLogger.shared.info(
+                context,
+                "LogsManager",
+                "onLogsToSend",
+                34,
+                "List of logs is: $listOfLogs"
+            )
 
             for (log in listOfLogs) {
-                /* val builder = GsonBuilder()
-                builder.excludeFieldsWithoutExposeAnnotation()
-                val gson = builder.create()
-
-                val logJsonString: String = gson.toJson(log, Log::class.java) */
                 val logJsonString: String = Gson().toJson(log, Log::class.java)
-
-                i("XXX/EVENT", "LogsManager - Log one by one: $logJsonString")
+                GlobalLogger.shared.info(
+                    context,
+                    "LogsManager",
+                    "onLogsToSend",
+                    38,
+                    "Log one by one: $logJsonString"
+                )
                 HerowInitializer.getInstance(context).launchLogsRequest(logJsonString)
             }
 

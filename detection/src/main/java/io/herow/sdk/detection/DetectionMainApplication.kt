@@ -3,7 +3,6 @@ package io.herow.sdk.detection
 import android.app.Application
 import androidx.work.Configuration
 
-
 class DetectionMainApplication : Application(), Configuration.Provider {
 
     override fun getWorkManagerConfiguration(): Configuration =
