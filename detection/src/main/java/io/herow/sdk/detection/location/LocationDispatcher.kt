@@ -1,14 +1,13 @@
 package io.herow.sdk.detection.location
 
 import android.location.Location
-import android.util.Log
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.logger.GlobalLogger
 import java.util.concurrent.CopyOnWriteArrayList
 
 object LocationDispatcher {
 
     private var lastLocation: Location? = null
-    private var countdown = 2
 
     fun addLocationListener(locationListener: LocationListener) {
         locationListeners.add(locationListener)
@@ -21,24 +20,56 @@ object LocationDispatcher {
      */
     fun dispatchLocation(newLocation: Location) {
         var skip = false
-
-        Log.i("XXX/EVENT", "LocationDispatcher - Value of skip at beginning: $skip")
+        GlobalLogger.shared.info(
+            null,
+            "LocationDispatcher",
+            "dispatchLocation",
+            24,
+            "Value of skip at beginning: $skip"
+        )
 
         if (lastLocation != null) {
-
-            Log.i("XXX/EVENT", "LocationDispatcher - LastLocation is: $lastLocation")
-            Log.i("XXX/EVENT", "LocationDispatcher - NewLocation is: $newLocation")
+            GlobalLogger.shared.info(
+                null,
+                "LocationDispatcher",
+                "dispatchLocation",
+                27,
+                "LastLocation is: $lastLocation"
+            )
+            GlobalLogger.shared.info(
+                null,
+                "LocationDispatcher",
+                "dispatchLocation",
+                28,
+                "NewLocation is: $newLocation"
+            )
 
             if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
-                Log.i("XXX/EVENT", "LocationDispatcher - New and Last locations are different")
+                GlobalLogger.shared.info(
+                    null,
+                    "LocationDispatcher",
+                    "dispatchLocation",
+                    31,
+                    "New and Last locations are different"
+                )
                 val distance = newLocation.distanceTo(lastLocation!!)
 
-
-                Log.i("XXX/EVENT", "LocationDispatcher - Distance is: $distance")
+                GlobalLogger.shared.info(
+                    null,
+                    "LocationDispatcher",
+                    "dispatchLocation",
+                    34,
+                    "Distance is: $distance"
+                )
                 val time = newLocation.time - lastLocation!!.time
                 val timeInSeconds = time / 1000
-
-                Log.i("XXX/EVENT", "LocationDispatcher - Time is: $timeInSeconds")
+                GlobalLogger.shared.info(
+                    null,
+                    "LocationDispatcher",
+                    "dispatchLocation",
+                    37,
+                    "Time is: $timeInSeconds"
+                )
 
                 skip =
                     distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.THREE_MINUTE_MS
@@ -46,22 +77,34 @@ object LocationDispatcher {
                 skip = true
             }
         }
-
-        Log.i("XXX/EVENT", "LocationDispatcher - Value of skip: $skip")
+        GlobalLogger.shared.info(
+            null,
+            "LocationDispatcher",
+            "dispatchLocation",
+            43,
+            "Value of skip: $skip"
+        )
 
         if (!skip) {
             for (locationListener in locationListeners) {
-                Log.i(
-                    "XXX/EVENT",
-                    "LocationDispatcher - Calling onLocationUpdated: $locationListener"
+                GlobalLogger.shared.info(
+                    null,
+                    "LocationDispatcher",
+                    "dispatchLocation",
+                    47,
+                    "Dispatching location to: $locationListener"
                 )
-
                 locationListener.onLocationUpdate(newLocation)
             }
 
             lastLocation = newLocation
         }
-
-        Log.i("XXX/EVENT", "LocationDispatcher - End value of skip: $skip")
+        GlobalLogger.shared.info(
+            null,
+            "LocationDispatcher",
+            "dispatchLocation",
+            53,
+            "End value of skip: $skip"
+        )
     }
 }

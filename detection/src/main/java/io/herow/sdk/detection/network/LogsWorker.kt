@@ -1,10 +1,10 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
-import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.SessionHolder
 import kotlinx.coroutines.CoroutineDispatcher
@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class LogsWorker(
-    context: Context,
+    val context: Context,
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters) {
 
@@ -30,7 +30,7 @@ class LogsWorker(
 
         val autRequest = AuthRequests(sessionHolder, inputData)
         if (!sessionHolder.getOptinValue()) {
-            Log.d("Optin", "Optin value is set to false")
+            GlobalLogger.shared.debug(context, "LogsWorker", "doWork", 34, "Optin value is set to false")
             return Result.failure()
         }
 
@@ -44,27 +44,20 @@ class LogsWorker(
 
     private suspend fun launchLogsRequest(herowAPI: HerowAPI) {
         val log = logsWorkerHashMap[inputData.getString(workerID)]
-        Log.i("XXX/EVENT", "LogsWorker - Log to send is: $log")
-        Log.i("XXX/EVENT", "LogsWorker - LogWorkerID is: ${inputData.getString(workerID)}")
+        GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 48, "Log to send is: $log")
+        GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 49, "LogWorkerID is: ${inputData.getString(workerID)}")
 
         if (!log.isNullOrEmpty()) {
             val logResponse = herowAPI.log(log)
-            Log.i("XXX/EVENT", "LogsWorker - LogResponse is: $logResponse")
+            GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 53, "LogResponse is: $logResponse")
+
             if (logResponse.isSuccessful) {
                 logsWorkerHashMap.remove(workerID)
-                Log.i("XXX/EVENT", "LogsWorker - Log has been sent")
+                GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 57, "Log has been sent")
                 println("Request has been sent")
             } else {
                 println(logResponse)
             }
         }
-    }
-
-    private fun extractLogs(): String {
-        val logs = inputData.getString(KEY_LOGS) ?: ""
-        if (logs.isNotEmpty()) {
-            return logs
-        }
-        return ""
     }
 }

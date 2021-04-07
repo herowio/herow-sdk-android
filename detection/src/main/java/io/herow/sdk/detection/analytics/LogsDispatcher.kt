@@ -1,5 +1,6 @@
 package io.herow.sdk.detection.analytics
 
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.logs.Log
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -11,7 +12,13 @@ object LogsDispatcher {
     private val logsListeners = CopyOnWriteArrayList<LogsListener>()
 
     fun dispatchLogsResult(listOfLogs: List<Log>) {
-        android.util.Log.i("XXX/EVENT", "LogsDispatcher - dispatchLogsResult: $listOfLogs")
+        GlobalLogger.shared.info(
+            null,
+            "LogsDispatcher",
+            "dispatchLogsResult",
+            15,
+            "Dispatching logs to: $logsListeners"
+        )
         for (logsListener in logsListeners) {
             logsListener.onLogsToSend(listOfLogs)
         }

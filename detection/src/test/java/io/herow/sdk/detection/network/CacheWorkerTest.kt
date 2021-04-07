@@ -13,8 +13,8 @@ import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.MockLocation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
 import org.junit.*
@@ -60,7 +60,7 @@ class CacheWorkerTest {
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
         location = MockLocation(context).buildLocation()
 
-        val cacheWorkerFactory = CacheWorkerFactory(testDispatcher)
+        val cacheWorkerFactory = CacheWorkerFactory()
 
         worker = TestListenableWorkerBuilder<CacheWorker>(
             context, inputData = workDataOf(
@@ -76,7 +76,7 @@ class CacheWorkerTest {
     }
 
     @Test
-    fun testLaunchTokenCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+    fun testLaunchTokenCacheWorker() = runBlocking {
         val result = worker.doWork()
 
         assertThat(result, Is.`is`(ListenableWorker.Result.success()))
@@ -84,7 +84,7 @@ class CacheWorkerTest {
     }
 
     @Test
-    fun testLaunchUserInfoCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+    fun testLaunchUserInfoCacheWorker() = runBlocking {
         val result = worker.doWork()
         assertThat(result, Is.`is`(ListenableWorker.Result.success()))
         Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
@@ -92,13 +92,13 @@ class CacheWorkerTest {
 
 
     @Test
-    fun testLaunchCacheWorker() = coroutineTestRule.testDispatcher.runBlockingTest {
+    fun testLaunchCacheWorker() = runBlocking {
         val result = worker.doWork()
         assertThat(result, Is.`is`(ListenableWorker.Result.success()))
     }
 
     @Test
-    fun testCacheIsCalledIfUpdateStatusTrue() = coroutineTestRule.testDispatcher.runBlockingTest {
+    fun testCacheIsCalledIfUpdateStatusTrue() = runBlocking {
         sessionHolder.updateCache(true)
 
         val result = worker.doWork()
@@ -107,7 +107,7 @@ class CacheWorkerTest {
 
     @Test
     fun testCacheIsCalledIfUpdateStatusTrueAndGeoHashIsKnownAndDifferent() =
-        coroutineTestRule.testDispatcher.runBlockingTest {
+        runBlocking {
             sessionHolder.updateCache(true)
             sessionHolder.saveGeohash("123a")
 
@@ -116,7 +116,7 @@ class CacheWorkerTest {
         }
 
     @Test
-    fun testWorkerIsNotCalledIfOptinIsFalse() = coroutineTestRule.testDispatcher.runBlockingTest {
+    fun testWorkerIsNotCalledIfOptinIsFalse() = runBlocking {
         sessionHolder.saveOptinValue(false)
 
         val result = worker.doWork()

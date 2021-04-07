@@ -14,5 +14,4 @@ object DateHelper {
 
         return zoneDateTime.toInstant().toEpochMilli()
     }
-
 }

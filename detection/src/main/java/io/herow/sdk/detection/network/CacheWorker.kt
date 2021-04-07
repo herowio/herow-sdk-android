@@ -1,10 +1,10 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
-import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
  * Herow platform. You need to use a geohash to call the corresponding API.
  */
 class CacheWorker(
-    context: Context,
+    val context: Context,
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters) {
 
@@ -46,13 +46,13 @@ class CacheWorker(
         campaignRepository = CampaignRepository(database.campaignDAO())
 
         if (!sessionHolder.getOptinValue()) {
-            Log.d("Optin", "Optin value is set to false")
+            GlobalLogger.shared.info(context, "CacheWorker", "doWork()", 50,"Optin value is set to false")
             return Result.failure()
         }
 
         authRequest.execute {
             withContext(ioDispatcher) {
-                Log.i("XXX/EVENT", "CacheWorker - Launching cacheRequest")
+                GlobalLogger.shared.info(context, "CacheWorker", "doWork()", 56, "Launching cacheRequest")
                 launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
             }
 
@@ -75,31 +75,27 @@ class CacheWorker(
             Log.i("XXX/EVENT", "CacheWorker - extractedGeoHash: $extractedGeoHash")
             if (extractedGeoHash.isNotEmpty()) {
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
-                Log.i("XXX/EVENT", "CacheWorker - CacheResponse: $cacheResponse")
+                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 79, "Cache response is $cacheResponse")
 
                 if (cacheResponse.isSuccessful) {
-                    Log.i("XXX/EVENT", "CacheWorker - CacheResponse is successful")
+                    GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 82, "CacheResponse is successful")
                     cacheResponse.body()?.let { cacheResult: CacheResult? ->
-                        Log.i("XXX/EVENT", "CacheWorker - CacheResult is $cacheResult")
+                        GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 84, "CacheResult is $cacheResult")
                         withContext(ioDispatcher) {
                             try {
                                 database.clearAllTables()
-                                Log.i("XXX/EVENT", "CacheWorker - Database has been cleared")
-
+                                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 88, "Database has been cleared")
                                 for (zone in cacheResult!!.zones) {
-                                    Log.i("XXX/EVENT", "CacheWorker - Zone is: $zone")
+                                    GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 90, "Zone is: $zone")
                                 }
 
                                 saveCacheDataInDB(cacheResult)
-                                Log.i(
-                                    "XXX/EVENT",
-                                    "CacheWorker - CacheResult has been saved in BDD"
-                                )
+                                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 94, "CacheResult has been saved in BDD")
 
                                 CacheDispatcher.dispatch()
-                                Log.i("XXX/EVENT", "CacheWorker - Dispatching zones")
+                                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 97, "Dispatching zones")
                             } catch (e: Exception) {
-                                Log.e("EXCEPTION", "Exception is ${e.message}")
+                                GlobalLogger.shared.error(context, "CacheWorker", "launchCacheRequest()", 99, "Exception catched is: $e")
                             }
                         }
                     }
@@ -141,21 +137,21 @@ class CacheWorker(
             for (zone in cacheResult.zones) {
                 zoneRepository.insert(zone)
             }
-            Log.i("XXX/EVENT", "CacheWorker - Zones have been saved")
+            GlobalLogger.shared.info(context, "CacheWorker", "saveCacheDataInDB()", 141, "Zones have been saved in DB")
         }
 
         if (!cacheResult.pois.isNullOrEmpty()) {
             for (poi in cacheResult.pois) {
                 poiRepository.insert(poi)
             }
-            Log.i("XXX/EVENT", "CacheWorker - Pois have been saved")
+            GlobalLogger.shared.info(context, "CacheWorker", "saveCacheDataInDB()", 148, "Pois have been saved in DB")
         }
 
         if (!cacheResult.campaigns.isNullOrEmpty()) {
             for (campaign in cacheResult.campaigns) {
                 campaignRepository.insert(campaign)
             }
-            Log.i("XXX/EVENT", "CacheWorker - Campaigns have been saved")
+            GlobalLogger.shared.info(context, "CacheWorker", "saveCacheDataInDB()", 155, "Campaigns have been saved in DB")
         }
     }
 }

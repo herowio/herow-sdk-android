@@ -48,12 +48,6 @@ interface HerowAPI {
     @Headers(
         "Content-Type: application/json"
     )
-    @POST("stat/queue/multi")
-    suspend fun logs(@Body body: String): Response<Void>
-
-    @Headers(
-        "Content-Type: application/json"
-    )
     @POST("stat/queue")
     suspend fun log(@Body body: String): Response<Void>
 }

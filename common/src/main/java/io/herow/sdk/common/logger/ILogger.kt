@@ -1,7 +1,6 @@
 package io.herow.sdk.common.logger
 
 interface ILogger {
-
     fun startDebug()
     fun stopDebug()
     fun startLogInFile()

@@ -1,7 +1,7 @@
 package io.herow.sdk.detection.geofencing
 
 import android.location.Location
-import android.util.Log
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.detection.zones.ZoneListener
 
@@ -10,33 +10,33 @@ class GeofenceEventGenerator: ZoneListener {
 
     override fun detectedZones(zones: List<Zone>, location: Location) {
         val liveEvents = ArrayList<GeofenceEvent>()
-        Log.i("XXX/EVENT", "GeofenceEventGenerator - Zones at start are: $zones")
+        GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 14, "Zones at start are: $zones")
 
         if (previousDetectedZones.isEmpty()) {
-            Log.i("XXX/EVENT", "GeofenceEventGenerator - Previous detected zone is empty")
+            GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 17, "Previous detected zone is empty")
+
             for (zone in zones) {
-                Log.i("XXX/EVENT", "GeofenceEventGenerator - Zone is: $zone")
+                GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 20, "Zone is: $zone")
                 liveEvents.add(GeofenceEvent(zone, location, GeofenceType.ENTER))
             }
         } else {
             for (previousZone in previousDetectedZones) {
-                Log.i(
-                    "XXX/EVENT",
-                    "GeofenceEventGenerator - Previous detected zone: $previousDetectedZones"
-                )
-                Log.i("XXX/EVENT", "GeofenceEventGenerator - Zones are: $zones")
-                Log.i("XXX/EVENT", "GeofenceEventGenerator - PreviousZone is: $previousZone")
+                GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 25, "Previous detected zone: $previousDetectedZones")
+                GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 26, "Zones are: $zones")
+                GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 27, "PreviousZone is: $previousZone")
+
                 if (!zones.contains(previousZone)) {
-                    Log.i("XXX/EVENT", "GeofenceEventGenerator - Adding zone - Type EXIT")
+                    GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 30, "Adding zone - Type EXIT")
                     liveEvents.add(GeofenceEvent(previousZone, location, GeofenceType.EXIT))
                 }
             }
 
             for (newPlace in zones) {
-                Log.i("XXX/EVENT", "GeofenceEventGenerator - Zones are: $zones")
-                Log.i("XXX/EVENT", "GeofenceEventGenerator - NewPlace is: $newPlace")
+                GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 36, "Zones are: $zones")
+                GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 37, "NewPlace is: $newPlace")
+
                 if (!previousDetectedZones.contains(newPlace)) {
-                    Log.i("XXX/EVENT", "GeofenceEventGenerator - Adding zone - Type ENTER")
+                    GlobalLogger.shared.info(null, "GeofenceEventGenerator", "detectedZones", 40, "Adding zone - Type ENTER")
                     liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.ENTER))
                 }
             }
