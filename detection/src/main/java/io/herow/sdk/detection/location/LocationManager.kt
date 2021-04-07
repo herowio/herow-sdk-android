@@ -11,6 +11,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import com.vmadalin.easypermissions.EasyPermissions
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.Zone
@@ -30,7 +31,7 @@ import kotlinx.coroutines.*
 class LocationManager(
     private val context: Context
 
-) : ConfigListener, AppStateListener, LocationListener {
+) : ConfigListener, AppStateListener, LocationListener, LocationPriorityListener {
 
     companion object {
         private const val LOCATION_REQUEST_CODE = 1515
@@ -67,6 +68,7 @@ class LocationManager(
             zones =  zoneManager.getZones()
 
         }
+        LocationPriorityDispatcher.registerLocationPriorityListener(this)
     }
 
     override fun onConfigResult(configResult: ConfigResult) {
@@ -105,14 +107,7 @@ class LocationManager(
      */
     @SuppressLint("MissingPermission")
     private fun updateMonitoring(location: Location? = null) {
-            val locationRequest = buildLocationRequest(location)
-            fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
-                fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
-        }
-    }
 
-
-    private fun buildLocationRequest(location: Location? = null): LocationRequest {
         zones =  zoneManager.getZones()
         val request = LocationRequest()
         var smallestDistance = Double.MAX_VALUE
@@ -128,38 +123,26 @@ class LocationManager(
                 }
             }
         }
+        GlobalLogger.shared.debug(null, "dispatch location for dispatcher with distance : $smallestDistance")
+          LocationPriorityDispatcher.dispatchPriorityForDistance(smallestDistance)
+    }
 
-        var priority = LocationRequest.PRIORITY_LOW_POWER
-        var smallestDisplacement = smallestDistance / 10
-        var interval = TimeHelper.FIVE_MINUTES_MS
+    @SuppressLint("MissingPermission")
+    private fun updateMonitoring(priority: LocationPriority) {
+        GlobalLogger.shared.debug(null, "update priority  : $priority")
+        val locationRequest = buildLocationRequest(priority)
+        fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
+            GlobalLogger.shared.debug(null, "relaunch with priority : $priority")
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
+        }
+    }
 
-        if (smallestDistance < 3000.0) {
-            interval =  2 * TimeHelper.THREE_MINUTE_MS
-            priority =  LocationRequest.PRIORITY_LOW_POWER
-        }
-        if (smallestDistance < 1000.0) {
-            interval = TimeHelper.ONE_MINUTE_MS
-            priority =  LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-        }
-        if (smallestDistance < 500) {
-            interval =   TimeHelper.TWENTY_SECONDS_MS
-            priority =  LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-        }
-        if (smallestDistance < 100.0) {
-            interval =   TimeHelper.FIVE_SECONDS_MS
-            priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-        if (smallestDistance < 50) {
-            priority =  LocationRequest.PRIORITY_HIGH_ACCURACY
-            interval =   TimeHelper.TWO_SECONDS_MS
-        }
-
-        request.smallestDisplacement = smallestDisplacement.toFloat()
+    private fun buildLocationRequest(priority: LocationPriority): LocationRequest {
+        val request = LocationRequest()
+        request.smallestDisplacement = priority.smallestDistance.toFloat()
         request.fastestInterval = TimeHelper.TEN_SECONDS_MS
-        request.interval = interval
-        request.priority = priority
-
-
+        request.interval = priority.interval
+        request.priority = priority.priority
         return request
     }
 
@@ -170,6 +153,11 @@ class LocationManager(
                     println("Stop making location update")
                 }
             }
+    }
+
+    override fun onLocationPriority(priority: LocationPriority) {
+
+        updateMonitoring(priority)
     }
 
     override fun onAppInForeground() {
@@ -215,4 +203,6 @@ class LocationManager(
         return zonesInDb.await().isNullOrEmpty() && poisInDb.await()
             .isNullOrEmpty() && campaignsInDb.await().isNullOrEmpty()
     }
+
+
 }

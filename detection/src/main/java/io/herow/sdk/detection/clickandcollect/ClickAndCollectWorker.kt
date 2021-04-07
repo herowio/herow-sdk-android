@@ -13,10 +13,9 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.location.LocationManager
-import io.herow.sdk.detection.location.LocationReceiver
-import io.herow.sdk.detection.location.NotificationHelper
+import io.herow.sdk.detection.location.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -25,18 +24,17 @@ import kotlinx.coroutines.delay
 class ClickAndCollectWorker(
     context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters) {
+) : CoroutineWorker(context, workerParameters), LocationPriorityListener {
     companion object {
         private const val LOCATION_REQUEST_CODE = 2021
         const val tag = "detection_ForegroundLocationWorker"
-        var interval = TimeHelper.THREE_MINUTE_MS
-        var fastestInterval = TimeHelper.TEN_SECONDS_MS
-        var priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        var smallestDisplacement: Float = 20.0F
     }
 
+    init {
+        LocationPriorityDispatcher.registerLocationPriorityListener(this)
+    }
     private val pendingIntent = createPendingIntent(applicationContext)
-    private var locationManager = LocationManager(context)
+
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
         return PendingIntent.getBroadcast(
@@ -76,11 +74,11 @@ class ClickAndCollectWorker(
         setForeground(foregroundInfo)
 
         if (hasLocationPermission()) {
-            locationManager.startMonitoring()
+            launchLocationsUpdate()
         }
         delay(TimeHelper.TWO_HOUR_MS)
         if (hasLocationPermission()) {
-            locationManager.stopMonitoring()
+            stopLocationsUpdate()
         }
     }
 
@@ -102,4 +100,53 @@ class ClickAndCollectWorker(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun buildLocationRequest(priority: LocationPriority): LocationRequest {
+        val request = LocationRequest()
+        request.smallestDisplacement = priority.smallestDistance.toFloat()
+        request.fastestInterval = TimeHelper.TEN_SECONDS_MS
+        request.interval = priority.interval
+        request.priority = priority.priority
+        return request
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateMonitoring(priority: LocationPriority) {
+        GlobalLogger.shared.debug(null, "update priority  : $priority")
+        val locationRequest = buildLocationRequest(priority)
+        val fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(applicationContext)
+        fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
+            GlobalLogger.shared.debug(null, "relaunch with priority : $priority")
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun launchLocationsUpdate() {
+        val locationRequest = buildLocationRequest()
+        val fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(applicationContext)
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
+    }
+
+    private fun buildLocationRequest(): LocationRequest {
+        val request = LocationRequest()
+        request.fastestInterval = TimeHelper.TEN_SECONDS_MS
+        request.interval = LocationPriority.HIGHT.interval
+        request.priority = LocationPriority.HIGHT.priority
+        request.smallestDisplacement = LocationPriority.HIGHT.smallestDistance.toFloat()
+        return request
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun stopLocationsUpdate() {
+        val fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(applicationContext)
+        fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
+    }
+
+    override fun onLocationPriority(priority: LocationPriority) {
+
+        updateMonitoring(priority)
+    }
 }
