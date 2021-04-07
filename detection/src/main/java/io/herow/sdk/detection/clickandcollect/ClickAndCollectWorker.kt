@@ -28,6 +28,10 @@ class ClickAndCollectWorker(
     companion object {
         private const val LOCATION_REQUEST_CODE = 2021
         const val tag = "detection_ForegroundLocationWorker"
+        var interval = TimeHelper.THREE_MINUTE_MS
+        var fastestInterval = TimeHelper.TEN_SECONDS_MS
+        var priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        var smallestDisplacement: Float = 20.0F
     }
 
     private val pendingIntent = createPendingIntent(applicationContext)
@@ -82,6 +86,7 @@ class ClickAndCollectWorker(
     private fun hasLocationPermission(): Boolean {
         val accessFineLocation = Manifest.permission.ACCESS_FINE_LOCATION
         val coarseLocation = Manifest.permission.ACCESS_COARSE_LOCATION
+        val backLocation = Manifest.permission.ACCESS_BACKGROUND_LOCATION
         return ActivityCompat.checkSelfPermission(
             applicationContext,
             accessFineLocation
@@ -89,6 +94,10 @@ class ClickAndCollectWorker(
                 || ActivityCompat.checkSelfPermission(
             applicationContext,
             coarseLocation
+        ) == PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(
+            applicationContext,
+            backLocation
         ) == PackageManager.PERMISSION_GRANTED
     }
 
@@ -103,7 +112,7 @@ class ClickAndCollectWorker(
     private fun buildLocationRequest(): LocationRequest {
         val request = LocationRequest()
         request.fastestInterval = TimeHelper.THREE_MINUTE_MS
-        request.interval = TimeHelper.ONE_MINUTE_MS
+        request.interval = TimeHelper.FIVE_SECONDS_MS
         request.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         return request
     }

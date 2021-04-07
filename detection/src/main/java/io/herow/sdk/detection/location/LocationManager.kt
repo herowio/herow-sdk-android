@@ -21,6 +21,7 @@ import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
@@ -157,6 +158,11 @@ class LocationManager(
         request.fastestInterval = TimeHelper.TEN_SECONDS_MS
         request.interval = interval
         request.priority = priority
+        ClickAndCollectWorker.fastestInterval =   request.fastestInterval
+        ClickAndCollectWorker.smallestDisplacement =   request.smallestDisplacement
+        ClickAndCollectWorker.interval =   request.interval
+        ClickAndCollectWorker.priority =   request.priority
+
         return request
     }
 

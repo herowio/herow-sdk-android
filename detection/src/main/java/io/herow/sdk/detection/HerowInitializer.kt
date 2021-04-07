@@ -32,9 +32,7 @@ import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -284,11 +282,16 @@ class HerowInitializer private constructor(context: Context) {
         CacheDispatcher.addCacheListener(cacheListener)
     }
 
-    fun fetchZonesInDatabase(): List<Zone>? {
-        val zoneRepository = ZoneRepository(database.zoneDAO())
+    fun fetchZonesInDatabase(): List<Zone>? = runBlocking(Dispatchers.IO) {
+            val zoneRepository = ZoneRepository(database.zoneDAO())
+            val result =
+                withContext(Dispatchers.IO) { zoneRepository.getAllZones() }
+            return@runBlocking result as ArrayList<Zone>
+        }
 
-        return zoneRepository.getAllZones()
-    }
+
+
+
 
     /**
      * Save user choice optin value
