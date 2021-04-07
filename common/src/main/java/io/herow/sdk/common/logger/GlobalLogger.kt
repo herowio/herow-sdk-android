@@ -14,6 +14,25 @@ class GlobalLogger {
         var shared = GlobalLogger()
     }
 
+    private fun methodName(): String {
+        return Thread.currentThread().stackTrace[4].let {
+            "${it.methodName}"
+        }
+    }
+
+    private fun fileName(): String {
+        return Thread.currentThread().stackTrace[4].let {
+            "${it.fileName}"
+        }
+    }
+
+    private fun lineNumber(): String {
+        return Thread.currentThread().stackTrace[4].let {
+            "${it.lineNumber}"
+        }
+    }
+
+
     fun startDebug() {
         debug = true
         logger?.startDebug()
@@ -36,61 +55,46 @@ class GlobalLogger {
 
     fun verbose(
         context: Context?,
-        fileName: String,
-        functionName: String,
-        lineNumber: Int,
         message: Any
     ) {
         val messageToDispatch =
-            format(context, fileName, functionName, lineNumber, message)
+            format(context, fileName(), methodName(), lineNumber(), message)
         dispatch(messageToDispatch, type = MessageType.VERBOSE)
     }
 
     fun debug(
         context: Context?,
-        fileName: String,
-        functionName: String,
-        lineNumber: Int,
         message: Any
     ) {
         val messageToDispatch =
-            format(context, fileName, functionName, lineNumber, message)
+            format(context, fileName(), methodName(), lineNumber(), message)
         dispatch(messageToDispatch, type = MessageType.DEBUG)
     }
 
     fun info(
         context: Context?,
-        fileName: String,
-        functionName: String,
-        lineNumber: Int,
         message: Any
     ) {
         val messageToDispatch =
-            format(context, fileName, functionName, lineNumber, message)
+            format(context, fileName(), methodName(), lineNumber(), message)
         dispatch(messageToDispatch, type = MessageType.INFO)
     }
 
     fun warning(
         context: Context?,
-        fileName: String,
-        functionName: String,
-        lineNumber: Int,
         message: Any
     ) {
         val messageToDispatch =
-            format(context, fileName, functionName, lineNumber, message)
+            format(context, fileName(), methodName(), lineNumber(), message)
         dispatch(messageToDispatch, type = MessageType.WARNING)
     }
 
     fun error(
         context: Context?,
-        fileName: String,
-        functionName: String,
-        lineNumber: Int,
         message: Any
     ) {
         val messageToDispatch =
-            format(context, fileName, functionName, lineNumber, message)
+            format(context, fileName(), methodName(), lineNumber(), message)
         dispatch(messageToDispatch, type = MessageType.ERROR)
     }
 
@@ -106,7 +110,7 @@ class GlobalLogger {
         context: Context?,
         fileName: String,
         functionName: String,
-        lineNumber: Int,
+        lineNumber: String,
         message: Any
     ): String =
         "($fileName) - ($functionName) at line ($lineNumber): $message - battery level: ${

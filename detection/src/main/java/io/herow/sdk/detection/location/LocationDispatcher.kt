@@ -22,52 +22,39 @@ object LocationDispatcher {
         var skip = false
         GlobalLogger.shared.info(
             null,
-            "LocationDispatcher",
-            "dispatchLocation",
-            24,
+
             "Value of skip at beginning: $skip"
         )
 
         if (lastLocation != null) {
             GlobalLogger.shared.info(
                 null,
-                "LocationDispatcher",
-                "dispatchLocation",
-                27,
                 "LastLocation is: $lastLocation"
             )
             GlobalLogger.shared.info(
                 null,
-                "LocationDispatcher",
-                "dispatchLocation",
-                28,
+
                 "NewLocation is: $newLocation"
             )
 
             if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
                 GlobalLogger.shared.info(
                     null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    31,
+
                     "New and Last locations are different"
                 )
                 val distance = newLocation.distanceTo(lastLocation!!)
 
                 GlobalLogger.shared.info(
                     null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    34,
+
                     "Distance is: $distance"
                 )
                 val time = newLocation.time - lastLocation!!.time
                 val timeInSeconds = time / 1000
                 GlobalLogger.shared.info(
                     null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    37,
+
                     "Time is: $timeInSeconds"
                 )
 
@@ -79,9 +66,7 @@ object LocationDispatcher {
         }
         GlobalLogger.shared.info(
             null,
-            "LocationDispatcher",
-            "dispatchLocation",
-            43,
+
             "Value of skip: $skip"
         )
 
@@ -89,9 +74,7 @@ object LocationDispatcher {
             for (locationListener in locationListeners) {
                 GlobalLogger.shared.info(
                     null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    47,
+
                     "Dispatching location to: $locationListener"
                 )
                 locationListener.onLocationUpdate(newLocation)
@@ -101,9 +84,7 @@ object LocationDispatcher {
         }
         GlobalLogger.shared.info(
             null,
-            "LocationDispatcher",
-            "dispatchLocation",
-            53,
+
             "End value of skip: $skip"
         )
     }

@@ -30,7 +30,7 @@ class LogsWorker(
 
         val autRequest = AuthRequests(sessionHolder, inputData)
         if (!sessionHolder.getOptinValue()) {
-            GlobalLogger.shared.debug(context, "LogsWorker", "doWork", 34, "Optin value is set to false")
+            GlobalLogger.shared.debug(context, "Optin value is set to false")
             return Result.failure()
         }
 
@@ -44,16 +44,16 @@ class LogsWorker(
 
     private suspend fun launchLogsRequest(herowAPI: HerowAPI) {
         val log = logsWorkerHashMap[inputData.getString(workerID)]
-        GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 48, "Log to send is: $log")
-        GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 49, "LogWorkerID is: ${inputData.getString(workerID)}")
+        GlobalLogger.shared.info(context,  "Log to send is: $log")
+        GlobalLogger.shared.info(context,  "LogWorkerID is: ${inputData.getString(workerID)}")
 
         if (!log.isNullOrEmpty()) {
             val logResponse = herowAPI.log(log)
-            GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 53, "LogResponse is: $logResponse")
+            GlobalLogger.shared.info(context,  "LogResponse is: $logResponse")
 
             if (logResponse.isSuccessful) {
                 logsWorkerHashMap.remove(workerID)
-                GlobalLogger.shared.info(context, "LogsWorker", "launchLogsRequest", 57, "Log has been sent")
+                GlobalLogger.shared.info(context, "Log has been sent")
                 println("Request has been sent")
             } else {
                 println(logResponse)

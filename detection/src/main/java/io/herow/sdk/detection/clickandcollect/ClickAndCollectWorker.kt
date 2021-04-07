@@ -14,6 +14,7 @@ import com.google.android.gms.location.LocationServices
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.location.LocationReceiver
 import io.herow.sdk.detection.location.NotificationHelper
 import kotlinx.coroutines.CancellationException
@@ -35,7 +36,7 @@ class ClickAndCollectWorker(
     }
 
     private val pendingIntent = createPendingIntent(applicationContext)
-
+    private var locationManager = LocationManager(context)
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
         return PendingIntent.getBroadcast(
@@ -75,11 +76,11 @@ class ClickAndCollectWorker(
         setForeground(foregroundInfo)
 
         if (hasLocationPermission()) {
-            launchLocationsUpdate()
+            locationManager.startMonitoring()
         }
         delay(TimeHelper.TWO_HOUR_MS)
         if (hasLocationPermission()) {
-            stopLocationsUpdate()
+            locationManager.stopMonitoring()
         }
     }
 
@@ -101,27 +102,4 @@ class ClickAndCollectWorker(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    @SuppressLint("MissingPermission")
-    private fun launchLocationsUpdate() {
-        val locationRequest = buildLocationRequest()
-        val fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(applicationContext)
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
-    }
-
-    private fun buildLocationRequest(): LocationRequest {
-        val request = LocationRequest()
-        request.fastestInterval = fastestInterval
-        request.interval = interval
-        request.priority = priority
-        request.smallestDisplacement = smallestDisplacement
-        return request
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun stopLocationsUpdate() {
-        val fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(applicationContext)
-        fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
-    }
 }

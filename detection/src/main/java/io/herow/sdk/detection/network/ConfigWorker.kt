@@ -25,7 +25,7 @@ class ConfigWorker(
 
         val authRequest = AuthRequests(sessionHolder, inputData)
         authRequest.execute {
-            GlobalLogger.shared.info(applicationContext, "ConfigWorker", "doWork", 29, "Launching configRequest")
+            GlobalLogger.shared.info(applicationContext,  "Launching configRequest")
             launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
         }
 
@@ -34,14 +34,14 @@ class ConfigWorker(
 
     private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
         val configResponse = herowAPI.config()
-        GlobalLogger.shared.info(applicationContext, "ConfigWorker", "launchConfigRequest", 38, "ConfigResponse: $configResponse")
+        GlobalLogger.shared.info(applicationContext,  "ConfigResponse: $configResponse")
 
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
-                GlobalLogger.shared.info(applicationContext, "ConfigWorker", "launchConfigRequest", 42, "ConfigResponse is successful")
+                GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
 
                 ConfigDispatcher.dispatchConfigResult(configResult)
-                GlobalLogger.shared.info(applicationContext, "ConfigWorker", "launchConfigRequest", 45, "Dispatcher method has been called")
+                GlobalLogger.shared.info(applicationContext,  "Dispatcher method has been called")
 
                 sessionHolder.saveRepeatInterval(configResult.configInterval)
 

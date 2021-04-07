@@ -89,7 +89,7 @@ class LocationManager(
     }
 
     @SuppressLint("MissingPermission")
-    private fun startMonitoring() {
+     fun startMonitoring() {
         fusedLocationProviderClient.lastLocation?.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 LocationDispatcher.dispatchLocation(location)
@@ -158,15 +158,12 @@ class LocationManager(
         request.fastestInterval = TimeHelper.TEN_SECONDS_MS
         request.interval = interval
         request.priority = priority
-        ClickAndCollectWorker.fastestInterval =   request.fastestInterval
-        ClickAndCollectWorker.smallestDisplacement =   request.smallestDisplacement
-        ClickAndCollectWorker.interval =   request.interval
-        ClickAndCollectWorker.priority =   request.priority
+
 
         return request
     }
 
-    private fun stopMonitoring() {
+     fun stopMonitoring() {
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
             .addOnCompleteListener { task: Task<Void> ->
                 if (task.isSuccessful) {

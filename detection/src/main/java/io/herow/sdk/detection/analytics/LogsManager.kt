@@ -32,9 +32,7 @@ class LogsManager(private val context: Context) : LogsListener {
         if (listOfLogs.isNotEmpty()) {
             GlobalLogger.shared.info(
                 context,
-                "LogsManager",
-                "onLogsToSend",
-                34,
+
                 "List of logs is: $listOfLogs"
             )
 
@@ -42,9 +40,7 @@ class LogsManager(private val context: Context) : LogsListener {
                 val logJsonString: String = Gson().toJson(log, Log::class.java)
                 GlobalLogger.shared.info(
                     context,
-                    "LogsManager",
-                    "onLogsToSend",
-                    38,
+
                     "Log one by one: $logJsonString"
                 )
                 HerowInitializer.getInstance(context).launchLogsRequest(logJsonString)

@@ -48,49 +48,39 @@ class AuthRequests(
     suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit) {
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "execute",
-            51,
+
             "Beginning of execute method in AuthRequests"
         )
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "execute",
-            52,
+
             "Token, before isTokenUsable, is: ${sessionHolder.getAccessToken()}"
         )
 
         if (!isTokenUsable(sessionHolder)) {
-            GlobalLogger.shared.info(null, "AuthRequests", "execute", 55, "Token is not usable")
+            GlobalLogger.shared.info(null,  "Token is not usable")
             withContext(Dispatchers.IO) {
                 launchTokenRequest(sessionHolder, platform, herowAPI)
             }
         } else {
-            GlobalLogger.shared.info(null, "AuthRequests", "execute", 60, "Token is usable")
+            GlobalLogger.shared.info(null, "Token is usable")
         }
 
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "execute",
-            63,
+
             "Token, after isTokenUsable, is: ${sessionHolder.getAccessToken()}"
         )
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "execute",
-            64,
+
             "GetTimeOutTime value is: ${sessionHolder.getTimeOutTime()}"
         )
 
         if (sessionHolder.hasNoUserInfoSaved() || !isUserInfoUpToDate()) {
             GlobalLogger.shared.info(
                 null,
-                "AuthRequests",
-                "execute",
-                67,
+
                 "Launching userInfoRequest method"
             )
             withContext(Dispatchers.IO) {
@@ -124,16 +114,12 @@ class AuthRequests(
     private fun isTokenUsable(sessionHolder: SessionHolder): Boolean {
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "isTokenUsable",
-            97,
+
             "AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}"
         )
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "isTokenUsable",
-            98,
+
             "AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}"
         )
         return (sessionHolder.getAccessToken().isNotEmpty()
@@ -157,16 +143,12 @@ class AuthRequests(
 
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "launchTokenRequest",
-            160,
+
             "SdkID is $sdkId"
         )
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "launchTokenRequest",
-            167,
+
             "SdkKey is $sdkKey"
         )
 
@@ -186,9 +168,7 @@ class AuthRequests(
                     sessionHolder.saveTimeOutTime(tokenResult.getTimeoutTime())
                     GlobalLogger.shared.info(
                         null,
-                        "AuthRequests",
-                        "launchTokenRequest",
-                        189,
+
                         "SavedTimeOutTime = ${tokenResult.getTimeoutTime()}"
                     )
                 }
@@ -221,17 +201,13 @@ class AuthRequests(
 
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "launchUserInfoRequest",
-            218,
+
             "UserInfo string is $jsonString"
         )
         val userInfoResponse = herowAPI.userInfo(jsonString)
         GlobalLogger.shared.info(
             null,
-            "AuthRequests",
-            "launchUserInfoRequest",
-            220,
+
             "UserInfoResponse is $userInfoResponse"
         )
 
@@ -240,9 +216,7 @@ class AuthRequests(
                 sessionHolder.saveHerowId(userInfoResult.herowId)
                 GlobalLogger.shared.info(
                     null,
-                    "AuthRequests",
-                    "launchUserInfoRequest",
-                    225,
+
                     "UserInfoResponse is successful"
                 )
             }

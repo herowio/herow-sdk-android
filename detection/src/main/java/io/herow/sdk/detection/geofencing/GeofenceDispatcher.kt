@@ -14,9 +14,7 @@ object GeofenceDispatcher {
         for (geofenceListener in geofenceListeners) {
             GlobalLogger.shared.info(
                 null,
-                "GeofenceDispatcher",
-                "dispatchGeofenceEvent",
-                15,
+
                 "Dispatching geofence to: $geofenceListener"
             )
             geofenceListener.onGeofenceEvent(geofenceEvents)

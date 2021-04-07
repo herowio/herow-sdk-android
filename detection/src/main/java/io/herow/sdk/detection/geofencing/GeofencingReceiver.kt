@@ -19,9 +19,7 @@ class GeofencingReceiver : BroadcastReceiver() {
                 GeofenceStatusCodes.getStatusCodeString(geofencingEvent.errorCode)
             GlobalLogger.shared.error(
                 context,
-                "GeofencingReceiver",
-                "onReceive",
-                19,
+
                 "Error message is: $errorMessage"
             )
             println(errorMessage)

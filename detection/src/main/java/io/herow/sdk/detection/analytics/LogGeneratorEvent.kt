@@ -55,8 +55,8 @@ class LogGeneratorEvent(
     }
 
     override fun onLocationUpdate(location: Location) {
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "onLocationUpdate", 58, "onLocationUpdate method is called")
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "onLocationUpdate", 59, "Location is: $location")
+        GlobalLogger.shared.info(context, "onLocationUpdate method is called")
+        GlobalLogger.shared.info(context, "Location is: $location")
 
         var nearbyPois = computeNearbyPois(location)
         if (nearbyPois.size > 10) {
@@ -73,7 +73,7 @@ class LogGeneratorEvent(
 
         herowLogContext.enrich(applicationData, sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext))
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "onLocationUpdate", 76, "List of logs are:  $listOfLogs")
+        GlobalLogger.shared.info(context,  "List of logs are:  $listOfLogs")
         LogsDispatcher.dispatchLogsResult(listOfLogs)
     }
 
@@ -94,7 +94,7 @@ class LogGeneratorEvent(
         closestPois.sortBy {
             it.distance
         }
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "computeNearbyPois", 97, "Closests POIS are: $closestPois")
+        GlobalLogger.shared.info(context,  "Closests POIS are: $closestPois")
         return closestPois
     }
 
@@ -120,14 +120,14 @@ class LogGeneratorEvent(
             it.distance
         }
 
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "computeNearbyPlaces", 123, "Closests zones are: $closestZones")
+        GlobalLogger.shared.info(context, "Closests zones are: $closestZones")
         return closestZones
     }
 
     override fun onCacheReception() {
         cachePois.clear()
         cacheZones.clear()
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "onCacheReception", 130, "CachePois before fetching are: $cachePois")
+        GlobalLogger.shared.info(context, "CachePois before fetching are: $cachePois")
 
         runBlocking {
             val job = async(ioDispatcher) {
@@ -138,8 +138,8 @@ class LogGeneratorEvent(
             job.await()
         }
 
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "onCacheReception", 141, "CachePois after fetching are: $cachePois")
-        GlobalLogger.shared.info(context, "LogGeneratorEvent", "onCacheReception", 142, "CacheZones after fetching are: $cacheZones")
+        GlobalLogger.shared.info(context, "CachePois after fetching are: $cachePois")
+        GlobalLogger.shared.info(context,  "CacheZones after fetching are: $cacheZones")
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
@@ -156,7 +156,7 @@ class LogGeneratorEvent(
             if (geofenceEvent.type == GeofenceType.ENTER) {
                 val logVisit = HerowLogVisit(appState, geofenceEvent)
                 listOfTemporaryLogsVisit.add(logVisit)
-                GlobalLogger.shared.info(context, "LogGeneratorEvent", "onGeofenceEvent", 159, "LogVisit is $logVisit")
+                GlobalLogger.shared.info(context,  "LogVisit is $logVisit")
             } else {
                 var logsToRemove = ArrayList<HerowLogVisit>()
                 for (logVisit in listOfTemporaryLogsVisit) {

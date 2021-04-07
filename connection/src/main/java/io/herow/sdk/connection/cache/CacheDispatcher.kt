@@ -14,9 +14,6 @@ object CacheDispatcher {
         for (cacheListener in cacheListeners) {
             GlobalLogger.shared.info(
                 null,
-                "CacheDispatcher",
-                "dispatch",
-                15,
                 "Dispatching cache to: $cacheListeners"
             )
             cacheListener.onCacheReception()

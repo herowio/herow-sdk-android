@@ -14,9 +14,6 @@ object ConfigDispatcher {
         for (configListener in configListeners) {
             GlobalLogger.shared.info(
                 null,
-                "ConfigDispatcher",
-                "dispatchConfigResult",
-                14,
                 "Dispatching config to: $configListener"
             )
             configListener.onConfigResult(configResult)
