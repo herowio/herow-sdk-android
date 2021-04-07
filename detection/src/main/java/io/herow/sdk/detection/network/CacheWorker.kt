@@ -46,13 +46,13 @@ class CacheWorker(
         campaignRepository = CampaignRepository(database.campaignDAO())
 
         if (!sessionHolder.getOptinValue()) {
-            GlobalLogger.shared.info(context, "CacheWorker", "doWork()", 50,"Optin value is set to false")
+            GlobalLogger.shared.info(context,"Optin value is set to false")
             return Result.failure()
         }
 
         authRequest.execute {
             withContext(ioDispatcher) {
-                GlobalLogger.shared.info(context, "CacheWorker", "doWork()", 56, "Launching cacheRequest")
+                GlobalLogger.shared.info(context,"Launching cacheRequest")
                 launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
             }
 
@@ -75,27 +75,27 @@ class CacheWorker(
 
             if (extractedGeoHash.isNotEmpty()) {
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
-                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 79, "Cache response is $cacheResponse")
+                GlobalLogger.shared.info(context,"Cache response is $cacheResponse")
 
                 if (cacheResponse.isSuccessful) {
-                    GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 82, "CacheResponse is successful")
+                    GlobalLogger.shared.info(context,"CacheResponse is successful")
                     cacheResponse.body()?.let { cacheResult: CacheResult? ->
-                        GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 84, "CacheResult is $cacheResult")
+                        GlobalLogger.shared.info(context,"CacheResult is $cacheResult")
                         withContext(ioDispatcher) {
                             try {
                                 database.clearAllTables()
-                                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 88, "Database has been cleared")
+                                GlobalLogger.shared.info(context,"Database has been cleared")
                                 for (zone in cacheResult!!.zones) {
-                                    GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 90, "Zone is: $zone")
+                                    GlobalLogger.shared.info(context, "Zone is: $zone")
                                 }
 
                                 saveCacheDataInDB(cacheResult)
-                                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 94, "CacheResult has been saved in BDD")
+                                GlobalLogger.shared.info(context,"CacheResult has been saved in BDD")
 
                                 CacheDispatcher.dispatch()
-                                GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 97, "Dispatching zones")
+                                GlobalLogger.shared.info(context,"Dispatching zones")
                             } catch (e: Exception) {
-                                GlobalLogger.shared.error(context, "CacheWorker", "launchCacheRequest()", 99, "Exception catched is: $e")
+                                GlobalLogger.shared.error(context,"Exception catched is: $e")
                             }
                         }
                     }
@@ -137,21 +137,21 @@ class CacheWorker(
             for (zone in cacheResult.zones) {
                 zoneRepository.insert(zone)
             }
-            GlobalLogger.shared.info(context, "CacheWorker", "saveCacheDataInDB()", 141, "Zones have been saved in DB")
+            GlobalLogger.shared.info(context,"Zones have been saved in DB")
         }
 
         if (!cacheResult.pois.isNullOrEmpty()) {
             for (poi in cacheResult.pois) {
                 poiRepository.insert(poi)
             }
-            GlobalLogger.shared.info(context, "CacheWorker", "saveCacheDataInDB()", 148, "Pois have been saved in DB")
+            GlobalLogger.shared.info(context,"Pois have been saved in DB")
         }
 
         if (!cacheResult.campaigns.isNullOrEmpty()) {
             for (campaign in cacheResult.campaigns) {
                 campaignRepository.insert(campaign)
             }
-            GlobalLogger.shared.info(context, "CacheWorker", "saveCacheDataInDB()", 155, "Campaigns have been saved in DB")
+            GlobalLogger.shared.info(context,"Campaigns have been saved in DB")
         }
     }
 }

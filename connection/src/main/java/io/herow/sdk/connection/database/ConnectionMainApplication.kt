@@ -2,7 +2,7 @@ package io.herow.sdk.connection.database
 
 import android.app.Application
 
-class ConnectionMainApplication: Application() {
+class ConnectionMainApplication : Application() {
 
     companion object {
         var herowDatabase: HerowDatabase? = null

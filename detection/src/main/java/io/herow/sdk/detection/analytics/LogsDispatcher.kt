@@ -12,13 +12,7 @@ object LogsDispatcher {
     private val logsListeners = CopyOnWriteArrayList<LogsListener>()
 
     fun dispatchLogsResult(listOfLogs: List<Log>) {
-        GlobalLogger.shared.info(
-            null,
-            "LogsDispatcher",
-            "dispatchLogsResult",
-            15,
-            "Dispatching logs to: $logsListeners"
-        )
+        GlobalLogger.shared.info(null, "Dispatching logs to: $logsListeners")
         for (logsListener in logsListeners) {
             logsListener.onLogsToSend(listOfLogs)
         }

@@ -20,89 +20,35 @@ object LocationDispatcher {
      */
     fun dispatchLocation(newLocation: Location) {
         var skip = false
-        GlobalLogger.shared.info(
-            null,
-            "LocationDispatcher",
-            "dispatchLocation",
-            24,
-            "Value of skip at beginning: $skip"
-        )
+        GlobalLogger.shared.info(null,"Value of skip at beginning: $skip")
 
         if (lastLocation != null) {
-            GlobalLogger.shared.info(
-                null,
-                "LocationDispatcher",
-                "dispatchLocation",
-                27,
-                "LastLocation is: $lastLocation"
-            )
-            GlobalLogger.shared.info(
-                null,
-                "LocationDispatcher",
-                "dispatchLocation",
-                28,
-                "NewLocation is: $newLocation"
-            )
+            GlobalLogger.shared.info(null,"LastLocation is: $lastLocation")
+            GlobalLogger.shared.info(null,"NewLocation is: $newLocation")
 
             if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
-                GlobalLogger.shared.info(
-                    null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    31,
-                    "New and Last locations are different"
-                )
+                GlobalLogger.shared.info(null,"New and Last locations are different")
                 val distance = newLocation.distanceTo(lastLocation!!)
 
-                GlobalLogger.shared.info(
-                    null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    34,
-                    "Distance is: $distance"
-                )
+                GlobalLogger.shared.info(null,"Distance is: $distance")
                 val time = newLocation.time - lastLocation!!.time
                 val timeInSeconds = time / 1000
-                GlobalLogger.shared.info(
-                    null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    37,
-                    "Time is: $timeInSeconds"
-                )
+                GlobalLogger.shared.info(null,"Time is: $timeInSeconds")
 
                 skip =
                     distance < 20 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS
             }
         }
-        GlobalLogger.shared.info(
-            null,
-            "LocationDispatcher",
-            "dispatchLocation",
-            43,
-            "Value of skip: $skip"
-        )
+        GlobalLogger.shared.info(null,"Value of skip: $skip")
 
         if (!skip) {
             for (locationListener in locationListeners) {
-                GlobalLogger.shared.info(
-                    null,
-                    "LocationDispatcher",
-                    "dispatchLocation",
-                    47,
-                    "Dispatching location to: $locationListener"
-                )
+                GlobalLogger.shared.info(null,"Dispatching location to: $locationListener")
                 locationListener.onLocationUpdate(newLocation)
             }
 
             lastLocation = newLocation
         }
-        GlobalLogger.shared.info(
-            null,
-            "LocationDispatcher",
-            "dispatchLocation",
-            53,
-            "End value of skip: $skip"
-        )
+        GlobalLogger.shared.info(null,"End value of skip: $skip")
     }
 }

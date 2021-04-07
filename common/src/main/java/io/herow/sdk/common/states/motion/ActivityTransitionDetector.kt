@@ -4,10 +4,10 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import com.google.android.gms.location.ActivityRecognition
 import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionRequest
+import io.herow.sdk.common.logger.GlobalLogger
 
 /**
  * Offer the possibility to detect when users start or end an activity. You can for example detect
@@ -32,10 +32,10 @@ class ActivityTransitionDetector {
         pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         val task = ActivityRecognition.getClient(context).requestActivityTransitionUpdates(request, pendingIntent)
         task.addOnSuccessListener {
-            Log.e(TAG, "TransitionRecognition is started")
+            GlobalLogger.shared.error(null, "TransitionRecognition is started")
         }
         task.addOnFailureListener { exception ->
-            Log.e(TAG, "onFailure: " + exception.message)
+            GlobalLogger.shared.error(null, "onFailure: ${exception.message}")
         }
     }
 
@@ -67,7 +67,7 @@ class ActivityTransitionDetector {
                 pendingIntent.cancel()
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Transitions could not be unregistered: $e")
+                GlobalLogger.shared.error(null, "Transitions could not be unregistered: $e")
             }
     }
 }

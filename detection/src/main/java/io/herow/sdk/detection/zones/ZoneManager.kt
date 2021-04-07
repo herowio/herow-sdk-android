@@ -56,7 +56,7 @@ class ZoneManager(
                 retrieveZones().let { zones.addAll(it) }
             }
         }
-        GlobalLogger.shared.info(context, "ZoneManager", "onCacheReception", 60, "Zones from BDD are: $zones")
+        GlobalLogger.shared.info(context,"Zones from BDD are: $zones")
         updateGeofencesMonitoring()
     }
 
@@ -64,11 +64,11 @@ class ZoneManager(
     private fun updateGeofencesMonitoring() {
         geofencingClient.removeGeofences(pendingIntent)?.run {
             addOnSuccessListener {
-                GlobalLogger.shared.info(context, "ZoneManager", "updateGeofencesMonitoring", 69, "Inside addOnSuccessListener")
+                GlobalLogger.shared.info(context,"Inside addOnSuccessListener")
                 addGeofences()
             }
             addOnFailureListener {
-                GlobalLogger.shared.error(context, "ZoneManager", "updateGeofencesMonitoring", 72, "addOnFailureListener - An exception occurred: ${it.message}")
+                GlobalLogger.shared.error(context,"addOnFailureListener - An exception occurred: ${it.message}")
             }
         }
     }
@@ -76,40 +76,40 @@ class ZoneManager(
     @SuppressLint("MissingPermission")
     private fun addGeofences() {
         if (zones.isNotEmpty()) {
-            GlobalLogger.shared.info(context, "ZoneManager", "addGeofences", 80, "ZoneManager - Zones is not empty: $zones")
+            GlobalLogger.shared.info(context,"ZoneManager - Zones is not empty: $zones")
 
             val geofences = GeofencingHelper.buildGeofenceList(zones)
             val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
 
             geofencingClient.addGeofences(geofenceRequest, pendingIntent)?.run {
                 addOnSuccessListener {
-                    GlobalLogger.shared.info(context, "ZoneManager", "addGeofences", 87, "addOnSuccessListener - The geofences has been correctly added")
+                    GlobalLogger.shared.info(context,"addOnSuccessListener - The geofences has been correctly added")
                     println("The geofences has been correctly added")
                 }
                 addOnFailureListener {
-                    GlobalLogger.shared.error(context, "ZoneManager", "addGeofences", 90, "addOnFailureListener - An exception occurred: ${it.message}")
-                    GlobalLogger.shared.error(context, "ZoneManager", "addGeofences", 91, "addOnFailureListener - An exception occurred: ${it.localizedMessage}")
+                    GlobalLogger.shared.error(context,"addOnFailureListener - An exception occurred: ${it.message}")
+                    GlobalLogger.shared.error(context,"addOnFailureListener - An exception occurred: ${it.localizedMessage}")
                 }
             }
         }
     }
 
     override fun onLocationUpdate(location: Location) {
-        GlobalLogger.shared.info(context, "ZoneManager", "onLocationUpdate", 99, "Inside onLocationUpdate method")
+        GlobalLogger.shared.info(context,"Inside onLocationUpdate method")
         val detectedZones = ArrayList<Zone>()
         synchronized(zones) {
-            GlobalLogger.shared.info(context, "ZoneManager", "onLocationUpdate", 102, "Zones synchronization: $zones")
+            GlobalLogger.shared.info(context,"Zones synchronization: $zones")
             for (zone in zones) {
                 val zoneLocation = zone.toLocation()
                 val distanceToCenterOfZone = location.distanceTo(zoneLocation)
                 if (distanceToCenterOfZone - zone.radius!! <= 0) {
-                    GlobalLogger.shared.info(context, "ZoneManager", "onLocationUpdate", 107, "Adding zone: $zone")
+                    GlobalLogger.shared.info(context,"Adding zone: $zone")
                     detectedZones.add(zone)
                 }
             }
         }
         ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
-        GlobalLogger.shared.info(context, "ZoneManager", "onLocationUpdate", 113, "Zones dispatched: $detectedZones")
+        GlobalLogger.shared.info(context,"Zones dispatched: $detectedZones")
     }
 
     private suspend fun retrieveZones(): ArrayList<Zone> {

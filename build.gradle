@@ -9,6 +9,7 @@ buildscript {
         retrofit_version = "2.9.0"
         worker_version = "2.5.0"
         room_version = "2.2.6"
+        easy_permission = "0.1.0"
     }
     repositories {
         google()
@@ -123,7 +124,7 @@ subprojects {
         testImplementation "androidx.room:room-testing:$room_version"
 
         //EasyPermissions
-        implementation 'com.vmadalin:easypermissions-ktx:0.1.0'
+        implementation "com.vmadalin:easypermissions-ktx:$easy_permission"
     }
 }
 
