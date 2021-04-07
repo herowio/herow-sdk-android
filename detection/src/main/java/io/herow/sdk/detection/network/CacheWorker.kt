@@ -72,7 +72,6 @@ class CacheWorker(
     ) {
         if (sessionHolder.getUpdateCacheStatus() || isGeoHashUnknownOrDifferent(sessionHolder)) {
             val extractedGeoHash = extractGeoHash(sessionHolder)
-            Log.i("XXX/EVENT", "CacheWorker - extractedGeoHash: $extractedGeoHash")
             if (extractedGeoHash.isNotEmpty()) {
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
                 GlobalLogger.shared.info(context, "CacheWorker", "launchCacheRequest()", 79, "Cache response is $cacheResponse")

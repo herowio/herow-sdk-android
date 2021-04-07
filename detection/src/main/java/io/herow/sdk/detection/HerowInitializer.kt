@@ -2,13 +2,13 @@ package io.herow.sdk.detection
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import com.jakewharton.threetenabp.AndroidThreeTen
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
-import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
@@ -32,11 +32,13 @@ import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class HerowInitializer private constructor(val context: Context) {
+class HerowInitializer private constructor(context: Context) {
     private val activityTransitionDetector = ActivityTransitionDetector()
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
@@ -103,7 +105,6 @@ class HerowInitializer private constructor(val context: Context) {
                     sessionHolder.saveAdvertiserId(advertiserInfo.id)
                 }
             } catch (e: NoClassDefFoundError) {
-                GlobalLogger.shared.error(context, "HerowInitializer", "loadIdentifiers", 109, "Exception catched: $e - ${e.message}")
                 println("Your application does not implement the play-services-ads library")
             }
         }
@@ -143,7 +144,6 @@ class HerowInitializer private constructor(val context: Context) {
         if (sdkSession.hasBeenFilled()) {
             launchConfigRequest()
         } else {
-            GlobalLogger.shared.error(context, "HerowInitializer", "synchronize", 149, "Credentials needed")
             println(
                 "You need to enter your credentials before being able to use the SDK, with the " +
                         "configApp & configPlatform methods"
@@ -155,7 +155,7 @@ class HerowInitializer private constructor(val context: Context) {
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
      */
-    private fun launchConfigRequest() {
+    fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -166,7 +166,7 @@ class HerowInitializer private constructor(val context: Context) {
             sessionHolder.getRepeatInterval()
         }
 
-        GlobalLogger.shared.info(context, "HerowInitializer", "launchConfigRequest", 149, "LaunchConfigRequest method is called")
+        Log.i("XXX/EVENT", "HerowInitializer - launchConfigRequest is called")
 
         val periodicWorkRequest =
             PeriodicWorkRequest.Builder(
@@ -186,14 +186,14 @@ class HerowInitializer private constructor(val context: Context) {
                 )
                 .build()
         workManager.enqueue(periodicWorkRequest)
-        GlobalLogger.shared.info(context, "HerowInitializer", "launchConfigRequest", 192, "Config request is enqueued")
+        Log.i("XXX/EVENT", "HerowInitializer - launchConfigRequest is enqueued")
     }
 
     /**
      * Launch the cache request to get the zones the SDK must monitored
      */
     fun launchCacheRequest(location: Location) {
-        GlobalLogger.shared.info(context, "HerowInitializer", "launchCacheRequest", 199, "LaunchCacheRequest method is called")
+        Log.i("XXX/EVENT", "HerowInitializer - launchCacheRequest is called")
         if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -213,7 +213,7 @@ class HerowInitializer private constructor(val context: Context) {
                 .build()
             workManager.enqueue(workerRequest)
         }
-        GlobalLogger.shared.info(context, "HerowInitializer", "launchCacheRequest", 219, "Cache request is enqueued")
+        Log.i("XXX/EVENT", "HerowInitializer - launchCacheRequest is enqueued")
     }
 
     /**
@@ -223,15 +223,15 @@ class HerowInitializer private constructor(val context: Context) {
         val uuid = UUID.randomUUID().toString()
         LogsWorker.logsWorkerHashMap[uuid] = log
 
-        GlobalLogger.shared.info(context, "HerowInitializer", "launchLogsRequest", 229, "CurrentID is $uuid")
-        GlobalLogger.shared.info(context, "HerowInitializer", "launchLogsRequest", 230, "LaunchLogsRequest method is called")
+        Log.i("XXX/EVENT", "HerowInitializer - CurrentID is $uuid")
 
+        Log.i("XXX/EVENT", "HerowInitializer - launchLogsRequest is called")
         if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            GlobalLogger.shared.info(context, "HerowInitializer", "launchLogsRequest", 237, "Log to send is: $log")
+            Log.i("XXX/EVENT", "HerowInitializer - Log to send: $log")
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
                 .addTag(NetworkWorkerTags.LOGS)
                 .setConstraints(constraints)
@@ -247,7 +247,7 @@ class HerowInitializer private constructor(val context: Context) {
                 .build()
 
             workManager.enqueue(workerRequest)
-            GlobalLogger.shared.info(context, "HerowInitializer", "launchLogsRequest", 253, "Log request is enqueued")
+            Log.i("XXX/EVENT", "HerowInitializer - launchLogsRequest is enqueued")
         }
     }
 
@@ -275,23 +275,19 @@ class HerowInitializer private constructor(val context: Context) {
     }
 
     fun registerEventListener(geofenceListener: GeofenceListener) {
-        GlobalLogger.shared.info(context, "HerowInitializer", "registerEventListener", 281, "Register event listener called")
+        Log.i("XXX/EVENT", "HerowInitializer - Register event listener called")
         GeofenceDispatcher.addGeofenceListener(geofenceListener)
     }
 
     fun registerCacheListener(cacheListener: CacheListener) {
-        GlobalLogger.shared.info(context, "HerowInitializer", "registerCacheListener", 286, "Register cache listener called")
+        Log.i("XXX/EVENT", "HerowInitializer - Register cache listener called")
         CacheDispatcher.addCacheListener(cacheListener)
     }
 
-    fun fetchZonesInDatabase(): List<Zone>? = runBlocking(Dispatchers.IO) {
-            val zoneRepository = ZoneRepository(database.zoneDAO())
-            val result =
-                withContext(Dispatchers.IO) { zoneRepository.getAllZones() }
-            return@runBlocking result as ArrayList<Zone>
-        }
-
-
+    fun fetchZonesInDatabase(): List<Zone>? {
+        val zoneRepository = ZoneRepository(database.zoneDAO())
+        return zoneRepository.getAllZones()
+    }
 
 
 

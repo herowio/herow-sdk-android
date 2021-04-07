@@ -111,9 +111,10 @@ class ClickAndCollectWorker(
 
     private fun buildLocationRequest(): LocationRequest {
         val request = LocationRequest()
-        request.fastestInterval = TimeHelper.THREE_MINUTE_MS
-        request.interval = TimeHelper.FIVE_SECONDS_MS
-        request.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        request.fastestInterval = fastestInterval
+        request.interval = interval
+        request.priority = priority
+        request.smallestDisplacement = smallestDisplacement
         return request
     }
 
