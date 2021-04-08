@@ -35,6 +35,7 @@ class LogsManager(private val context: Context) : LogsListener {
             for (log in listOfLogs) {
                 val logJsonString: String = Gson().toJson(log, Log::class.java)
                 GlobalLogger.shared.info(context, "Log one by one: $logJsonString")
+
                 HerowInitializer.getInstance(context).launchLogsRequest(logJsonString)
             }
 

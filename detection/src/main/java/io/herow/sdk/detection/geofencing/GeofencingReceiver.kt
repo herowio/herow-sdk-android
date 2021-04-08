@@ -18,6 +18,7 @@ class GeofencingReceiver : BroadcastReceiver() {
             val errorMessage: String =
                 GeofenceStatusCodes.getStatusCodeString(geofencingEvent.errorCode)
             GlobalLogger.shared.error(context, "Error message is: $errorMessage")
+
             println(errorMessage)
         }
     }

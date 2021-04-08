@@ -36,9 +36,12 @@ object LocationDispatcher {
                 GlobalLogger.shared.info(null,"Time is: $timeInSeconds")
 
                 skip =
-                    distance < 20 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_MINUTES_MS
+                    distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.THREE_MINUTE_MS
+            } else {
+                skip = true
             }
         }
+
         GlobalLogger.shared.info(null,"Value of skip: $skip")
 
         if (!skip) {

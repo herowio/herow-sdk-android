@@ -13,6 +13,7 @@ object LogsDispatcher {
 
     fun dispatchLogsResult(listOfLogs: List<Log>) {
         GlobalLogger.shared.info(null, "Dispatching logs to: $logsListeners")
+
         for (logsListener in logsListeners) {
             logsListener.onLogsToSend(listOfLogs)
         }

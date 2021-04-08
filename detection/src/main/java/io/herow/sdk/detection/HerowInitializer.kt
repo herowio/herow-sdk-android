@@ -2,6 +2,7 @@ package io.herow.sdk.detection
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
@@ -105,6 +106,7 @@ class HerowInitializer private constructor(val context: Context) {
                     sessionHolder.saveAdvertiserId(advertiserInfo.id)
                 }
             } catch (e: NoClassDefFoundError) {
+
                 GlobalLogger.shared.error(context,"Exception catched: $e - ${e.message}")
                 println("Your application does not implement the play-services-ads library")
             }
@@ -157,7 +159,7 @@ class HerowInitializer private constructor(val context: Context) {
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
      */
-    private fun launchConfigRequest() {
+    fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -196,6 +198,7 @@ class HerowInitializer private constructor(val context: Context) {
      */
     fun launchCacheRequest(location: Location) {
         GlobalLogger.shared.info(context,"LaunchCacheRequest method is called")
+
         if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -224,7 +227,6 @@ class HerowInitializer private constructor(val context: Context) {
     fun launchLogsRequest(log: String) {
         val uuid = UUID.randomUUID().toString()
         LogsWorker.logsWorkerHashMap[uuid] = log
-
         GlobalLogger.shared.info(context,"CurrentID is $uuid")
         GlobalLogger.shared.info(context,"LaunchLogsRequest method is called")
 
@@ -234,6 +236,7 @@ class HerowInitializer private constructor(val context: Context) {
                 .build()
 
             GlobalLogger.shared.info(context,"Log to send is: $log")
+
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
                 .addTag(NetworkWorkerTags.LOGS)
                 .setConstraints(constraints)
@@ -288,9 +291,9 @@ class HerowInitializer private constructor(val context: Context) {
 
     fun fetchZonesInDatabase(): List<Zone>? {
         val zoneRepository = ZoneRepository(database.zoneDAO())
-
         return zoneRepository.getAllZones()
     }
+
 
     /**
      * Save user choice optin value

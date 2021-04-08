@@ -11,8 +11,10 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import com.vmadalin.easypermissions.EasyPermissions
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.cache.CacheDispatcher
+import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
@@ -27,7 +29,8 @@ import kotlinx.coroutines.*
 
 class LocationManager(
     private val context: Context
-) : ConfigListener, AppStateListener, LocationListener {
+
+) : ConfigListener, AppStateListener, LocationListener, LocationPriorityListener {
 
     companion object {
         private const val LOCATION_REQUEST_CODE = 1515
@@ -45,7 +48,7 @@ class LocationManager(
     private val pendingIntent = createPendingIntent(context)
 
     private val db: HerowDatabase = HerowDatabase.getDatabase(context)
-
+    private var zones: List<Zone>? = null
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
         return PendingIntent.getBroadcast(
@@ -60,6 +63,11 @@ class LocationManager(
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
+        CoroutineScope(Dispatchers.IO).launch {
+            zones =  zoneManager.getZones()
+
+        }
+        LocationPriorityDispatcher.registerLocationPriorityListener(this)
     }
 
     override fun onConfigResult(configResult: ConfigResult) {
@@ -82,7 +90,7 @@ class LocationManager(
     }
 
     @SuppressLint("MissingPermission")
-    private fun startMonitoring() {
+     fun startMonitoring() {
         fusedLocationProviderClient.lastLocation?.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 LocationDispatcher.dispatchLocation(location)
@@ -97,40 +105,57 @@ class LocationManager(
      * only want to be able to track the user and thus improve native geofence performances.
      */
     @SuppressLint("MissingPermission")
-    private fun updateMonitoring() {
-        val locationRequest = if (isOnForeground) {
-            buildForegroundLocationRequest()
-        } else {
-            buildBackgroundLocationRequest()
+    private fun updateMonitoring(location: Location? = null) {
+
+        zones =  zoneManager.getZones()
+        var smallestDistance = Double.MAX_VALUE
+        if (location != null && zones != null) {
+            for (zone in zones!!) {
+                var zoneCenter = Location("zone")
+                zoneCenter.latitude = zone.lat ?: 0.0
+                zoneCenter.longitude = zone.lng ?: 0.0
+                val radius = zone.radius ?: 0.0
+                val dist = zoneCenter.distanceTo(location)
+                if (dist < smallestDistance) {
+                    smallestDistance = maxOf((dist - radius), 0.0)
+                }
+            }
         }
+        GlobalLogger.shared.debug(null, "dispatch location for dispatcher with distance : $smallestDistance")
+          LocationPriorityDispatcher.dispatchPriorityForDistance(smallestDistance)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun updateMonitoring(priority: LocationPriority) {
+        GlobalLogger.shared.debug(null, "update priority  : $priority")
+        val locationRequest = buildLocationRequest(priority)
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
+            GlobalLogger.shared.debug(null, "relaunch with priority : $priority")
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
 
-    private fun buildForegroundLocationRequest(): LocationRequest {
+    private fun buildLocationRequest(priority: LocationPriority): LocationRequest {
         val request = LocationRequest()
-        request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
-        request.interval = TimeHelper.TEN_SECONDS_MS
-        request.priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+        request.smallestDisplacement = priority.smallestDistance.toFloat()
+        request.fastestInterval = TimeHelper.TEN_SECONDS_MS
+        request.interval = priority.interval
+        request.priority = priority.priority
         return request
     }
 
-    private fun buildBackgroundLocationRequest(): LocationRequest {
-        val request = LocationRequest()
-        request.fastestInterval = TimeHelper.TWENTY_SECONDS_MS
-        request.interval = TimeHelper.TEN_SECONDS_MS
-        request.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        return request
-    }
-
-    private fun stopMonitoring() {
+     fun stopMonitoring() {
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
             .addOnCompleteListener { task: Task<Void> ->
                 if (task.isSuccessful) {
                     println("Stop making location update")
                 }
             }
+    }
+
+    override fun onLocationPriority(priority: LocationPriority) {
+
+        updateMonitoring(priority)
     }
 
     override fun onAppInForeground() {
@@ -148,6 +173,7 @@ class LocationManager(
     }
 
     override fun onLocationUpdate(location: Location) {
+        updateMonitoring(location)
         scope.launch {
             if (zoneManager.isZonesEmpty() || noDataInDB()) {
                 HerowInitializer.getInstance(context).launchCacheRequest(location)
@@ -175,4 +201,6 @@ class LocationManager(
         return zonesInDb.await().isNullOrEmpty() && poisInDb.await()
             .isNullOrEmpty() && campaignsInDb.await().isNullOrEmpty()
     }
+
+
 }

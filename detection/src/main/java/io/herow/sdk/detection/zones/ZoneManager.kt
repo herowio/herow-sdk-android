@@ -44,6 +44,10 @@ class ZoneManager(
         )
     }
 
+    public fun getZones(): ArrayList<Zone> {
+        return zones
+    }
+
     fun isZonesEmpty(): Boolean {
         return zones.isEmpty()
     }
@@ -57,6 +61,7 @@ class ZoneManager(
             }
         }
         GlobalLogger.shared.info(context,"Zones from BDD are: $zones")
+
         updateGeofencesMonitoring()
     }
 

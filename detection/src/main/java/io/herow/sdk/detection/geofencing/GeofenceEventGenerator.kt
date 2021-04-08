@@ -17,26 +17,27 @@ class GeofenceEventGenerator: ZoneListener {
 
             for (zone in zones) {
                 GlobalLogger.shared.info(null,"Zone is: $zone")
+
                 liveEvents.add(GeofenceEvent(zone, location, GeofenceType.ENTER))
             }
         } else {
             for (previousZone in previousDetectedZones) {
-                GlobalLogger.shared.info(null,"Previous detected zone: $previousDetectedZones")
-                GlobalLogger.shared.info(null,"Zones are: $zones")
-                GlobalLogger.shared.info(null,"PreviousZone is: $previousZone")
+                GlobalLogger.shared.info(null, "Previous detected zone: $previousDetectedZones")
+                GlobalLogger.shared.info(null, "Zones are: $zones")
+                GlobalLogger.shared.info(null, "PreviousZone is: $previousZone")
 
                 if (!zones.contains(previousZone)) {
-                    GlobalLogger.shared.info(null,"Adding zone - Type EXIT")
+                    GlobalLogger.shared.info(null, "Adding zone - Type EXIT")
                     liveEvents.add(GeofenceEvent(previousZone, location, GeofenceType.EXIT))
                 }
             }
 
             for (newPlace in zones) {
-                GlobalLogger.shared.info(null,"Zones are: $zones")
-                GlobalLogger.shared.info(null,"NewPlace is: $newPlace")
+                GlobalLogger.shared.info(null, "Zones are: $zones")
+                GlobalLogger.shared.info(null,  "NewPlace is: $newPlace")
 
                 if (!previousDetectedZones.contains(newPlace)) {
-                    GlobalLogger.shared.info(null,"Adding zone - Type ENTER")
+                    GlobalLogger.shared.info(null, "Adding zone - Type ENTER")
                     liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.ENTER))
                 }
             }

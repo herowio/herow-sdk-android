@@ -51,6 +51,7 @@ class AuthRequests(
 
         if (!isTokenUsable(sessionHolder)) {
             GlobalLogger.shared.info(null,"Token is not usable")
+
             withContext(Dispatchers.IO) {
                 launchTokenRequest(sessionHolder, platform, herowAPI)
             }
@@ -166,6 +167,7 @@ class AuthRequests(
         if (userInfoResponse.isSuccessful) {
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
                 sessionHolder.saveHerowId(userInfoResult.herowId)
+
                 GlobalLogger.shared.info(null,"UserInfoResponse is successful")
             }
         }

@@ -72,7 +72,6 @@ class CacheWorker(
     ) {
         if (sessionHolder.getUpdateCacheStatus() || isGeoHashUnknownOrDifferent(sessionHolder)) {
             val extractedGeoHash = extractGeoHash(sessionHolder)
-
             if (extractedGeoHash.isNotEmpty()) {
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
                 GlobalLogger.shared.info(context,"Cache response is $cacheResponse")
@@ -85,6 +84,7 @@ class CacheWorker(
                             try {
                                 database.clearAllTables()
                                 GlobalLogger.shared.info(context,"Database has been cleared")
+
                                 for (zone in cacheResult!!.zones) {
                                     GlobalLogger.shared.info(context, "Zone is: $zone")
                                 }

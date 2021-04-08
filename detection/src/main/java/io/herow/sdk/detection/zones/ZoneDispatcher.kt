@@ -13,6 +13,7 @@ object ZoneDispatcher {
 
     fun dispatchDetectedZones(zones: List<Zone>, location: Location) {
         GlobalLogger.shared.info(null,"Dispatching zones: $zones")
+
         for (zoneListener in zoneListeners) {
             zoneListener.detectedZones(zones, location)
         }

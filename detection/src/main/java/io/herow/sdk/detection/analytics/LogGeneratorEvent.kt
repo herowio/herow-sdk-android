@@ -73,6 +73,7 @@ class LogGeneratorEvent(
         herowLogContext.enrich(applicationData, sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext))
         GlobalLogger.shared.info(context, "List of logs are:  $listOfLogs")
+
         LogsDispatcher.dispatchLogsResult(listOfLogs)
     }
 
@@ -94,6 +95,7 @@ class LogGeneratorEvent(
             it.distance
         }
         GlobalLogger.shared.info(context, "Closests POIS are: $closestPois")
+
         return closestPois
     }
 
@@ -154,15 +156,19 @@ class LogGeneratorEvent(
                 val logVisit = HerowLogVisit(appState, geofenceEvent)
                 listOfTemporaryLogsVisit.add(logVisit)
                 GlobalLogger.shared.info(context,"LogVisit is $logVisit")
+
             } else {
+                var logsToRemove = ArrayList<HerowLogVisit>()
                 for (logVisit in listOfTemporaryLogsVisit) {
                     if (geofenceEvent.zone.hash == logVisit[HerowLogVisit.PLACE_ID]) {
                         logVisit.updateDuration()
                         logVisit.enrich(applicationData, sessionHolder)
                         listOfLogsVisit.add(Log(logVisit))
-                        listOfTemporaryLogsVisit.remove(logVisit)
+                        logsToRemove.add(logVisit)
                     }
                 }
+                listOfTemporaryLogsVisit.removeAll(logsToRemove)
+
             }
         }
         LogsDispatcher.dispatchLogsResult(listOfLogsEnter)

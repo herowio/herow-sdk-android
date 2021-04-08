@@ -31,6 +31,7 @@ class LogsWorker(
         val autRequest = AuthRequests(sessionHolder, inputData)
         if (!sessionHolder.getOptinValue()) {
             GlobalLogger.shared.debug(context,"Optin value is set to false")
+
             return Result.failure()
         }
 
@@ -54,6 +55,7 @@ class LogsWorker(
             if (logResponse.isSuccessful) {
                 logsWorkerHashMap.remove(workerID)
                 GlobalLogger.shared.info(context,"Log has been sent")
+
                 println("Request has been sent")
             } else {
                 println(logResponse)
