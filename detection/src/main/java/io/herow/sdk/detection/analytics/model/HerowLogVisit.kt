@@ -19,7 +19,7 @@ class HerowLogVisit(
     }
 
     init {
-        this[SUBTYPE] = LogSubtype.VISIT
+        this[SUBTYPE] = LogSubtype.GEOFENCE_VISIT
         this[APP_STATE] = appState
         this[LOCATION] = geofenceEvent.location
         this[NEAR_BY_POIS] = nearbyPois

@@ -5,5 +5,5 @@ enum class LogSubtype {
     CONTEXT_REALTIME,
     GEOFENCE_ENTER,
     GEOFENCE_EXIT,
-    VISIT
+    GEOFENCE_VISIT
 }
