@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 object LocationPriorityDispatcher {
 
-    private var currentPriority = LocationPriority.VERY_LOW
+    private var currentPriority = LocationPriority.VERY_HIGHT
     private val locationPriorityListeners = CopyOnWriteArrayList<LocationPriorityListener>()
 
     fun registerLocationPriorityListener(listener: LocationPriorityListener) {
