@@ -2,7 +2,6 @@ package io.herow.sdk.detection
 
 import android.content.Context
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
@@ -11,7 +10,6 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
-import io.herow.sdk.common.states.motion.ActivityTransitionDetector
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
@@ -40,7 +38,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class HerowInitializer private constructor(val context: Context) {
-    private val activityTransitionDetector = ActivityTransitionDetector()
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
@@ -56,7 +53,6 @@ class HerowInitializer private constructor(val context: Context) {
     init {
         AndroidThreeTen.init(context)
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
-        activityTransitionDetector.launchTransitionMonitoring(context)
         workManager = WorkManager.getInstance(context)
         locationManager = LocationManager(context)
         logsManager = LogsManager(context)

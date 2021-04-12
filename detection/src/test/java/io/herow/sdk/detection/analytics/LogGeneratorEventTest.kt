@@ -82,49 +82,49 @@ class LogGeneratorEventTest {
         )
 
         val secondZone = Zone(
-            hash = "ivbxbhxm8rnk",
-            lat = 48.875741,
-            lng = 2.349255,
+            hash = "knr8mxhbxbvi",
+            lat = 48.128177642822266,
+            lng = -1.6853195428848267,
             radius = 300.0,
             campaigns = null,
             access = Access(
-                address = "54 Rue de Paradis, 75010 Paris, France",
-                id = "6004957256eb6779115b6d8a",
-                name = "HEROW"
+                address = "1 Rue Olivier de Serres, 35000 Rennes, France",
+                id = "6004957256eb6779115b6123",
+                name = "HOME MORGANE"
             )
         )
 
-        val firstGeofenceEvent =
-            GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
-        val secondGeofenceEvent =
-            GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
+        val firstGeofenceEvent = GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
+        val secondGeofenceEvent = GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
         logGeneratorEvent.onGeofenceEvent(listOf(firstGeofenceEvent, secondGeofenceEvent))
         Assert.assertEquals(0, herowLogsListener.herowLogsVisit.size)
 
         delay(500)
 
-        val updatedFirstGeofenceEvent =
-            GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
+        val updatedFirstGeofenceEvent = GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
         logGeneratorEvent.onGeofenceEvent(listOf(updatedFirstGeofenceEvent, secondGeofenceEvent))
         Assert.assertEquals(1, herowLogsListener.herowLogsVisit.size)
+
         val herowLogVisit = herowLogsListener.herowLogsVisit.first()
         Assert.assertEquals(herowLogVisit[HerowLogVisit.PLACE_ID], firstZone.hash)
+
         (herowLogVisit[HerowLogVisit.DURATION] as? Long)?.let { visitDuration: Long ->
             assertThat("Log visit duration in zone", visitDuration, greaterThan(500L))
         }
 
         delay(1_000)
 
-        val updatedSecondGeofenceEvent =
-            GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
+        val updatedSecondGeofenceEvent = GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
         logGeneratorEvent.onGeofenceEvent(listOf(updatedSecondGeofenceEvent))
         Assert.assertEquals(1, herowLogsListener.herowLogsVisit.size)
+
         val otherLogVisit = herowLogsListener.herowLogsVisit.first()
         Assert.assertEquals(otherLogVisit[HerowLogVisit.PLACE_ID], secondZone.hash)
         (otherLogVisit[HerowLogVisit.DURATION] as? Long)?.let { visitDuration: Long ->
             assertThat("Log visit duration in zone", visitDuration, greaterThan(500L))
         }
     }
+
 
     class HerowLogsListener : LogsListener {
         val herowLogsVisit = ArrayList<HerowLogVisit>()

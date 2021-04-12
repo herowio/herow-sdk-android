@@ -31,8 +31,6 @@ class CacheWorkerTest {
     @get:Rule
     var coroutineTestRule = CoroutineTestRule()
 
-    var testDispatcher = TestCoroutineDispatcher()
-
     private lateinit var context: Context
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder

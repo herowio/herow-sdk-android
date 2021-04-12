@@ -35,7 +35,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun listStringToString(someObjects: List<String>): String? {
+    fun listStringToString(someObjects: List<String>?): String? {
         return Gson().toJson(someObjects)
     }
 

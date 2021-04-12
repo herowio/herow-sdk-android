@@ -76,7 +76,9 @@ class ClickAndCollectWorker(
         if (hasLocationPermission()) {
             launchLocationsUpdate()
         }
-        delay(TimeHelper.TWO_HOUR_MS)
+        // In order to only test
+        delay(TimeHelper.TWO_SECONDS_MS)
+        //delay(TimeHelper.TWO_HOUR_MS)
         if (hasLocationPermission()) {
             stopLocationsUpdate()
         }
@@ -146,7 +148,6 @@ class ClickAndCollectWorker(
     }
 
     override fun onLocationPriority(priority: LocationPriority) {
-
         updateMonitoring(priority)
     }
 }
