@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
@@ -27,7 +28,8 @@ import org.robolectric.annotation.Config
 class ClickAndCollectWorkerTest {
     private lateinit var context: Context
     private lateinit var worker: ClickAndCollectWorker
-
+    private lateinit var dataHolder: io.herow.sdk.common.DataHolder
+    private lateinit var sessionHolder: SessionHolder
     private lateinit var clickAndCollectWorkerListener: ClickAndCollectWorkerListener
 
     @Before
@@ -37,6 +39,9 @@ class ClickAndCollectWorkerTest {
             .build()
 
         clickAndCollectWorkerListener = ClickAndCollectWorkerListener()
+
+        dataHolder = io.herow.sdk.common.DataHolder(context)
+        sessionHolder = SessionHolder(dataHolder)
     }
 
     @Test
@@ -55,7 +60,7 @@ class ClickAndCollectWorkerTest {
         runBlocking {
             val result = worker.doWork()
             MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(HerowInitializer.getInstance(context).isOnClickAndCollect())
+            Assert.assertTrue(sessionHolder.getClickAndCollectProgress())
             Assert.assertEquals(clickAndCollectWorkerListener.variableTest, "start")
         }
     }

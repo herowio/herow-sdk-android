@@ -257,7 +257,6 @@ class HerowInitializer private constructor(val context: Context) {
             .addTag(ClickAndCollectWorker.tag)
             .build()
         workManager.enqueue(workRequest)
-        sessionHolder.saveClickAndCollectProgress(true)
     }
 
     fun stopClickAndCollect() {
