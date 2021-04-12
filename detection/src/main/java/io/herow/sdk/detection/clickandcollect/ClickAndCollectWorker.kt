@@ -49,6 +49,7 @@ class ClickAndCollectWorker(
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
 
         return coroutineScope {
+            sessionHolder.saveClickAndCollectProgress(true)
             val job = async {
                 ClickAndCollectDispatcher.didStartClickAndCollect()
                 launchJob()
@@ -75,6 +76,8 @@ class ClickAndCollectWorker(
         if (hasLocationPermission()) {
             launchLocationsUpdate()
         }
+        // In order to only test
+        //delay(TimeHelper.TWO_SECONDS_MS)
         delay(TimeHelper.TWO_HOUR_MS)
         if (hasLocationPermission()) {
             stopLocationsUpdate()
@@ -145,7 +148,6 @@ class ClickAndCollectWorker(
     }
 
     override fun onLocationPriority(priority: LocationPriority) {
-
         updateMonitoring(priority)
     }
 }

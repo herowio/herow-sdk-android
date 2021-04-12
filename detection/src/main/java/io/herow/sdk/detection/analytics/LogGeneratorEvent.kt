@@ -42,8 +42,9 @@ class LogGeneratorEvent(
     private var appState: String = "bg"
     var cachePois = ArrayList<Poi>()
     var cacheZones = ArrayList<Zone>()
-    private val listOfTemporaryLogsVisit = ArrayList<HerowLogVisit>()
     private val db: HerowDatabase = HerowDatabase.getDatabase(context)
+
+    private val listOfTemporaryLogsVisit = ArrayList<HerowLogVisit>()
 
     override fun onAppInForeground() {
         appState = "fg"
@@ -55,7 +56,7 @@ class LogGeneratorEvent(
 
     override fun onLocationUpdate(location: Location) {
         GlobalLogger.shared.info(context, "onLocationUpdate method is called")
-        GlobalLogger.shared.info(context,  "Location is: $location")
+        GlobalLogger.shared.info(context, "Location is: $location")
 
         var nearbyPois = computeNearbyPois(location)
         if (nearbyPois.size > 10) {
@@ -121,14 +122,14 @@ class LogGeneratorEvent(
             it.distance
         }
 
-        GlobalLogger.shared.info(context,"Closests zones are: $closestZones")
+        GlobalLogger.shared.info(context, "Closests zones are: $closestZones")
         return closestZones
     }
 
     override fun onCacheReception() {
         cachePois.clear()
         cacheZones.clear()
-        GlobalLogger.shared.info(context,"CachePois before fetching are: $cachePois")
+        GlobalLogger.shared.info(context, "CachePois before fetching are: $cachePois")
 
         runBlocking {
             val job = async(ioDispatcher) {
@@ -139,26 +140,38 @@ class LogGeneratorEvent(
             job.await()
         }
 
-        GlobalLogger.shared.info(context,"CachePois after fetching are: $cachePois")
-        GlobalLogger.shared.info(context,"CacheZones after fetching are: $cacheZones")
+        GlobalLogger.shared.info(context, "CachePois after fetching are: $cachePois")
+        GlobalLogger.shared.info(context, "CacheZones after fetching are: $cacheZones")
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
-        val listOfLogsEnter = ArrayList<Log>()
+        val listOfLogsEnterOrExit = ArrayList<Log>()
         val listOfLogsVisit = ArrayList<Log>()
 
         for (geofenceEvent in geofenceEvents) {
-            val herowLogEnter = HerowLogEnterOrExit(appState, geofenceEvent)
-            herowLogEnter.enrich(applicationData, sessionHolder)
-            listOfLogsEnter.add(Log(herowLogEnter))
+            val herowLogEnterOrExit = HerowLogEnterOrExit(appState, geofenceEvent)
+            herowLogEnterOrExit.enrich(applicationData, sessionHolder)
+            listOfLogsEnterOrExit.add(Log(herowLogEnterOrExit))
 
             if (geofenceEvent.type == GeofenceType.ENTER) {
                 val logVisit = HerowLogVisit(appState, geofenceEvent)
-                listOfTemporaryLogsVisit.add(logVisit)
-                GlobalLogger.shared.info(context,"LogVisit is $logVisit")
 
+                val iterator = listOfTemporaryLogsVisit.iterator()
+                if (listOfTemporaryLogsVisit.size != 0) {
+                    while (iterator.hasNext()) {
+                        val item = iterator.next()
+                        for (logTemporary in iterator) {
+                            if (item[HerowLogVisit.PLACE_ID] != logTemporary[HerowLogVisit.PLACE_ID]) {
+                                listOfTemporaryLogsVisit.add(logVisit)
+                            }
+                        }
+                    }
+                } else {
+                    listOfTemporaryLogsVisit.add(logVisit)
+                }
+                GlobalLogger.shared.info(context, "LogVisit is $logVisit")
             } else {
-                var logsToRemove = ArrayList<HerowLogVisit>()
+                val logsToRemove = ArrayList<HerowLogVisit>()
                 for (logVisit in listOfTemporaryLogsVisit) {
                     if (geofenceEvent.zone.hash == logVisit[HerowLogVisit.PLACE_ID]) {
                         logVisit.updateDuration()
@@ -168,10 +181,9 @@ class LogGeneratorEvent(
                     }
                 }
                 listOfTemporaryLogsVisit.removeAll(logsToRemove)
-
             }
         }
-        LogsDispatcher.dispatchLogsResult(listOfLogsEnter)
+        LogsDispatcher.dispatchLogsResult(listOfLogsEnterOrExit)
         LogsDispatcher.dispatchLogsResult(listOfLogsVisit)
     }
 
