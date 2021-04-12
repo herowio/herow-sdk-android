@@ -55,14 +55,13 @@ class ClickAndCollectWorker(
                 return@async Result.success()
             }
             job.invokeOnCompletion { exception: Throwable? ->
-                when (exception) {
-                    is CancellationException -> {
-                        sessionHolder.saveClickAndCollectProgress(false)
-                        ClickAndCollectDispatcher.didStopClickAndCollect()
-                    }
-                    else -> {
-                    }
+                if (exception != null ) {
+                    GlobalLogger.shared.error(null, "Click and Collect stops due to $exception")
+                } else {
+                    GlobalLogger.shared.error(null, "Click and Collect normaly stops")
                 }
+                sessionHolder.saveClickAndCollectProgress(false)
+                ClickAndCollectDispatcher.didStopClickAndCollect()
             }
             job.await()
         }
