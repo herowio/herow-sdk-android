@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
@@ -34,6 +35,7 @@ class ClickAndCollectWorkerTest {
 
     @Before
     fun setUp() {
+        TimeHelper.testing = true
         context = ApplicationProvider.getApplicationContext()
         worker = TestListenableWorkerBuilder<ClickAndCollectWorker>(context)
             .build()

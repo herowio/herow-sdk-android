@@ -77,8 +77,13 @@ class ClickAndCollectWorker(
             launchLocationsUpdate()
         }
         // In order to only test
-        //delay(TimeHelper.TWO_SECONDS_MS)
-        delay(TimeHelper.TWO_HOUR_MS)
+        if (TimeHelper.testing) {
+            delay(TimeHelper.TWO_SECONDS_MS)
+        } else {
+            delay(TimeHelper.TWO_HOUR_MS)
+        }
+
+
         if (hasLocationPermission()) {
             stopLocationsUpdate()
         }

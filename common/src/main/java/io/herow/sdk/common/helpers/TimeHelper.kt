@@ -21,7 +21,7 @@ object TimeHelper {
     const val ONE_HOUR_MS = 60 * 60 * 1000L
     const val TWO_HOUR_MS = 2 * 60 * 60 * 1000L
     const val TWENTY_FOUR_HOUR_MS = 24 * 60 * 60 * 1000L
-
+    var testing = false
     /**
      * Be careful the ThreeTen library will be outdated in the future, check the repository to now
      * when and update the code in consequence
@@ -38,4 +38,5 @@ object TimeHelper {
             DateTimeUtils.toDate(zonedDateTime.toInstant()).time
         }
     }
+
 }
