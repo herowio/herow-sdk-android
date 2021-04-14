@@ -43,7 +43,7 @@ class ConfigWorkerTest {
         sessionHolder = SessionHolder(dataHolder)
         herowAPI = RetrofitBuilder.buildRetrofitForAPI(
             sessionHolder,
-            HerowAPI.PRE_PROD_BASE_URL,
+            HerowAPI.TEST_BASE_URL,
             HerowAPI::class.java
         )
 
