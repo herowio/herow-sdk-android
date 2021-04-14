@@ -12,6 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.lang.Thread.sleep
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
@@ -64,6 +65,8 @@ class GeofenceEventGeneratorTest {
         // We exit the third zone, but still in the second zone
         zones.removeLast()
         geofenceEventGenerator.detectedZones(zones, MockLocation(context).buildLocation())
+
+        sleep(1)
         Assert.assertEquals(1, herowGeofenceListener.lastEvents.size)
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
 
