@@ -1,6 +1,8 @@
 package io.herow.sdk.detection.zones
 
-import io.herow.sdk.connection.cache.Zone
+import android.location.Location
+import io.herow.sdk.common.logger.GlobalLogger
+import io.herow.sdk.connection.cache.model.Zone
 import java.util.concurrent.CopyOnWriteArrayList
 
 object ZoneDispatcher {
@@ -9,9 +11,11 @@ object ZoneDispatcher {
     }
     private val zoneListeners = CopyOnWriteArrayList<ZoneListener>()
 
-    fun dispatchDetectedZones(zones: List<Zone>) {
+    fun dispatchDetectedZones(zones: List<Zone>, location: Location) {
+        GlobalLogger.shared.info(null,"Dispatching zones: $zones")
+
         for (zoneListener in zoneListeners) {
-            zoneListener.detectedZones(zones)
+            zoneListener.detectedZones(zones, location)
         }
     }
 }

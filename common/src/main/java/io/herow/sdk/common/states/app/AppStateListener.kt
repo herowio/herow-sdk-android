@@ -7,6 +7,5 @@ package io.herow.sdk.common.states.app
  */
 interface AppStateListener {
     fun onAppInForeground()
-
     fun onAppInBackground()
 }

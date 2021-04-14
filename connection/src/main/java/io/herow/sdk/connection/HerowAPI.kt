@@ -1,6 +1,6 @@
 package io.herow.sdk.connection
 
-import io.herow.sdk.connection.cache.CacheResult
+import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.UserInfoResult
@@ -18,12 +18,14 @@ interface HerowAPI {
     )
     @FormUrlEncoded
     @POST("auth/authorize/token")
-    suspend fun token(@Field("username") username: String,
-                      @Field("password") password: String,
-                      @Field("client_id") clientId: String,
-                      @Field("client_secret") clientSecret: String,
-                      @Field("redirect_uri") redirectUri: String,
-                      @Field("grant_type") grantType: String = "password"): Response<TokenResult>
+    suspend fun token(
+        @Field("username") username: String,
+        @Field("password") password: String,
+        @Field("client_id") clientId: String,
+        @Field("client_secret") clientSecret: String,
+        @Field("redirect_uri") redirectUri: String,
+        @Field("grant_type") grantType: String = "password"
+    ): Response<TokenResult>
 
     @Headers(
         "Content-Type: application/json",
@@ -32,7 +34,7 @@ interface HerowAPI {
     suspend fun userInfo(@Body body: String): Response<UserInfoResult>
 
     @Headers(
-        "Content-Type: application/json",
+        "Content-Type: application/json"
     )
     @GET("v2/sdk/config")
     suspend fun config(): Response<ConfigResult>
@@ -44,8 +46,8 @@ interface HerowAPI {
     suspend fun cache(@Path("geohash") geohash: String): Response<CacheResult>
 
     @Headers(
-        "Content-Type: application/json",
+        "Content-Type: application/json"
     )
-    @POST("stat/queue/multi")
-    suspend fun logs(@Body body: String): Response<Void>
+    @POST("stat/queue")
+    suspend fun log(@Body body: String): Response<Void>
 }

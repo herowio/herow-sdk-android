@@ -7,7 +7,9 @@ class DataHolder(context: Context, prefsName: String = DEFAULT_SHARED_PREFS_NAME
     companion object {
         private const val DEFAULT_SHARED_PREFS_NAME = "io.herow.sdk"
     }
-    val preferences: SharedPreferences = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+
+    val preferences: SharedPreferences =
+        context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
     private inline fun edit(operation: (SharedPreferences.Editor) -> Unit) {
         val editor: SharedPreferences.Editor = preferences.edit()
@@ -39,15 +41,22 @@ class DataHolder(context: Context, prefsName: String = DEFAULT_SHARED_PREFS_NAME
         }
     }
 
-    inline operator fun <reified T: Any> get(key: String, defaultValue: T? = null): T {
+    inline operator fun <reified T : Any> get(key: String, defaultValue: T? = null): T {
         return when (T::class) {
             String::class -> preferences.getString(key, defaultValue as? String ?: "") as T
             Int::class -> preferences.getInt(key, defaultValue as? Int ?: -1) as T
             Boolean::class -> preferences.getBoolean(key, defaultValue as? Boolean ?: false) as T
             Float::class -> preferences.getFloat(key, defaultValue as? Float ?: -1f) as T
             Long::class -> preferences.getLong(key, defaultValue as? Long ?: -1) as T
-            Double::class -> Double.fromBits(preferences.getLong(key, defaultValue as? Long ?: -1)) as T
+            Double::class -> Double.fromBits(
+                preferences.getLong(
+                    key,
+                    defaultValue as? Long ?: -1
+                )
+            ) as T
             else -> throw UnsupportedOperationException("Not yet implemented")
         }
     }
+
+    fun containsKey(key: String): Boolean = preferences.contains(key)
 }

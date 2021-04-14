@@ -176,3 +176,5 @@ In this exemple HerowLogger is a class which implements the ILogger interface:
 
 `GlobalLogger.shared.registerLogger(HerowLogger())`
 
+
+
