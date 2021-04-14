@@ -16,4 +16,8 @@ object GeofenceDispatcher {
             geofenceListener.onGeofenceEvent(geofenceEvents)
         }
     }
+
+    fun reset() {
+        geofenceListeners.clear()
+    }
 }

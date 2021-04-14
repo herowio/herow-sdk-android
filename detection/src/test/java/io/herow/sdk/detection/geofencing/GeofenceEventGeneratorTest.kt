@@ -3,7 +3,12 @@ package io.herow.sdk.detection.geofencing
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.MockLocation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -22,17 +27,20 @@ class GeofenceEventGeneratorTest {
 
     @Before
     fun setUp() {
+        GeofenceDispatcher.reset()
         context = ApplicationProvider.getApplicationContext()
         geofenceEventGenerator = GeofenceEventGenerator()
         GeofenceDispatcher.addGeofenceListener(herowGeofenceListener)
+
     }
 
     @Test
     fun testDetectedZones() {
+
         val zones = ArrayList<Zone>()
-        val firstZone = MockLocation(context).fetchZone()
-        val secondZone = MockLocation(context).fetchZone()
-        val thirdZone = MockLocation(context).fetchZone()
+        val firstZone = MockLocation(context).buildZone()
+        val secondZone = MockLocation(context).buildZone()
+        val thirdZone = MockLocation(context).buildZone()
 
         // No events at the beginning
         Assert.assertTrue(herowGeofenceListener.lastEvents.isEmpty())
@@ -63,7 +71,7 @@ class GeofenceEventGeneratorTest {
         zones.removeLast()
         geofenceEventGenerator.detectedZones(zones, MockLocation(context).buildLocation())
 
-        sleep(1)
+
         Assert.assertEquals(1, herowGeofenceListener.lastEvents.size)
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
 

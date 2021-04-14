@@ -17,13 +17,14 @@ class MockLocation(
 
     private val ioDispatcher = Dispatchers.IO
 
-    private fun buildZone(
+     fun buildZone(
         lat: Double = RandomGenerator.lat(),
         lng: Double = RandomGenerator.lng(),
         zoneId: Long = RandomGenerator.id(),
-        radius: Double = RandomGenerator.randomInt().toDouble()
+        radius: Double = RandomGenerator.randomInt().toDouble(),
+        hash: String = RandomGenerator.alphanumericalString()
     ): Zone {
-        return Zone(zoneId, "", lat, lng, radius, null, buildAccess())
+        return Zone(zoneId, hash, lat, lng, radius, null, buildAccess())
     }
 
     private fun buildAccess(
