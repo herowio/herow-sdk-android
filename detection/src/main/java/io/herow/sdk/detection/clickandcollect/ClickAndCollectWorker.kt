@@ -16,7 +16,6 @@ import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.detection.location.*
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -55,6 +54,7 @@ class ClickAndCollectWorker(
                 launchJob()
                 return@async Result.success()
             }
+
             job.invokeOnCompletion { exception: Throwable? ->
                 if (exception != null ) {
                     GlobalLogger.shared.error(null, "Click and Collect stops due to $exception")
