@@ -55,15 +55,14 @@ class ClickAndCollectWorkerTest {
     }
 
     @Test
-    fun testDidStartClickAndConnectShouldDisplayStart() {
+    fun testOnceFinishClickAndCollectShouldNotBeProgression() {
         ClickAndCollectDispatcher.registerClickAndCollectListener(clickAndCollectWorkerListener)
         Assert.assertEquals(clickAndCollectWorkerListener.variableTest, "click")
 
         runBlocking {
             val result = worker.doWork()
             MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(sessionHolder.getClickAndCollectProgress())
-            Assert.assertEquals(clickAndCollectWorkerListener.variableTest, "start")
+            Assert.assertFalse(sessionHolder.getClickAndCollectProgress())
         }
     }
 

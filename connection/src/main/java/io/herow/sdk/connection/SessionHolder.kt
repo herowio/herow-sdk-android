@@ -141,7 +141,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         if (!dataHolder.containsKey(KEY_CLICK_AND_COLLECT_PROGRESS)) {
             false
         } else {
-            dataHolder[KEY_CLICK_AND_COLLECT_PROGRESS]
+            dataHolder.get<Boolean>(KEY_CLICK_AND_COLLECT_PROGRESS)
         }
 }
 
