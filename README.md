@@ -12,15 +12,57 @@
   </a>
 </p>
 
+# SDK Setup - GitHub Packages
+
+In order to use our SDK you need to configure your Github account.
+
+- Go to [https://github.com](url) and log in.
+- In the top right of your screen, click on your profile and go to "Settings"
+- In the left menu, go to "Developer Settings" and then go to "Personal access tokens"
+- Click on the button "Generate new token". Choose a note and select in scopes "read:packages"
+- Generate token
+
+Warning:
+
+A token is displayed. You will only see it once. You need to save it somewhere because you will never be able to fetch it another time. If you lose or forget it you will need to generate a new token.
+
+On your computer, access your environment variables and add two new variables as followed:
+
+```
+GITHUB_ACTOR="YOUR_GITHUB_USERNAME"
+GITHUB_TOKEN="YOUR_GITHUB_TOKEN"
+```
+
+Replace "YOUR_GITHUB_USERNAME" with the username you usually use to connect to Github.
+Replace "YOUR_GITHUB_TOKEN" by the generated token that you can only see once.
+
+
 # Installation with Android Studio
 
 - Create or open your project
-- Into your build.gradle (app level), add this in your dependencies:
+- Into your build.gradle (project level), into all project > repositories section, add the following code:
 
-**implementation "io.herow.sdk:detection:7.0.0"**
+```
+maven {
+    name = "GitHubPackages"
+    url = uri("https://maven.pkg.github.com/herowio/herow-sdk-android")
+    credentials {
+        username = System.getenv("GITHUB_ACTOR")
+        password = System.getenv("GITHUB_TOKEN")
+    }
+}
+```
 
+- Sync your project
+- Go to your build.gradle (app level) and in your dependencies add the following code:
 
-- Sync your build.gradle
+``` 
+implementation 'io.herow.sdk:detection:7.0.0'
+implementation 'io.herow.sdk:common:7.0.0'
+implementation 'io.herow.sdk:connection:7.0.0'
+```
+
+- Sync your project
 
 
 # Configure the SDK
@@ -137,28 +179,27 @@ The sdk needs some permissions to work. To be able to take background position r
 
 Before **Android 10** (API 28 and before) you need to ask for these permissions at runtime:
 
-1. android.Manifest.permission.ACCESS_FINE_LOCATION
-1. android.Manifest.permission.ACCESS_COARSE_LOCATION
+- android.Manifest.permission.ACCESS_FINE_LOCATION
+- android.Manifest.permission.ACCESS_COARSE_LOCATION
 
 
 For **Android 10** (API 29) you need to ask for these permissions at runtime:
 
-1. android.Manifest.permission.ACCESS_FINE_LOCATION
-1. android.Manifest.permission.ACCESS_COARSE_LOCATION
-1. android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+- android.Manifest.permission.ACCESS_FINE_LOCATION
+- android.Manifest.permission.ACCESS_COARSE_LOCATION
+- android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
 
 
 Starting from **Android 11** (Api 30 and above) you need to ask for these permissions at runtime:
 
-1. android.Manifest.permission.ACCESS_FINE_LOCATION
-1. android.Manifest.permission.ACCESS_COARSE_LOCATION
+- android.Manifest.permission.ACCESS_FINE_LOCATION
+- android.Manifest.permission.ACCESS_COARSE_LOCATION
 
 You also need to specifically ask the user to enable Background location permission directly in the settings of the phone. To do so, Google advices to prompt an AlertDialog to explain why you need the background location permission.
 
 Note 1:
 
 For Android 11, if you choose to ask for the background location permission and the user enables it, you will also benefit from the Android 11 native geofencing service.
-<br />
 <br />
 
 # Debug mode
@@ -175,6 +216,3 @@ If you want to save this logs locally or on remote storage system, you can by im
 In this exemple HerowLogger is a class which implements the ILogger interface:
 
 `GlobalLogger.shared.registerLogger(HerowLogger())`
-
-
-
