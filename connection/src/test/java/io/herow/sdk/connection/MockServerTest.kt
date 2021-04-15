@@ -78,26 +78,30 @@ class MockServerTest {
     @Test
     fun saveZoneIntoDBAndCheckResult() {
         runBlocking {
-            for (zone in result.body()?.zones!!) {
-                zoneRepository.insert(zone)
+            if (result.body()?.zones != null) {
+                for (zone in result.body()?.zones!!) {
+                    zoneRepository.insert(zone)
+                }
+
+                val zonesInDB = zoneRepository.getAllZones()
+
+                Assert.assertNotEquals(zonesInDB?.size, "0")
             }
-
-            val zonesInDB = zoneRepository.getAllZones()
-
-            Assert.assertNotEquals(zonesInDB?.size, "0")
         }
     }
 
     @Test
     fun savePOIIntoDBAndCheckResult() {
         runBlocking {
-            for (poi in result.body()?.pois!!) {
-                poiRepository.insert(poi)
+            if (result.body()?.pois != null) {
+                for (poi in result.body()?.pois!!) {
+                    poiRepository.insert(poi)
+                }
+
+                val poisInDB = poiRepository.getAllPois()
+
+                Assert.assertNotEquals(poisInDB?.size, "0")
             }
-
-            val poisInDB = poiRepository.getAllPois()
-
-            Assert.assertNotEquals(poisInDB?.size, "0")
         }
     }
 
@@ -105,17 +109,19 @@ class MockServerTest {
     @Test
     fun saveCampaignAndCheckResult() {
         runBlocking {
-            for (campaign in result.body()?.campaigns!!) {
-                campaignRepository.insert(campaign)
+            if (result.body()?.campaigns != null) {
+                for (campaign in result.body()?.campaigns!!) {
+                    campaignRepository.insert(campaign)
+                }
+
+                val campaignsInDB = campaignRepository.getAllCampaigns()
+                Assert.assertNotEquals(campaignsInDB?.size, 0)
+
+                herowDatabase.clearAllTables()
+
+                val deletedCampaign = campaignRepository.getAllCampaigns()
+                Assert.assertTrue(deletedCampaign.isNullOrEmpty())
             }
-
-            val campaignsInDB = campaignRepository.getAllCampaigns()
-            Assert.assertNotEquals(campaignsInDB?.size, 0)
-
-            herowDatabase.clearAllTables()
-
-            val deletedCampaign = campaignRepository.getAllCampaigns()
-            Assert.assertTrue(deletedCampaign.isNullOrEmpty())
         }
     }
 

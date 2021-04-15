@@ -5,7 +5,6 @@ import android.location.Location
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import com.jakewharton.threetenabp.AndroidThreeTen
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
@@ -51,7 +50,6 @@ class HerowInitializer private constructor(val context: Context) {
     private val initialRepeatInterval: Long = 900000
 
     init {
-        AndroidThreeTen.init(context)
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         workManager = WorkManager.getInstance(context)
         locationManager = LocationManager(context)

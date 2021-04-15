@@ -3,7 +3,6 @@ package io.herow.sdk.connection
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import io.herow.sdk.common.helpers.DateHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.dao.CampaignDAO
 import io.herow.sdk.connection.cache.dao.PoiDAO
@@ -23,8 +22,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.Month
 import java.io.IOException
 
 @Config(sdk = [28])
@@ -93,44 +90,41 @@ class HerowDatabaseTest {
         campaign = Campaign(
             id = "campaignID1",
             company = "testCompany",
-            createdDate = DateHelper.convertDateToMilliSeconds(
-                LocalDateTime.of(
+            createdDate = TimeHelper.convertDateToMilliSeconds(
+                java.time.LocalDateTime.of(
                     2020,
-                    Month.JANUARY,
+                    1,
                     11,
                     11,
                     50,
                     0,
                     0
-                ),
-                context
+                )
             ),
-            modifiedDate = DateHelper.convertDateToMilliSeconds(
-                LocalDateTime.of(
+            modifiedDate = TimeHelper.convertDateToMilliSeconds(
+                java.time.LocalDateTime.of(
                     2020,
-                    Month.JANUARY,
+                    1,
                     12,
                     7,
                     0,
                     0,
                     0
-                ),
-                context
+                )
             ),
             deleted = false,
             simpleID = "testSimpleID",
             name = "testCampaign1",
-            begin = DateHelper.convertDateToMilliSeconds(
-                LocalDateTime.of(
+            begin = TimeHelper.convertDateToMilliSeconds(
+                java.time.LocalDateTime.of(
                     2021,
-                    Month.JANUARY,
+                    1,
                     30,
                     8,
                     0,
                     0,
                     0
-                ),
-                context
+                )
             ),
             recurrenceEnabled = false,
             timeZone = "Europe/Paris",
