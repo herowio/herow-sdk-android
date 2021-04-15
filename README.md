@@ -26,16 +26,6 @@ Warning:
 
 A token is displayed. You will only see it once. You need to save it somewhere because you will never be able to fetch it another time. If you lose or forget it you will need to generate a new token.
 
-On your computer, access your environment variables and add two new variables as followed:
-
-```
-GITHUB_ACTOR=YOUR_GITHUB_USERNAME
-GITHUB_TOKEN=YOUR_GITHUB_TOKEN
-```
-
-Replace YOUR_GITHUB_USERNAME with the username you usually use to connect to Github.
-Replace YOUR_GITHUB_TOKEN by the generated token that you can only see once.
-
 
 # Installation with Android Studio
 
@@ -47,19 +37,20 @@ maven {
     name = "GitHubPackages"
     url = uri("https://maven.pkg.github.com/herowio/herow-sdk-android")
     credentials {
-        username = System.getenv("GITHUB_ACTOR")
-        password = System.getenv("GITHUB_TOKEN")
+        username = "YOUR_GITHUB_USERNAME"
+        password = "YOUR_GITHUB_TOKEN"
     }
 }
 ```
+
+Replace YOUR_GITHUB_USERNAME with the username you usually use to connect to Github.
+Replace YOUR_GITHUB_TOKEN by the generated token that you can only see once.
 
 - Sync your project
 - Go to your build.gradle (app level) and in your dependencies add the following code:
 
 ``` 
 implementation 'io.herow.sdk:detection:7.0.0'
-implementation 'io.herow.sdk:common:7.0.0'
-implementation 'io.herow.sdk:connection:7.0.0'
 ```
 
 - Sync your project
