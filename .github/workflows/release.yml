@@ -27,8 +27,7 @@ jobs:
       - name: extract version
        
         run: 
-          RELEASE_VERSION=v$(bash gradlew -q versionName);
-          echo "$RELEASE_VERSION" >> $GITHUB_ENV
+           echo "RELEASE_VERSION=v$(bash gradlew -q versionName)" >> $GITHUB_ENV
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
