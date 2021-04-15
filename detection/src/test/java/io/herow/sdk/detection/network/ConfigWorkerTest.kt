@@ -41,6 +41,8 @@ class ConfigWorkerTest {
         context = ApplicationProvider.getApplicationContext()
         dataHolder = io.herow.sdk.common.DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
+        sessionHolder.saveSDKID("test")
+        sessionHolder.saveOptinValue(true)
         herowAPI = RetrofitBuilder.buildRetrofitForAPI(
             sessionHolder,
             HerowAPI.TEST_BASE_URL,
@@ -54,7 +56,7 @@ class ConfigWorkerTest {
                 workDataOf(
                     AuthRequests.KEY_SDK_ID to NetworkConstants.USERNAME,
                     AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
-                    AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name,
+                    AuthRequests.KEY_PLATFORM to HerowPlatform.TEST.name,
                     AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID
                 )
             ).build()

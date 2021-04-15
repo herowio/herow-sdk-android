@@ -31,13 +31,13 @@ class LogsWorkerTest {
         context = ApplicationProvider.getApplicationContext()
         dataHolder = DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
-
+        sessionHolder.saveSDKID("test")
         worker = TestListenableWorkerBuilder<LogsWorker>(context)
             .setInputData(
                 workDataOf(
                     AuthRequests.KEY_SDK_ID to NetworkConstants.USERNAME,
                     AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
-                    AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name,
+                    AuthRequests.KEY_PLATFORM to HerowPlatform.TEST.name,
                     AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID,
                     LogsWorker.KEY_LOGS to LogsHelper(sessionHolder).createTestLogs(context)
                 )

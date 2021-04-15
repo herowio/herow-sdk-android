@@ -111,6 +111,7 @@ class HerowInitializer private constructor(val context: Context) {
 
     fun configApp(sdkId: String, sdkKey: String): HerowInitializer {
         sdkSession = SdkSession(sdkId, sdkKey)
+        sessionHolder.saveSDKID(sdkId)
         return this
     }
 

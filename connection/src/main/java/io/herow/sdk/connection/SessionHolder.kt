@@ -18,6 +18,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_SAVED_GEOHASH = "common.saved_geohash"
         private const val KEY_REPEAT_INTERVAL = "common.repeat_interval"
         private const val KEY_OPTIN = "common.optin"
+        private const val KEY_SDK = "common.sdk"
         private const val KEY_CLICK_AND_COLLECT_PROGRESS = "detection.click_and_collect_progress"
     }
 
@@ -124,6 +125,14 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun saveOptinValue(optinAccepted: Boolean?) {
         dataHolder[KEY_OPTIN] = optinAccepted ?: false
+    }
+
+    fun saveSDKID(sdkID: String) {
+        dataHolder[KEY_SDK] = sdkID
+    }
+
+    fun getSDKID(): String {
+        return  dataHolder[KEY_SDK] ?: ""
     }
 
     fun getOptinValue(): Boolean =

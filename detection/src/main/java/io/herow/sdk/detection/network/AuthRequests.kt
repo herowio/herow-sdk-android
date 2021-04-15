@@ -77,6 +77,8 @@ class AuthRequests(
         if (platformURLString.isNotEmpty()) {
             if (HerowPlatform.PRE_PROD == HerowPlatform.valueOf(platformURLString)) {
                 return HerowPlatform.PRE_PROD
+            } else if (HerowPlatform.TEST == HerowPlatform.valueOf(platformURLString)) {
+                return HerowPlatform.TEST
             }
         }
         return HerowPlatform.PROD
@@ -85,8 +87,11 @@ class AuthRequests(
     private fun getApiUrl(platform: HerowPlatform): String {
         if (platform == HerowPlatform.PRE_PROD) {
             return HerowAPI.PRE_PROD_BASE_URL
+        } else if (platform == HerowPlatform.TEST) {
+            return HerowAPI.TEST_BASE_URL
+        } else {
+            return HerowAPI.PROD_BASE_URL
         }
-        return HerowAPI.PROD_BASE_URL
     }
 
     /**

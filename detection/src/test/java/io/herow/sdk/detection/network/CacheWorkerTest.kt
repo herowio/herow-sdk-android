@@ -50,6 +50,7 @@ class CacheWorkerTest {
         sessionHolder = SessionHolder(dataHolder)
 
         sessionHolder.saveOptinValue(true)
+        sessionHolder.saveSDKID("test")
         db = HerowDatabase.getDatabase(context)
         zoneRepository = ZoneRepository(db.zoneDAO())
         poiRepository = PoiRepository(db.poiDAO())
@@ -64,7 +65,7 @@ class CacheWorkerTest {
             context, inputData = workDataOf(
                 AuthRequests.KEY_SDK_ID to NetworkConstants.USERNAME,
                 AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
-                AuthRequests.KEY_PLATFORM to HerowPlatform.PRE_PROD.name,
+                AuthRequests.KEY_PLATFORM to HerowPlatform.TEST.name,
                 AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID,
                 CacheWorker.KEY_GEOHASH to rennesGeohash
             )

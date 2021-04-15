@@ -8,3 +8,4 @@ data class UserInfo(
     private val advertiserId: String?,
     private val customId: String
 )
+
