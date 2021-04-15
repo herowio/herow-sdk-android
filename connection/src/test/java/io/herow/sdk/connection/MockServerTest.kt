@@ -145,6 +145,7 @@ object CompanySingleton {
                 .addHeader("x-device-id", "test")
                 .addHeader("x-herow-id", "test")
                 .addHeader("x-sdk", "test")
+                .addHeader("x-version", "test")
 
             val request = requestBuilder.build()
             chain.proceed(request)
