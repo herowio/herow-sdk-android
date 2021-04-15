@@ -29,12 +29,12 @@ A token is displayed. You will only see it once. You need to save it somewhere b
 On your computer, access your environment variables and add two new variables as followed:
 
 ```
-GITHUB_ACTOR="YOUR_GITHUB_USERNAME"
-GITHUB_TOKEN="YOUR_GITHUB_TOKEN"
+GITHUB_ACTOR=YOUR_GITHUB_USERNAME
+GITHUB_TOKEN=YOUR_GITHUB_TOKEN
 ```
 
-Replace "YOUR_GITHUB_USERNAME" with the username you usually use to connect to Github.
-Replace "YOUR_GITHUB_TOKEN" by the generated token that you can only see once.
+Replace YOUR_GITHUB_USERNAME with the username you usually use to connect to Github.
+Replace YOUR_GITHUB_TOKEN by the generated token that you can only see once.
 
 
 # Installation with Android Studio
