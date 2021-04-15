@@ -129,10 +129,15 @@ subprojects {
     }
 }
 
+
 static def findApiKey(String property) {
     Properties properties = new Properties()
     properties.load(new FileInputStream("platform-secrets.properties"))
     return "\"" + properties.getProperty(property) + "\""
+}
+
+tasks.create("versionName") {
+    doLast {   println("${project.version}") }
 }
 
 task clean(type: Delete) {
