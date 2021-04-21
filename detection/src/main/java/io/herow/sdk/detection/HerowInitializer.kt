@@ -62,7 +62,7 @@ class HerowInitializer private constructor(val context: Context) {
     companion object {
         private lateinit var herowInitializer: HerowInitializer
 
-        fun getInstance(context: Context): HerowInitializer {
+        @JvmStatic fun getInstance(context: Context): HerowInitializer {
             if (!::herowInitializer.isInitialized) {
                 herowInitializer = HerowInitializer(context)
             }
@@ -127,6 +127,10 @@ class HerowInitializer private constructor(val context: Context) {
     fun getCustomId(): String = sessionHolder.getCustomID()
 
     fun getOptinValue(): Boolean = sessionHolder.getOptinValue()
+
+    fun removeCustomId()  {
+        sessionHolder.removeCustomID()
+    }
 
     fun acceptOptin(): HerowInitializer {
         saveOptinValue(true)
