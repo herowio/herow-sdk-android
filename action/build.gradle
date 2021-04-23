@@ -1,7 +1,0 @@
-group = 'io.herow.sdk'
-description = 'action'
-version = "${project.version}"
-
-dependencies {
-    api project (":detection")
-}

@@ -25,6 +25,21 @@ class Converters {
     }
 
     @TypeConverter
+    fun stringToListCampaigns(data: String?): List<Campaign>? {
+        if (data == null) {
+            return Collections.emptyList()
+        }
+
+        val listType: Type = object : TypeToken<List<Campaign?>?>() {}.type
+        return Gson().fromJson<List<Campaign>?>(data, listType)
+    }
+
+    @TypeConverter
+    fun listCampaignToString(someobjects: List<Campaign>?): String? {
+        return Gson().toJson(someobjects)
+    }
+
+    @TypeConverter
     fun stringToListString(data: String?): List<String>? {
         if (data.isNullOrEmpty()) {
             return Collections.emptyList()

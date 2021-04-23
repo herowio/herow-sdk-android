@@ -30,6 +30,7 @@ import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.*
+import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -45,6 +46,7 @@ class HerowInitializer private constructor(val context: Context) {
     private var logsManager: LogsManager
     private var workManager: WorkManager
     private var database: HerowDatabase
+    private var notificationManager: NotificationManager
 
     private lateinit var sessionHolder: SessionHolder
     private val initialRepeatInterval: Long = 900000
@@ -57,6 +59,7 @@ class HerowInitializer private constructor(val context: Context) {
         registerListeners()
         loadIdentifiers(context)
         database = HerowDatabase.getDatabase(context)
+        notificationManager = NotificationManager(context)
     }
 
     companion object {

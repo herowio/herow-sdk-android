@@ -44,7 +44,7 @@ class ZoneManager(
         )
     }
 
-    public fun getZones(): ArrayList<Zone> {
+    fun getZones(): ArrayList<Zone> {
         return zones
     }
 

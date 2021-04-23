@@ -132,7 +132,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun getSDKID(): String {
-        return  dataHolder[KEY_SDK] ?: ""
+        return dataHolder[KEY_SDK]
     }
 
     fun getOptinValue(): Boolean =

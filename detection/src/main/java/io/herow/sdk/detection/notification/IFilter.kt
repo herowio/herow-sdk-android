@@ -1,4 +1,4 @@
-package io.herow.sdk.action.notification
+package io.herow.sdk.detection.notification
 
 import io.herow.sdk.connection.cache.model.Campaign
 

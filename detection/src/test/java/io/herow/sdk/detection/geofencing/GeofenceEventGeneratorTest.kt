@@ -3,19 +3,13 @@ package io.herow.sdk.detection.geofencing
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.MockLocation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.lang.Thread.sleep
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
@@ -31,7 +25,6 @@ class GeofenceEventGeneratorTest {
         context = ApplicationProvider.getApplicationContext()
         geofenceEventGenerator = GeofenceEventGenerator()
         GeofenceDispatcher.addGeofenceListener(herowGeofenceListener)
-
     }
 
     @Test

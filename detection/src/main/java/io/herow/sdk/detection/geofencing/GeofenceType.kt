@@ -2,5 +2,6 @@ package io.herow.sdk.detection.geofencing
 
 enum class GeofenceType {
     ENTER,
-    EXIT
+    EXIT,
+    GEOFENCE_NOTIFICATION_ZONE_ENTER
 }
