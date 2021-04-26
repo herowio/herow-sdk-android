@@ -79,6 +79,7 @@ class CacheWorker(
                 if (cacheResponse.isSuccessful) {
                     GlobalLogger.shared.info(context,"CacheResponse is successful")
                     cacheResponse.body()?.let { cacheResult: CacheResult? ->
+                        GlobalLogger.shared.info(context, "Cache response body: ${cacheResponse.body()}")
                         GlobalLogger.shared.info(context,"CacheResult is $cacheResult")
                         withContext(ioDispatcher) {
                             try {
@@ -133,6 +134,7 @@ class CacheWorker(
     }
 
     private fun saveCacheDataInDB(cacheResult: CacheResult) {
+        GlobalLogger.shared.info(context,"Cache result is: $cacheResult")
         if (!cacheResult.zones.isNullOrEmpty()) {
             for (zone in cacheResult.zones) {
                 zoneRepository.insert(zone)

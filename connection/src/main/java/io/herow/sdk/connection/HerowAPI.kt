@@ -16,17 +16,19 @@ interface HerowAPI {
 
     @Headers(
         "Cache-Control: noCache",
+        "Content-Type: application/json"
     )
-    @FormUrlEncoded
+    //@FormUrlEncoded
     @POST("auth/authorize/token")
-    suspend fun token(
+    /* suspend fun token(
         @Field("username") username: String,
         @Field("password") password: String,
-        @Field("client_id") clientId: String,
-        @Field("client_secret") clientSecret: String,
-        @Field("redirect_uri") redirectUri: String,
-        @Field("grant_type") grantType: String = "password"
-    ): Response<TokenResult>
+        @Field("clientId") clientId: String,
+        @Field("clientSecret") clientSecret: String,
+        @Field("redirectUri") redirectUri: URL,
+        @Field("grantType") grantType: String = "password"
+    ): Response<TokenResult> */
+    suspend fun token(@Body body: String): Response<TokenResult>
 
     @Headers(
         "Content-Type: application/json",

@@ -14,7 +14,6 @@ import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.MockLocation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineDispatcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
 import org.junit.*

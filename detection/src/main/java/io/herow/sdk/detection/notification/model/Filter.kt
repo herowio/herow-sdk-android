@@ -1,7 +1,7 @@
 package io.herow.sdk.detection.notification.model
 
-import io.herow.sdk.detection.notification.IFilter
 import io.herow.sdk.connection.cache.model.Campaign
+import io.herow.sdk.detection.notification.IFilter
 
 class Filter: IFilter {
 

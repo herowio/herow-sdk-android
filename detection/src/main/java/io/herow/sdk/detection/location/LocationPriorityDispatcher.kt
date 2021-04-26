@@ -1,6 +1,4 @@
 package io.herow.sdk.detection.location
-import com.google.android.gms.location.LocationRequest
-import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import java.util.concurrent.CopyOnWriteArrayList
 

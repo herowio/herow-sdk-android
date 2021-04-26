@@ -56,10 +56,11 @@ class HerowInitializer private constructor(val context: Context) {
         workManager = WorkManager.getInstance(context)
         locationManager = LocationManager(context)
         logsManager = LogsManager(context)
+        notificationManager = NotificationManager(context)
         registerListeners()
         loadIdentifiers(context)
         database = HerowDatabase.getDatabase(context)
-        notificationManager = NotificationManager(context)
+
     }
 
     companion object {
@@ -79,6 +80,7 @@ class HerowInitializer private constructor(val context: Context) {
         LocationDispatcher.addLocationListener(locationManager)
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
+        GeofenceDispatcher.addGeofenceListener(notificationManager)
     }
 
     /**

@@ -3,7 +3,6 @@ package io.herow.sdk.detection.notification
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.connection.cache.model.Campaign
-import io.herow.sdk.connection.cache.model.Trigger
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
@@ -92,11 +91,6 @@ class NotificationManagerTest {
             Assert.assertTrue(zoneWithCampaigns!!.campaigns!![0] == campaignOne!!.id)
             Assert.assertFalse(notificationManager.notified)
 
-            (campaignOne as Campaign).trigger = Trigger(onExit = false)
-
-            val job6 = async { MockDataInDatabase(context).updateCampaignOne(campaignOne as Campaign) }
-            campaignOne = job6.await()
-
             val job7 = async(ioDispatcher) { zoneRepository.getZoneByHash(zone!!.hash) }
             zoneWithCampaigns = job7.await()
 
@@ -109,11 +103,6 @@ class NotificationManagerTest {
             Assert.assertTrue(zoneWithCampaigns!!.campaigns!!.size == 1)
             Assert.assertTrue(zoneWithCampaigns!!.campaigns!![0] == campaignOne!!.id)
             Assert.assertTrue(notificationManager.notified)
-
-            (campaignOne as Campaign).trigger = Trigger(onExit = true)
-
-            val job8 = async { MockDataInDatabase(context).updateCampaignOne(campaignOne as Campaign) }
-            campaignOne = job8.await()
 
             // We update the Trigger to make it on Exit for CampaignOne
             // Event is also exiting

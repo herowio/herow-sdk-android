@@ -2,7 +2,6 @@ package io.herow.sdk.detection
 
 import android.content.Context
 import io.herow.sdk.connection.cache.model.Campaign
-import io.herow.sdk.connection.cache.model.Trigger
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
@@ -42,10 +41,7 @@ class MockDataInDatabase(context: Context) {
 
     suspend fun createAndInsertCampaignOne(): Campaign {
         val campaign = Campaign(
-            id = "campaignOne",
-            trigger = Trigger(
-                onExit = true
-            )
+            id = "campaignOne"
         )
 
         var campaignInDB: Campaign? = null
@@ -64,10 +60,7 @@ class MockDataInDatabase(context: Context) {
 
     suspend fun createAndInsertCampaignTwo(): Campaign {
         val campaign = Campaign(
-            id = "campaignTWo",
-            trigger = Trigger(
-                onExit = true
-            )
+            id = "campaignTWo"
         )
 
         var campaignInDB: Campaign? = null

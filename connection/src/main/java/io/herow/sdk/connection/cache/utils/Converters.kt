@@ -10,21 +10,6 @@ import java.util.*
 class Converters {
 
     @TypeConverter
-    fun stringToListIntervals(data: String?): List<Interval?>? {
-        if (data == null) {
-            return Collections.emptyList()
-        }
-        val listType: Type = object :
-            TypeToken<List<Interval?>?>() {}.type
-        return Gson().fromJson<List<Interval?>>(data, listType)
-    }
-
-    @TypeConverter
-    fun listServerToString(someObjects: List<Interval>?): String? {
-        return Gson().toJson(someObjects)
-    }
-
-    @TypeConverter
     fun stringToListCampaigns(data: String?): List<Campaign>? {
         if (data == null) {
             return Collections.emptyList()
@@ -98,12 +83,6 @@ class Converters {
 
     @TypeConverter
     fun poiToString(poi: Poi) = Gson().toJson(poi)
-
-    @TypeConverter
-    fun stringToTrigger(string: String) = Gson().fromJson(string, Trigger::class.java)
-
-    @TypeConverter
-    fun triggerToString(trigger: Trigger?) = Gson().toJson(trigger) ?: ""
 
     @TypeConverter
     fun stringToZone(string: String) = Gson().fromJson(string, Zone::class.java)

@@ -12,22 +12,15 @@ data class Campaign(
     val campaignID: Long = 0,
 
     var id: String? = "",
-    var company: String? = "",
-    var createdDate: Long? = 0,
-    var modifiedDate: Long? = 0,
-    var deleted: Boolean? = false,
-    var simpleID: String? = "",
     var name: String? = "",
     var begin: Long? = 0,
-    var recurrenceEnabled: Boolean? = false,
-    var timeZone: String? = "",
+    var end: Long? = 0,
+    var daysRecurrence: List<String>? = listOf(),
+    var startHour: String? = "",
+    var stopHour: String? = "",
 
     @Embedded
     var capping: Capping? = null,
     @Embedded
-    var trigger: Trigger? = null,
-    @Embedded
-    var notification: Notification? = null,
-
-    var intervals: List<Interval?> = listOf()
+    var notification: Notification? = null
 )

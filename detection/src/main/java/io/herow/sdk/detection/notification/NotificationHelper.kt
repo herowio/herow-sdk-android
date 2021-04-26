@@ -15,7 +15,7 @@ object NotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Notifications for campaign",
+                "Notification for campaign",
                 NotificationManager.IMPORTANCE_HIGH
             )
 

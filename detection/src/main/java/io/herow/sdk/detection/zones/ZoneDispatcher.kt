@@ -18,4 +18,12 @@ object ZoneDispatcher {
             zoneListener.detectedZones(zones, location)
         }
     }
+
+    fun dispatchDetectedZonesForNotification(zonesForNotification: List<Zone>, location: Location) {
+        GlobalLogger.shared.info(null,"Dispatching zones for notification: $zonesForNotification")
+
+        for (zoneListener in zoneListeners) {
+            zoneListener.detectedNotificationZones(zonesForNotification, location)
+        }
+    }
 }

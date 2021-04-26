@@ -102,6 +102,7 @@ class ZoneManager(
     override fun onLocationUpdate(location: Location) {
         GlobalLogger.shared.info(context,"Inside onLocationUpdate method")
         val detectedZones = ArrayList<Zone>()
+        val detectedZoneForNotification = ArrayList<Zone>()
         synchronized(zones) {
             GlobalLogger.shared.info(context,"Zones synchronization: $zones")
             for (zone in zones) {
@@ -111,10 +112,17 @@ class ZoneManager(
                     GlobalLogger.shared.info(context,"Adding zone: $zone")
                     detectedZones.add(zone)
                 }
+
+                if (distanceToCenterOfZone - zone.radius!! * 3 <= 0) {
+                    GlobalLogger.shared.info(context,"Adding zone for radius x3: $zone")
+                    detectedZoneForNotification.add(zone)
+                }
             }
         }
         ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
+        ZoneDispatcher.dispatchDetectedZonesForNotification(detectedZoneForNotification, location)
         GlobalLogger.shared.info(context,"Zones dispatched: $detectedZones")
+        GlobalLogger.shared.info(context,"Zones dispatched for notification: $detectedZoneForNotification")
     }
 
     private suspend fun retrieveZones(): ArrayList<Zone> {

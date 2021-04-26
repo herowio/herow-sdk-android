@@ -1,9 +1,7 @@
 package io.herow.sdk.detection.location
 
-import android.content.Context
 import com.google.android.gms.location.LocationRequest
 import io.herow.sdk.common.helpers.TimeHelper
-import io.herow.sdk.connection.cache.model.Zone
 
 enum  class LocationPriority(
     val interval: Long,
