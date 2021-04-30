@@ -38,6 +38,10 @@ class NotificationManagerTest {
     private val ioDispatcher = Dispatchers.IO
     private val liveEvents = arrayListOf<GeofenceEvent>()
 
+    companion object {
+        var campaignOne: Campaign? = null
+    }
+
     @Before
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -55,10 +59,11 @@ class NotificationManagerTest {
     fun testNotificationManager() {
         var zoneWithCampaigns: Zone?
         var zone: Zone?
-        var campaignOne: Campaign?
         var campaignTwo: Campaign?
 
         runBlocking {
+            Assert.assertTrue(listener.test == "NO")
+
             val job = async { MockDataInDatabase(context).createAndInsertZoneOne() }
             zone = job.await()
 
@@ -69,11 +74,17 @@ class NotificationManagerTest {
             zoneWithCampaigns = job3.await()
 
             // The ID of the CampaignTwo is not available into the list of id's campaigns of ZoneOne
-            liveEvents.add(GeofenceEvent(zoneWithCampaigns as Zone, MockLocation(context).buildLocation(), GeofenceType.ENTER))
+            liveEvents.add(
+                GeofenceEvent(
+                    zoneWithCampaigns as Zone,
+                    MockLocation(context).buildLocation(),
+                    GeofenceType.GEOFENCE_NOTIFICATION_ENTER
+                )
+            )
             GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
             Assert.assertTrue(zoneWithCampaigns!!.campaigns!!.size == 1)
             Assert.assertFalse(zoneWithCampaigns!!.campaigns!![0] == campaignTwo!!.id)
-            Assert.assertFalse(notificationManager.notified)
+            Assert.assertFalse(listener.test == "OKAY")
 
             val job4 = async { MockDataInDatabase(context).createAndInsertCampaignOne() }
             campaignOne = job4.await()
@@ -82,36 +93,19 @@ class NotificationManagerTest {
             zoneWithCampaigns = job5.await()
 
             // The ID of the CampaignOne is available into the list of id's campaigns of ZoneOne
-            // But we have no trigger registered so we should not be notified
             liveEvents.clear()
-            liveEvents.add(GeofenceEvent(zoneWithCampaigns as Zone, MockLocation(context).buildLocation(), GeofenceType.ENTER))
+            liveEvents.add(
+                GeofenceEvent(
+                    zoneWithCampaigns as Zone,
+                    MockLocation(context).buildLocation(),
+                    GeofenceType.GEOFENCE_NOTIFICATION_ENTER
+                )
+            )
             GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
 
             Assert.assertTrue(zoneWithCampaigns!!.campaigns!!.size == 1)
             Assert.assertTrue(zoneWithCampaigns!!.campaigns!![0] == campaignOne!!.id)
-            Assert.assertFalse(notificationManager.notified)
-
-            val job7 = async(ioDispatcher) { zoneRepository.getZoneByHash(zone!!.hash) }
-            zoneWithCampaigns = job7.await()
-
-            // We had a Trigger with onExit at False for CampaignOne
-            // ID of CampaignOne if detectable into listOfCampaigns from Zone
-            liveEvents.clear()
-            liveEvents.add(GeofenceEvent(zoneWithCampaigns as Zone, MockLocation(context).buildLocation(), GeofenceType.ENTER))
-            GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
-
-            Assert.assertTrue(zoneWithCampaigns!!.campaigns!!.size == 1)
-            Assert.assertTrue(zoneWithCampaigns!!.campaigns!![0] == campaignOne!!.id)
-            Assert.assertTrue(notificationManager.notified)
-
-            // We update the Trigger to make it on Exit for CampaignOne
-            // Event is also exiting
-            liveEvents.clear()
-            liveEvents.add(GeofenceEvent(zoneWithCampaigns as Zone, MockLocation(context).buildLocation(), GeofenceType.EXIT))
-
-            Assert.assertTrue(zoneWithCampaigns!!.campaigns!!.size == 1)
-            Assert.assertTrue(zoneWithCampaigns!!.campaigns!![0] == campaignOne!!.id)
-            Assert.assertTrue(notificationManager.notified)
+            Assert.assertTrue(listener.test == "OKAY")
         }
     }
 
@@ -121,8 +115,16 @@ class NotificationManagerTest {
     }
 }
 
-class NotificationManagerListener(var test: String = "hey") : GeofenceListener {
+class NotificationManagerListener(var test: String = "NO") : GeofenceListener {
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
-        test = "EventReceived"
+        for (event in geofenceEvents) {
+            if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
+                val campaignToTest: Campaign? = NotificationManagerTest.campaignOne
+                val campaignFromEvent = event.zone.campaigns!![0]
+
+                if (NotificationManagerTest.campaignOne != null && campaignToTest!!.id == campaignFromEvent)
+                    test = "OKAY"
+            }
+        }
     }
 }

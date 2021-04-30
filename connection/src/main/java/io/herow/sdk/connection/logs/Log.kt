@@ -1,7 +1,5 @@
 package io.herow.sdk.connection.logs
 
-import com.google.gson.annotations.SerializedName
-
 data class Log(val data: Map<String, Any>,
-               @SerializedName("t")
-               val type: String = "app_mobile")
+               //t = type
+               val t: String = "app_mobile")

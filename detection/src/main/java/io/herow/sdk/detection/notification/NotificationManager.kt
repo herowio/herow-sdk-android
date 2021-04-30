@@ -1,6 +1,8 @@
 package io.herow.sdk.detection.notification
 
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Campaign
@@ -23,7 +25,12 @@ class NotificationManager(private val context: Context) : GeofenceListener {
     private val zoneRepository = ZoneRepository(HerowDatabase.getDatabase(context).zoneDAO())
     private val campaignRepository =
         CampaignRepository(HerowDatabase.getDatabase(context).campaignDAO())
-    var notified: Boolean = false
+
+    companion object {
+        private const val NOTIFICATION_REQUEST_CODE = 2000
+        val ID_ZONE: String = "idZone"
+        val ID_CAMPAIGN: String = "idCampaign"
+    }
 
     /* fun registerFilter(campaign: Campaign) {
         //TODO create filter
@@ -40,6 +47,7 @@ class NotificationManager(private val context: Context) : GeofenceListener {
             for (event in geofenceEvents) {
                 GlobalLogger.shared.info(context, "Geofence type is: ${event.type}")
                 if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
+
                     runBlocking {
                         withContext(Dispatchers.IO) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
@@ -47,7 +55,7 @@ class NotificationManager(private val context: Context) : GeofenceListener {
                             if (campaigns.isNotEmpty())
                                 for (campaign in campaigns) {
                                     NotificationDispatcher.dispatchNotification(event)
-                                    createNotification(event, campaign)
+                                    createNotification(context, event, campaign)
                                 }
                         }
                     }
@@ -70,18 +78,37 @@ class NotificationManager(private val context: Context) : GeofenceListener {
     }
 
 
-    private fun createNotification(event: GeofenceEvent, campaign: Campaign) {
+    private fun createNotification(context: Context, event: GeofenceEvent, campaign: Campaign) {
         GlobalLogger.shared.info(context, "Creating notification for $event")
         val notifManager = NotificationHelper.setUpNotificationChannel(context)
+
+        val notificationPendingIntent = createNotificationPendingIntent(context, event.zone.hash, campaign.id!!)
+
         val builder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
             .setContentTitle(campaign.notification?.title)
             .setContentText(campaign.notification?.description)
             .setSmallIcon(R.drawable.icon_notification)
+            .apply {
+                setContentIntent(notificationPendingIntent)
+            }
 
-        val notificationId = NotificationHelper.hashCode(event.zone.hash + event.type)
-        notifManager.notify(notificationId, builder.build())
+        with(notifManager) {
+            notify(NotificationHelper.hashCode(event.zone.hash + event.type), builder.build())
+        }
 
-        notified = true
         GlobalLogger.shared.info(context, "Dispatching notification for $event")
+    }
+
+    private fun createNotificationPendingIntent(context: Context, hash: String, idCampaign: String): PendingIntent {
+        val intent = Intent(context, NotificationReceiver::class.java)
+        intent.putExtra(ID_ZONE, hash)
+        intent.putExtra(ID_CAMPAIGN, idCampaign)
+
+        return PendingIntent.getBroadcast(
+            context,
+            NOTIFICATION_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT
+        )
     }
 }
