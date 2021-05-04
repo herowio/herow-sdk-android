@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import io.herow.sdk.common.logger.GlobalLogger
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
@@ -19,7 +20,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-class NotificationManager(private val context: Context) : GeofenceListener {
+class NotificationManager(private val context: Context, private val sessionHolder: SessionHolder) :
+    GeofenceListener {
 
     private val filterList: ArrayList<Filter> = arrayListOf()
     private val zoneRepository = ZoneRepository(HerowDatabase.getDatabase(context).zoneDAO())
@@ -82,11 +84,24 @@ class NotificationManager(private val context: Context) : GeofenceListener {
         GlobalLogger.shared.info(context, "Creating notification for $event")
         val notifManager = NotificationHelper.setUpNotificationChannel(context)
 
-        val notificationPendingIntent = createNotificationPendingIntent(context, event.zone.hash, campaign.id!!)
+        val notificationPendingIntent =
+            createNotificationPendingIntent(context, event.zone.hash, campaign.id!!)
+
+        val title = NotificationHelper.computeDynamicContent(
+            campaign.notification!!.title!!,
+            event.zone,
+            sessionHolder
+        )
+
+        val description = NotificationHelper.computeDynamicContent(
+            campaign.notification!!.description!!,
+            event.zone,
+            sessionHolder
+        )
 
         val builder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
-            .setContentTitle(campaign.notification?.title)
-            .setContentText(campaign.notification?.description)
+            .setContentTitle(title)
+            .setContentText(description)
             .setSmallIcon(R.drawable.icon_notification)
             .apply {
                 setContentIntent(notificationPendingIntent)
@@ -99,7 +114,11 @@ class NotificationManager(private val context: Context) : GeofenceListener {
         GlobalLogger.shared.info(context, "Dispatching notification for $event")
     }
 
-    private fun createNotificationPendingIntent(context: Context, hash: String, idCampaign: String): PendingIntent {
+    private fun createNotificationPendingIntent(
+        context: Context,
+        hash: String,
+        idCampaign: String
+    ): PendingIntent {
         val intent = Intent(context, NotificationReceiver::class.java)
         intent.putExtra(ID_ZONE, hash)
         intent.putExtra(ID_CAMPAIGN, idCampaign)

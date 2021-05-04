@@ -56,11 +56,10 @@ class HerowInitializer private constructor(val context: Context) {
         workManager = WorkManager.getInstance(context)
         locationManager = LocationManager(context)
         logsManager = LogsManager(context)
-        notificationManager = NotificationManager(context)
-        registerListeners()
         loadIdentifiers(context)
+        notificationManager = NotificationManager(context, sessionHolder)
         database = HerowDatabase.getDatabase(context)
-
+        registerListeners()
     }
 
     companion object {
