@@ -6,7 +6,9 @@ import android.content.Context
 import android.os.Build
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.detection.notification.filters.TimeSlotFilter
 import io.herow.sdk.detection.notification.model.DynamicKeys
 import io.herow.sdk.detection.notification.model.DynamicResult
 import java.util.regex.Pattern
@@ -147,6 +149,15 @@ object NotificationHelper {
         GlobalLogger.shared.debug(null, "Couple is: $couple")
 
         return couple
+    }
+
+    fun canCreateNotification(campaign: Campaign): Boolean {
+        if (!TimeSlotFilter.createNotification(campaign)) {
+            return false
+        }
+
+        GlobalLogger.shared.warning(null, "Can create notification")
+        return true
     }
 }
 

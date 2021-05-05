@@ -56,8 +56,10 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
                             if (campaigns.isNotEmpty())
                                 for (campaign in campaigns) {
-                                    NotificationDispatcher.dispatchNotification(event)
-                                    createNotification(context, event, campaign)
+                                    if (NotificationHelper.canCreateNotification(campaign)) {
+                                        NotificationDispatcher.dispatchNotification(event)
+                                        createNotification(context, event, campaign)
+                                    }
                                 }
                         }
                     }
