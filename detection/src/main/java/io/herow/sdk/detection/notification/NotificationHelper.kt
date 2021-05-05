@@ -50,7 +50,6 @@ object NotificationHelper {
         GlobalLogger.shared.debug(null, "DynamicResult is: $dynamicResult")
 
         for (key in DynamicKeys.values()) {
-
             val valueToDisplay: String? = when (key.value) {
                 DynamicKeys.NAME.value -> if (zone.access?.name?.isNotEmpty() == true) {
                     zone.access?.name
@@ -89,52 +88,27 @@ object NotificationHelper {
     }
 
     private fun dynamicValues(sentenceToAnalyze: String): DynamicResult {
-        val couple = HashMap<String, String>()
-
         GlobalLogger.shared.debug(null, "Regex is: $sentenceToAnalyze")
+        var couple = HashMap<String, String>()
 
-        val result = sentenceToAnalyze
+        val newText = sentenceToAnalyze
             .replace("{{", "")
             .replace("}}", "")
 
-        GlobalLogger.shared.debug(null, "Result is: $result")
+        GlobalLogger.shared.debug(null, "Result is: $newText")
 
-        val sentenceToUse = sentenceToAnalyze
+        val components = newText.split("|")
+        GlobalLogger.shared.debug(null, "Components to return: $components")
+
+        val sentenceNotExtracted = sentenceToAnalyze
             .replace("default('", "")
             .replace("')", "")
 
-        val components = result.split("|")
-
-        GlobalLogger.shared.debug(null, "Components to return: $components")
-
         if (components.size > 1) {
-            var searchingPosition = 0
-
-            while (searchingPosition >= 0) {
-                var insertingKey: String
-                var insertingValue: String
-
-                searchingPosition = sentenceToUse.indexOf("{{", searchingPosition)
-
-                if (searchingPosition > -1) {
-                    val separator = sentenceToUse.indexOf("|", searchingPosition)
-                    insertingKey = sentenceToUse.substring(searchingPosition + 2, separator)
-
-                    GlobalLogger.shared.debug(null, "InsertingKey is: $insertingKey")
-
-                    val endPosition = sentenceToUse.indexOf("}}", searchingPosition)
-                    insertingValue = sentenceToUse.substring(separator + 1, endPosition)
-
-                    GlobalLogger.shared.debug(null, "InsertingValue is: $insertingValue")
-                    couple[insertingKey] = insertingValue
-                    searchingPosition = endPosition + 2
-                }
-            }
+            couple = extractDefaultValue(sentenceNotExtracted)
         }
 
-        GlobalLogger.shared.debug(null, "Couple is: $couple")
-
-        return DynamicResult(removeRegex(result), couple)
+        return DynamicResult(removeRegex(newText), couple)
     }
 
     private fun removeRegex(sentence: String): String {
@@ -145,6 +119,34 @@ object NotificationHelper {
         return matcher.replaceAll("")
     }
 
+    private fun extractDefaultValue(sentence: String): HashMap<String, String> {
+        val couple = HashMap<String, String>()
+        var searchingPosition = 0
 
+        while (searchingPosition >= 0) {
+            var insertingKey: String
+            var insertingValue: String
+
+            searchingPosition = sentence.indexOf("{{", searchingPosition)
+
+            if (searchingPosition > -1) {
+                val separator = sentence.indexOf("|", searchingPosition)
+                insertingKey = sentence.substring(searchingPosition + 2, separator)
+
+                GlobalLogger.shared.debug(null, "InsertingKey is: $insertingKey")
+
+                val endPosition = sentence.indexOf("}}", searchingPosition)
+                insertingValue = sentence.substring(separator + 1, endPosition)
+
+                GlobalLogger.shared.debug(null, "InsertingValue is: $insertingValue")
+                couple[insertingKey] = insertingValue
+                searchingPosition = endPosition + 2
+            }
+        }
+
+        GlobalLogger.shared.debug(null, "Couple is: $couple")
+
+        return couple
+    }
 }
 
