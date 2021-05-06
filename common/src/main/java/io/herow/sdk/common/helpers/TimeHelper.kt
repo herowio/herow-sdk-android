@@ -1,6 +1,7 @@
 package io.herow.sdk.common.helpers
 
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneOffset
 
 object TimeHelper {
@@ -20,6 +21,8 @@ object TimeHelper {
     var testing = false
 
     fun getCurrentTime(): Long = System.currentTimeMillis()
+
+    fun getCurrentLocalTime(): LocalTime = LocalTime.now()
 
     fun convertDateToMilliSeconds(dateTime: LocalDateTime): Long =
         dateTime.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()!!

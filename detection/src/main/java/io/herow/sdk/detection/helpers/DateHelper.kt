@@ -1,5 +1,6 @@
 package io.herow.sdk.detection.helpers
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -11,4 +12,6 @@ object DateHelper {
             ZoneOffset.UTC
         )
     }
+
+    fun getCurrentWeekDay(): String = LocalDate.now().dayOfWeek.name
 }

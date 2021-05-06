@@ -1,13 +1,14 @@
 package io.herow.sdk.detection.notification.filters
 
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Campaign
 import java.time.LocalTime
 
-object TimeSlotFilter {
+object TimeSlotFilter: NotificationFilter {
 
-    fun createNotification(campaign: Campaign): Boolean {
-        val now = LocalTime.now()
+    override fun createNotification(campaign: Campaign): Boolean {
+        val now = TimeHelper.getCurrentLocalTime()
 
         if (campaign.startHour != null && campaign.stopHour != null) {
             val startComponent = campaign.startHour!!.split(":")
