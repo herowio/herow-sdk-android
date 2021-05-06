@@ -10,6 +10,7 @@ import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.detection.notification.filters.DayRecurrencyFilter
 import io.herow.sdk.detection.notification.filters.TimeSlotFilter
+import io.herow.sdk.detection.notification.filters.ValidityFilter
 import io.herow.sdk.detection.notification.model.DynamicKeys
 import io.herow.sdk.detection.notification.model.DynamicResult
 import java.util.regex.Pattern
@@ -153,7 +154,10 @@ object NotificationHelper {
     }
 
     fun canCreateNotification(campaign: Campaign): Boolean {
-        if (!TimeSlotFilter.createNotification(campaign) || !(DayRecurrencyFilter.createNotification(campaign))) {
+        if (!TimeSlotFilter.createNotification(campaign) || !(DayRecurrencyFilter.createNotification(
+                campaign
+            )) || !((ValidityFilter.createNotification(campaign)))
+        ) {
             return false
         }
 
