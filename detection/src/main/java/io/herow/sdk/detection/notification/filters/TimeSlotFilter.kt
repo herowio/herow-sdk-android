@@ -15,15 +15,15 @@ object TimeSlotFilter: NotificationFilter {
             val stopComponent = campaign.stopHour!!.split(":")
 
             if (startComponent.count() == 2 && stopComponent.count() == 2) {
-                val startDate = LocalTime.parse("${campaign.startHour}")
-                val stopDate = LocalTime.parse("${campaign.stopHour}")
+                val startHour = LocalTime.parse("${campaign.startHour}")
+                val stopHour = LocalTime.parse("${campaign.stopHour}")
 
-                val result = now > startDate && now < stopDate
+                val result = now > startHour && now < stopHour
 
                 if (result) {
-                    GlobalLogger.shared.info(null, "TimeSlotFilter: ${campaign.name} CAN create notification slot date: $now - start date: $startDate - stop date: $stopDate")
+                    GlobalLogger.shared.info(null, "TimeSlotFilter: ${campaign.name} CAN create notification slot date: $now - start date: $startHour - stop date: $stopHour")
                 } else {
-                    GlobalLogger.shared.info(null, "TimeSlotFilter: ${campaign.name} CAN NOT create notification slot date: $now - start date: $startDate - stop date: $stopDate")
+                    GlobalLogger.shared.info(null, "TimeSlotFilter: ${campaign.name} CAN NOT create notification slot date: $now - start date: $startHour - stop date: $stopHour")
                 }
 
                 return result
