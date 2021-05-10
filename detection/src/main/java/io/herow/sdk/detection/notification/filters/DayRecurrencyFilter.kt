@@ -16,14 +16,12 @@ object DayRecurrencyFilter : NotificationFilter {
 
         val recurrencies = campaign.daysRecurrence?.map { it.toUpperCase(Locale.ROOT) }
 
-        if (recurrencies?.count() == 0) {
+        if (recurrencies == null || recurrencies.count() == 0) {
             return true
         }
 
-        if (recurrencies != null) {
-            for (day in recurrencies) {
-                result = day == currentDay
-            }
+        for (day in recurrencies) {
+            result = day == currentDay
         }
 
         val can = if (result) {

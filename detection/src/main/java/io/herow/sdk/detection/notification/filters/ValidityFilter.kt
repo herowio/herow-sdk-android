@@ -15,19 +15,17 @@ object ValidityFilter: NotificationFilter {
         val end: Long? = campaign.end
 
         if (start != null) {
-            if (start > now) {
+            if (start.div(1000) > now) {
                 result = false
             }
         }
 
-        if (end == 0.toLong()) {
+        if (end == null || end == 0.toLong()) {
             return true
         }
 
-        if (end != null) {
-            if (end < now) {
-                result = false
-            }
+        if (end.div(1000) < now) {
+            result = false
         }
 
         val can = if (result) {
