@@ -2,6 +2,7 @@ package io.herow.sdk.connection
 
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
+import io.herow.sdk.connection.cache.model.HerowCapping
 import io.herow.sdk.connection.userinfo.UserInfo
 
 class SessionHolder(private val dataHolder: DataHolder) {
@@ -20,6 +21,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_OPTIN = "common.optin"
         private const val KEY_SDK = "common.sdk"
         private const val KEY_CLICK_AND_COLLECT_PROGRESS = "detection.click_and_collect_progress"
+        private const val KEY_HEROW_CAPPING = "detection.herow_capping"
     }
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
@@ -150,7 +152,22 @@ class SessionHolder(private val dataHolder: DataHolder) {
         if (!dataHolder.containsKey(KEY_CLICK_AND_COLLECT_PROGRESS)) {
             false
         } else {
-            dataHolder.get<Boolean>(KEY_CLICK_AND_COLLECT_PROGRESS)
+            dataHolder[KEY_CLICK_AND_COLLECT_PROGRESS]
         }
+
+    fun saveHerowCapping(herowCapping: String) {
+        dataHolder[KEY_HEROW_CAPPING] = herowCapping
+    }
+
+    fun getHerowCapping(): HerowCapping? {
+        val herowCapping = dataHolder.containsKey(KEY_HEROW_CAPPING)
+        if (herowCapping) {
+            return GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCapping::class.java)
+        }
+
+        return null
+    }
+
+
 }
 

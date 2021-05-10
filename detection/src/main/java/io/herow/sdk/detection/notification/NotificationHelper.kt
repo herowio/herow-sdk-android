@@ -8,6 +8,7 @@ import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.detection.notification.filters.CappingFilter
 import io.herow.sdk.detection.notification.filters.DayRecurrencyFilter
 import io.herow.sdk.detection.notification.filters.TimeSlotFilter
 import io.herow.sdk.detection.notification.filters.ValidityFilter
@@ -153,10 +154,16 @@ object NotificationHelper {
         return couple
     }
 
-    fun canCreateNotification(campaign: Campaign): Boolean {
-        if (!TimeSlotFilter.createNotification(campaign) || !(DayRecurrencyFilter.createNotification(
-                campaign
-            )) || !((ValidityFilter.createNotification(campaign)))
+    fun canCreateNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
+        if (!TimeSlotFilter.createNotification(
+                campaign,
+                sessionHolder
+            ) || !(DayRecurrencyFilter.createNotification(
+                campaign, sessionHolder
+            )) || !((ValidityFilter.createNotification(
+                campaign,
+                sessionHolder
+            ))) || !(CappingFilter.createNotification(campaign, sessionHolder))
         ) {
             return false
         }

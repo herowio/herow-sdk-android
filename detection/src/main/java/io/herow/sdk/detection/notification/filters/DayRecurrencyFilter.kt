@@ -1,13 +1,14 @@
 package io.herow.sdk.detection.notification.filters
 
 import io.herow.sdk.common.logger.GlobalLogger
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.detection.helpers.DateHelper
 import java.util.*
 
 object DayRecurrencyFilter : NotificationFilter {
 
-    override fun createNotification(campaign: Campaign): Boolean {
+    override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
         var result = false
 
         val currentDay = DateHelper.getCurrentWeekDay()
