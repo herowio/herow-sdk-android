@@ -40,7 +40,7 @@ class GeofenceEventGenerator: ZoneListener {
                 GlobalLogger.shared.info(null, "Zones are: $zones")
                 GlobalLogger.shared.info(null, "PreviousZone is: $previousZone")
 
-                val exit =  zones.filter { z -> z.hash == previousZone.hash }.isEmpty()
+                val exit = zones.none { z -> z.hash == previousZone.hash }
                 if (exit) {
                     GlobalLogger.shared.info(null, "Adding zone - Type EXIT")
                     liveEvents.add(GeofenceEvent(previousZone, location, GeofenceType.EXIT))

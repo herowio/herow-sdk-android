@@ -39,7 +39,7 @@ class GeofenceEventGeneratorTest {
         Assert.assertTrue(herowGeofenceListener.lastEvents.isEmpty())
 
         // Now, we have one zone, and we dispatch one event
-        zones.add(firstZone!!)
+        zones.add(firstZone)
         geofenceEventGenerator.detectedZones(zones, MockLocation(context).buildLocation())
         Assert.assertEquals(1, herowGeofenceListener.lastEvents.size)
         Assert.assertEquals(GeofenceType.ENTER, herowGeofenceListener.lastEvents[0].type)
@@ -55,8 +55,8 @@ class GeofenceEventGeneratorTest {
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
 
         // We arrived in two zones
-        zones.add(secondZone!!)
-        zones.add(thirdZone!!)
+        zones.add(secondZone)
+        zones.add(thirdZone)
         geofenceEventGenerator.detectedZones(zones, MockLocation(context).buildLocation())
         Assert.assertEquals(2, herowGeofenceListener.lastEvents.size)
 

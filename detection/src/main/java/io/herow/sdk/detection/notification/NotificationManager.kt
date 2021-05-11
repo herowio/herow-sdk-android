@@ -30,8 +30,8 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000
-        val ID_ZONE: String = "idZone"
-        val ID_CAMPAIGN: String = "idCampaign"
+        const val ID_ZONE: String = "idZone"
+        const val ID_CAMPAIGN: String = "idCampaign"
     }
 
     /* fun registerFilter(campaign: Campaign) {

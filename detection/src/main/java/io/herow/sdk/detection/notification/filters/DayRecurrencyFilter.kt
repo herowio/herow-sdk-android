@@ -4,7 +4,6 @@ import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.detection.helpers.DateHelper
-import java.util.*
 
 object DayRecurrencyFilter : NotificationFilter {
 
@@ -14,7 +13,7 @@ object DayRecurrencyFilter : NotificationFilter {
         val currentDay = DateHelper.getCurrentWeekDay()
         GlobalLogger.shared.info(null, "Current day is: $currentDay")
 
-        val recurrencies = campaign.daysRecurrence?.map { it.toUpperCase(Locale.ROOT) }
+        val recurrencies = campaign.daysRecurrence?.map { it.uppercase() }
 
         if (recurrencies == null || recurrencies.count() == 0) {
             return true

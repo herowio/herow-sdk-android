@@ -117,7 +117,7 @@ object NotificationHelper {
     }
 
     private fun removeRegex(sentence: String): String {
-        val regex = "\\|([a-z A-Z 0-9]*)\\('[a-z A-Z 0-9 -]*'\\)"
+        val regex = "\\|([a-z A-Z0-9]*)\\('[a-z A-Z0-9-]*'\\)"
         val pattern = Pattern.compile(regex, Pattern.MULTILINE)
         val matcher = pattern.matcher(sentence)
 
@@ -160,10 +160,10 @@ object NotificationHelper {
                 sessionHolder
             ) || !(DayRecurrencyFilter.createNotification(
                 campaign, sessionHolder
-            )) || !((ValidityFilter.createNotification(
+            )) || !(ValidityFilter.createNotification(
                 campaign,
                 sessionHolder
-            ))) || !(CappingFilter.createNotification(campaign, sessionHolder))
+            )) || !(CappingFilter.createNotification(campaign, sessionHolder))
         ) {
             return false
         }

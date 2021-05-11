@@ -55,38 +55,38 @@ class Converters {
     }
 
     @TypeConverter
-    fun stringToCampaign(string: String) = Gson().fromJson(string, Campaign::class.java)
+    fun stringToCampaign(string: String): Campaign = Gson().fromJson(string, Campaign::class.java)
 
     @TypeConverter
-    fun campaignToString(campaign: Campaign) = Gson().toJson(campaign)
+    fun campaignToString(campaign: Campaign): String = Gson().toJson(campaign)
 
     @TypeConverter
-    fun stringToAccess(string: String) = Gson().fromJson(string, Access::class.java)
+    fun stringToAccess(string: String): Access = Gson().fromJson(string, Access::class.java)
 
     @TypeConverter
-    fun accessToString(access: Access) = Gson().toJson(access)
+    fun accessToString(access: Access): String = Gson().toJson(access)
 
     @TypeConverter
-    fun stringToCapping(string: String?) = Gson().fromJson(string, Capping::class.java) ?: null
+    fun stringToCapping(string: String?): Capping? = Gson().fromJson(string, Capping::class.java) ?: null
 
     @TypeConverter
-    fun cappingToString(capping: Capping?) = Gson().toJson(capping) ?: ""
+    fun cappingToString(capping: Capping?): String = Gson().toJson(capping) ?: ""
 
     @TypeConverter
-    fun stringToNotification(string: String) = Gson().fromJson(string, Notification::class.java)
+    fun stringToNotification(string: String): Notification = Gson().fromJson(string, Notification::class.java)
 
     @TypeConverter
-    fun notificationToString(notification: Notification?) = Gson().toJson(notification) ?: ""
+    fun notificationToString(notification: Notification?): String = Gson().toJson(notification) ?: ""
 
     @TypeConverter
-    fun stringToPoi(string: String) = Gson().fromJson(string, Poi::class.java)
+    fun stringToPoi(string: String): Poi = Gson().fromJson(string, Poi::class.java)
 
     @TypeConverter
-    fun poiToString(poi: Poi) = Gson().toJson(poi)
+    fun poiToString(poi: Poi): String = Gson().toJson(poi)
 
     @TypeConverter
-    fun stringToZone(string: String) = Gson().fromJson(string, Zone::class.java)
+    fun stringToZone(string: String): Zone = Gson().fromJson(string, Zone::class.java)
 
     @TypeConverter
-    fun zoneToString(zone: Zone) = Gson().toJson(zone)
+    fun zoneToString(zone: Zone): String = Gson().toJson(zone)
 }

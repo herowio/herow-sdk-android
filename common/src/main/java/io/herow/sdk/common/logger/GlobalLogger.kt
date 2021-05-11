@@ -2,7 +2,6 @@ package io.herow.sdk.common.logger
 
 import android.content.Context
 import io.herow.sdk.common.helpers.DeviceHelper
-import java.util.*
 
 class GlobalLogger {
     private var debug: Boolean = false
@@ -100,7 +99,7 @@ class GlobalLogger {
     }
 
     private fun dispatch(message: String, type: MessageType) {
-        val display = "[${type.messageType.toUpperCase(Locale.ROOT)}] $message"
+        val display = "[${type.messageType.uppercase()}] $message"
 
         logger?.let {
             when (type) {

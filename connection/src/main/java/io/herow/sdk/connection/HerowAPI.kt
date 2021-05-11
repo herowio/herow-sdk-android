@@ -18,16 +18,7 @@ interface HerowAPI {
         "Cache-Control: noCache",
         "Content-Type: application/json"
     )
-    //@FormUrlEncoded
     @POST("auth/authorize/token")
-    /* suspend fun token(
-        @Field("username") username: String,
-        @Field("password") password: String,
-        @Field("clientId") clientId: String,
-        @Field("clientSecret") clientSecret: String,
-        @Field("redirectUri") redirectUri: URL,
-        @Field("grantType") grantType: String = "password"
-    ): Response<TokenResult> */
     suspend fun token(@Body body: String): Response<TokenResult>
 
     @Headers(

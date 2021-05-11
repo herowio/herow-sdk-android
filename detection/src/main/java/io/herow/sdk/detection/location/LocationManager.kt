@@ -1,6 +1,5 @@
 package io.herow.sdk.detection.location
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
@@ -9,7 +8,6 @@ import android.location.Location
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
-import com.vmadalin.easypermissions.EasyPermissions
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateListener
@@ -81,14 +79,6 @@ class LocationManager(
         }
     }
 
-    private fun checkForLocationsPermission(): Boolean {
-        return EasyPermissions.hasPermissions(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    }
-
     @SuppressLint("MissingPermission")
      fun startMonitoring() {
         fusedLocationProviderClient.lastLocation?.addOnSuccessListener { location: Location? ->
@@ -111,7 +101,7 @@ class LocationManager(
         var smallestDistance = Double.MAX_VALUE
         if (location != null && zones != null) {
             for (zone in zones!!) {
-                var zoneCenter = Location("zone")
+                val zoneCenter = Location("zone")
                 zoneCenter.latitude = zone.lat ?: 0.0
                 zoneCenter.longitude = zone.lng ?: 0.0
                 val radius = zone.radius ?: 0.0
@@ -144,7 +134,7 @@ class LocationManager(
         return request
     }
 
-     fun stopMonitoring() {
+     private fun stopMonitoring() {
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
             .addOnCompleteListener { task: Task<Void> ->
                 if (task.isSuccessful) {

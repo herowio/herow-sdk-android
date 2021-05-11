@@ -87,12 +87,16 @@ class AuthRequests(
     }
 
     private fun getApiUrl(platform: HerowPlatform): String {
-        if (platform == HerowPlatform.PRE_PROD) {
-            return HerowAPI.PRE_PROD_BASE_URL
-        } else if (platform == HerowPlatform.TEST) {
-            return HerowAPI.TEST_BASE_URL
-        } else {
-            return HerowAPI.PROD_BASE_URL
+        return when (platform) {
+            HerowPlatform.PRE_PROD -> {
+                HerowAPI.PRE_PROD_BASE_URL
+            }
+            HerowPlatform.TEST -> {
+                HerowAPI.TEST_BASE_URL
+            }
+            else -> {
+                HerowAPI.PROD_BASE_URL
+            }
         }
     }
 

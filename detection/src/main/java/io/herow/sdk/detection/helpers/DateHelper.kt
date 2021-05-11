@@ -4,7 +4,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 object DateHelper {
 
@@ -14,5 +13,5 @@ object DateHelper {
         )
     }
 
-    fun getCurrentWeekDay(): String = LocalDate.now().dayOfWeek.name.toUpperCase(Locale.ROOT)
+    fun getCurrentWeekDay(): String = LocalDate.now().dayOfWeek.name.uppercase()
 }

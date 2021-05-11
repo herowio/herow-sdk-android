@@ -1,10 +1,10 @@
 buildscript {
     ext {
-        kotlin_version = "1.4.31"
+        kotlin_version = "1.5.0"
         kotlin_coroutines_version = "1.4.3"
         lifecycle_version = "2.2.0"
         okhttp_version = "4.9.0"
-        play_services_ads = "19.8.0"
+        play_services_ads = "20.1.0"
         play_services_location = "17.1.0"
         retrofit_version = "2.9.0"
         worker_version = "2.5.0"
@@ -13,10 +13,10 @@ buildscript {
     }
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.1.2"
+        classpath "com.android.tools.build:gradle:4.2.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jacoco:org.jacoco.core:0.8.6"
     }
@@ -25,7 +25,7 @@ buildscript {
 subprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     apply plugin: 'com.android.library'

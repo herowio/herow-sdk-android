@@ -44,21 +44,4 @@ class MockLocation(
         location.time = TimeHelper.getCurrentTime()
         return location
     }
-
-    fun fetchZone(): Zone? {
-        val db = HerowDatabase.getDatabase(context)
-        val zoneRepository = ZoneRepository(db.zoneDAO())
-        var zone: Zone? = buildZone()
-
-        runBlocking {
-            val job = async(ioDispatcher) {
-                zoneRepository.insert(zone!!)
-                zone = zoneRepository.getAllZones()!![0]
-            }
-
-            job.await()
-        }
-
-        return zone
-    }
 }

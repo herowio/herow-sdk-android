@@ -9,9 +9,9 @@ class ApplicationData(context: Context) {
         const val UNKNOWN = "unknown"
     }
     var applicationName: String
-    var applicationPackage: String
+    private var applicationPackage: String
     var applicationVersion: String
-    var applicationCode: Long
+    private var applicationCode: Long
 
     init {
         try {

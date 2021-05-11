@@ -28,14 +28,12 @@ class MockDataInDatabase(context: Context) {
         )
 
         var zoneInDB: Zone? = null
-
         val job = CoroutineScope(Dispatchers.IO).async {
             zoneRepository.insert(zone)
             zoneInDB = zoneRepository.getZoneByHash(zone.hash)!!
         }
 
         job.await()
-
         return zoneInDB!!
     }
 
@@ -45,7 +43,6 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-
         val job =  CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
@@ -54,7 +51,6 @@ class MockDataInDatabase(context: Context) {
         }
 
         job.await()
-
         return campaignInDB!!
     }
 
@@ -64,7 +60,6 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-
         val job =  CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
@@ -73,22 +68,6 @@ class MockDataInDatabase(context: Context) {
         }
 
         job.await()
-
         return campaignInDB!!
-    }
-
-    suspend fun updateCampaignOne(campaign: Campaign): Campaign? {
-        var campaignUpdated: Campaign? = null
-
-        val job =  CoroutineScope(Dispatchers.IO).async {
-            withContext(Dispatchers.IO) {
-                campaignRepository.update(campaign)
-                campaignUpdated = campaignRepository.getCampaignByID(campaign.id!!)
-            }
-        }
-
-        job.await()
-
-        return campaignUpdated
     }
 }
