@@ -8,6 +8,7 @@ import io.herow.sdk.connection.cache.model.Capping
 import io.herow.sdk.connection.cache.model.HerowCapping
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import kotlin.math.max
 
 object CappingFilter : NotificationFilter {
 
@@ -17,11 +18,9 @@ object CappingFilter : NotificationFilter {
         val capping: Capping? = campaign.capping
         val maxCapping = capping?.maxNumberNotifications
 
-        val resetDelay: Double = if (capping?.minTimeBetweenTwoNotifications != null) {
-            (capping.minTimeBetweenTwoNotifications / 1000).toDouble()
-        } else {
-            oneDayInMillisSecond.toDouble() / 1000
-        }
+        var resetDelay = (capping?.minTimeBetweenTwoNotifications?.toDouble() ?: oneDayInMillisSecond.toDouble()).div(1000)
+
+        resetDelay = max(resetDelay, oneDayInMillisSecond.toDouble())
 
         var startHour: Int? = null
         var startMinutes: Int? = null
