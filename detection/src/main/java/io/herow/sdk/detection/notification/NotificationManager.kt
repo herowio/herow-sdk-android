@@ -15,7 +15,7 @@ import io.herow.sdk.detection.R
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
-import io.herow.sdk.detection.notification.model.Filter
+import io.herow.sdk.detection.notification.filters.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 class NotificationManager(private val context: Context, private val sessionHolder: SessionHolder) :
     GeofenceListener {
 
-    private val filterList: ArrayList<Filter> = arrayListOf()
+    private val filterList: ArrayList<NotificationFilter> = arrayListOf()
     private val zoneRepository = ZoneRepository(HerowDatabase.getDatabase(context).zoneDAO())
     private val campaignRepository =
         CampaignRepository(HerowDatabase.getDatabase(context).campaignDAO())
@@ -34,14 +34,30 @@ class NotificationManager(private val context: Context, private val sessionHolde
         const val ID_CAMPAIGN: String = "idCampaign"
     }
 
-    /* fun registerFilter(campaign: Campaign) {
-        //TODO create filter
-        filterList.add(Filter())
+    init {
+        addFilter(ValidityFilter)
+        addFilter(TimeSlotFilter)
+        addFilter(DayRecurrencyFilter)
+        addFilter(CappingFilter)
     }
 
-    fun unregisterFilter(campaign: Campaign) {
-        //TODO remove filter from filterList
+    private fun addFilter(filter: NotificationFilter) {
+        if (!filterList.contains(filter)) addFilter(filter)
+    }
+
+    /* fun removeFilter(filter: NotificationFilter) {
+        if (filterList.contains(filter)) removeFilter(filter)
     } */
+
+    private fun canCreateNotification(campaign: Campaign): Boolean {
+        for (filter in filterList) {
+            if (!filter.createNotification(campaign, sessionHolder)) {
+                return false
+            }
+        }
+
+        return true
+    }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
         GlobalLogger.shared.info(context, "GeofenceEvents received: $geofenceEvents")
@@ -56,7 +72,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
                             if (campaigns.isNotEmpty())
                                 for (campaign in campaigns) {
-                                    if (NotificationHelper.canCreateNotification(campaign, sessionHolder)) {
+                                    if (canCreateNotification(campaign)) {
                                         NotificationDispatcher.dispatchNotification(event)
                                         createNotification(context, event, campaign)
                                     }
