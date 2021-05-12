@@ -49,8 +49,8 @@ class NotificationManagerTest {
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
         sessionHolder = SessionHolder(DataHolder(context))
-        notificationManager = NotificationManager(context, sessionHolder)
         db = HerowDatabase.getDatabase(context)
+        notificationManager = NotificationManager(context, sessionHolder)
         val campaignDAO = db.campaignDAO()
         val zoneDAO = db.zoneDAO()
         GeofenceDispatcher.addGeofenceListener(listener)

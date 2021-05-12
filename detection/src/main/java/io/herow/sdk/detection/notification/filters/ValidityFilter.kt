@@ -18,10 +18,10 @@ object ValidityFilter : NotificationFilter {
             return true
         }
 
-        var result = start.div(1000) < now
+        var result = start < now
 
         if (result && (end != null && end != 0.toLong())) {
-            result = end.div(1000) < now
+            result = end > now
         }
 
         GlobalLogger.shared.info(null, "Validity filter result is: $result")

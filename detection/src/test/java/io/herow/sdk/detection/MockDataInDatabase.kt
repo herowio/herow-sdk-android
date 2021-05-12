@@ -1,6 +1,7 @@
 package io.herow.sdk.detection
 
 import android.content.Context
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
@@ -74,7 +75,7 @@ class MockDataInDatabase(context: Context) {
     suspend fun createCampaignWithNoEnd(): Campaign {
         val campaign = Campaign(
             id = "CampaignNoEnd",
-            begin = 1620746600437
+            begin = TimeHelper.getCurrentTime() - 5000
         )
 
         var campaignInDB: Campaign? = null
@@ -87,6 +88,30 @@ class MockDataInDatabase(context: Context) {
 
         job.await()
         return campaignInDB!!
+    }
+
+    suspend fun updateCampaignWithEndBefore(campaign: Campaign): Campaign {
+        var campaignInDb: Campaign? = null
+        val job = CoroutineScope(Dispatchers.IO).async {
+            campaign.end = TimeHelper.getCurrentTime() - 3000
+            campaignRepository.update(campaign)
+            campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
+        }
+
+        job.await()
+        return campaignInDb!!
+    }
+
+    suspend fun updateCampaignWithEndAfter(campaign: Campaign): Campaign {
+        var campaignInDb: Campaign? = null
+        val job = CoroutineScope(Dispatchers.IO).async {
+            campaign.end = TimeHelper.getCurrentTime() + 3000
+            campaignRepository.update(campaign)
+            campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
+        }
+
+        job.await()
+        return campaignInDb!!
     }
 
     suspend fun createCampaignWithLateBegin(): Campaign {
@@ -106,6 +131,7 @@ class MockDataInDatabase(context: Context) {
         job.await()
         return campaignInDB!!
     }
+
 
 
 }

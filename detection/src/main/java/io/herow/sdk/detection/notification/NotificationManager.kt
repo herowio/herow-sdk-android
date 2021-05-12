@@ -42,7 +42,8 @@ class NotificationManager(private val context: Context, private val sessionHolde
     }
 
     private fun addFilter(filter: NotificationFilter) {
-        if (!filterList.contains(filter)) addFilter(filter)
+        if (!filterList.contains(filter)) filterList.add(filter)
+        println("Filter list is $filterList")
     }
 
     /* fun removeFilter(filter: NotificationFilter) {
