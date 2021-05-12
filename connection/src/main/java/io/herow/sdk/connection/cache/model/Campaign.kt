@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 )
 data class Campaign(
     @PrimaryKey(autoGenerate = true)
-    val campaignID: Long = 0,
+    var campaignID: Long = 0,
 
     var id: String? = "",
     var name: String? = "",

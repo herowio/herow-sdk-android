@@ -2,6 +2,8 @@ package io.herow.sdk.detection.notification
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
+import io.herow.sdk.common.DataHolder
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
@@ -33,6 +35,7 @@ class NotificationManagerTest {
     private lateinit var db: HerowDatabase
     private lateinit var campaignRepository: CampaignRepository
     private lateinit var zoneRepository: ZoneRepository
+    private lateinit var sessionHolder: SessionHolder
     private val listener = NotificationManagerListener()
 
     private val ioDispatcher = Dispatchers.IO
@@ -45,7 +48,8 @@ class NotificationManagerTest {
     @Before
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
-        notificationManager = NotificationManager(context)
+        sessionHolder = SessionHolder(DataHolder(context))
+        notificationManager = NotificationManager(context, sessionHolder)
         db = HerowDatabase.getDatabase(context)
         val campaignDAO = db.campaignDAO()
         val zoneDAO = db.zoneDAO()

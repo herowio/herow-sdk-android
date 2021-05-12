@@ -56,7 +56,7 @@ class MockDataInDatabase(context: Context) {
 
     suspend fun createAndInsertCampaignTwo(): Campaign {
         val campaign = Campaign(
-            id = "campaignTWo"
+            id = "campaignTwo"
         )
 
         var campaignInDB: Campaign? = null
@@ -70,4 +70,42 @@ class MockDataInDatabase(context: Context) {
         job.await()
         return campaignInDB!!
     }
+
+    suspend fun createCampaignWithNoEnd(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignNoEnd",
+            begin = 1620746600437
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
+
+    suspend fun createCampaignWithLateBegin(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignWithLateBegin",
+            begin = 1620848900292
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
+
+
 }

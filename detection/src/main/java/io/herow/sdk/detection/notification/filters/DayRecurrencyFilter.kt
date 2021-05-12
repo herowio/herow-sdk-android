@@ -21,6 +21,9 @@ object DayRecurrencyFilter : NotificationFilter {
 
         for (day in recurrencies) {
             result = day == currentDay
+            if (result) {
+                return true
+            }
         }
 
         val can = if (result) {
@@ -33,6 +36,6 @@ object DayRecurrencyFilter : NotificationFilter {
             null,
             "DayRecurrencyFilter: ${campaign.name} $can create notification"
         )
-        return true
+        return result
     }
 }
