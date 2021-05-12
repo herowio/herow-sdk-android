@@ -22,7 +22,7 @@ object DayRecurrencyFilter : NotificationFilter {
         for (day in recurrencies) {
             result = day == currentDay
             if (result) {
-                return true
+                break
             }
         }
 
