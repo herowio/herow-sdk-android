@@ -22,6 +22,8 @@ object TimeHelper {
 
     fun getCurrentTime(): Long = System.currentTimeMillis()
 
+    fun getCurrentLocalDateTime(): LocalDateTime = LocalDateTime.now()
+
     fun getCurrentLocalTime(): LocalTime = LocalTime.now()
 
     fun convertDateToMilliSeconds(dateTime: LocalDateTime): Long =

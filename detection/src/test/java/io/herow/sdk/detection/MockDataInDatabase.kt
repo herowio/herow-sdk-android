@@ -3,6 +3,7 @@ package io.herow.sdk.detection
 import android.content.Context
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Campaign
+import io.herow.sdk.connection.cache.model.Capping
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
@@ -228,6 +229,27 @@ class MockDataInDatabase(context: Context) {
             id = "CampaignWithLongSlot",
             startHour = "06:00",
             stopHour = "18:00"
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
+
+    suspend fun createCampaignWithCapping(): Campaign {
+        val capping = Capping(
+            maxNumberNotifications = 5
+        )
+        val campaign = Campaign(
+            id = "CampaignWithCapping",
+            capping = capping
         )
 
         var campaignInDB: Campaign? = null

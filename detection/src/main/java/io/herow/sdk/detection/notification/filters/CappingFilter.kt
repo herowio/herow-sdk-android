@@ -13,12 +13,13 @@ import kotlin.math.max
 object CappingFilter : NotificationFilter {
 
     override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
-        val currentLocalTime = TimeHelper.getCurrentLocalTime()
+        val currentLocalDateTime = TimeHelper.getCurrentLocalDateTime()
         val oneDayInMillisSecond = 86400000
         val capping: Capping? = campaign.capping
         val maxCapping = capping?.maxNumberNotifications
 
-        var resetDelay = (capping?.minTimeBetweenTwoNotifications?.toDouble() ?: oneDayInMillisSecond.toDouble()).div(1000)
+        var resetDelay = (capping?.minTimeBetweenTwoNotifications?.toDouble()
+            ?: oneDayInMillisSecond.toDouble()).div(1000)
 
         resetDelay = max(resetDelay, oneDayInMillisSecond.toDouble())
 
@@ -35,23 +36,15 @@ object CappingFilter : NotificationFilter {
             }
         }
 
-        val firstRazDate: LocalDateTime = if (resetDelay > (oneDayInMillisSecond / 1000).toDouble()) {
-            if (startHour != null && startMinutes != null) {
-                val nextRazTime = LocalDateTime.now().plus(resetDelay.toLong(), ChronoUnit.MILLIS)
-                nextRazTime.withHour(startHour).withMinute(startMinutes)
-            } else {
-                val nextRazTime = LocalDateTime.now().plus(resetDelay.toLong(), ChronoUnit.MILLIS)
-                nextRazTime.withHour(0).withMinute(0)
-            }
-        } else {
-            if (startHour != null && startMinutes != null) {
-                val tomorrow = LocalDateTime.now().plus(1, ChronoUnit.DAYS)
-                tomorrow.withHour(startHour).withMinute(startMinutes)
+        val firstRazDate: LocalDateTime =
+            if (resetDelay > (oneDayInMillisSecond / 1000).toDouble()) {
+                val nextRazTime =
+                    LocalDateTime.now().plus(resetDelay.toLong(), ChronoUnit.MILLIS)
+                nextRazTime.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
             } else {
                 val tomorrow = LocalDateTime.now().plus(1, ChronoUnit.DAYS)
-                tomorrow.withHour(0).withMinute(0)
+                tomorrow.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
             }
-        }
 
         val herowCapping: HerowCapping = sessionHolder.getHerowCapping()
             ?: HerowCapping(
@@ -60,16 +53,17 @@ object CappingFilter : NotificationFilter {
                 count = 0
             )
 
-        var result = false
         var count = 0
 
         if (herowCapping.razDate != null) {
-            if (currentLocalTime < herowCapping.razDate!!.toLocalTime()) {
+            if (currentLocalDateTime < herowCapping.razDate!!) {
                 count = herowCapping.count
             } else {
                 count = 0
-                val nextRazDate = herowCapping.razDate!!.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
-                herowCapping.razDate = nextRazDate.withHour(startHour!!).withMinute(startMinutes!!)
+                val nextRazDate =
+                    herowCapping.razDate!!.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
+                herowCapping.razDate =
+                    nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
             }
         }
 
@@ -77,12 +71,6 @@ object CappingFilter : NotificationFilter {
         val herowCappingToString = GsonProvider.toJson(herowCapping, HerowCapping::class.java)
         sessionHolder.saveHerowCapping(herowCappingToString)
 
-        if (maxCapping != null) {
-            if (count < maxCapping) {
-                result = true
-            }
-        }
-
-        return result
+        return maxCapping?.let { count < it } ?: true
     }
 }
