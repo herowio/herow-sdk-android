@@ -11,7 +11,7 @@ object TimeSlotFilter: NotificationFilter {
     override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
         val now = TimeHelper.getCurrentLocalTime()
 
-        if (campaign.startHour != null && campaign.stopHour != null) {
+        if (!campaign.startHour.isNullOrEmpty() && !campaign.stopHour.isNullOrEmpty()) {
             val startComponent = campaign.startHour!!.split(":")
             val stopComponent = campaign.stopHour!!.split(":")
 

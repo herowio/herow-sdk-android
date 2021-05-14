@@ -132,6 +132,113 @@ class MockDataInDatabase(context: Context) {
         return campaignInDB!!
     }
 
+    suspend fun createCampaignWithMondayTuesdayFriday(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignWithMondayTuesdayAndFriday",
+            daysRecurrence = listOf("monday", "tuesday", "friday")
+        )
 
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
 
+        job.await()
+        return campaignInDB!!
+    }
+
+    suspend fun createCampaignWithWednesday(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignWithWednesday",
+            daysRecurrence = listOf("tuesday", "wednesday")
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
+
+    suspend fun createCampaignWithOnlyStartHour(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignWithOnlyStartHour",
+            startHour = "02:00"
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
+
+    suspend fun createCampaignWithOnlyStopHour(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignWithOnlyStopHour",
+            stopHour = "23:00"
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
+
+    suspend fun createCampaignWithShortSlot(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignWithShortSlot",
+            startHour = "01:00",
+            stopHour = "02:00"
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
+
+    suspend fun createCampaignWithLongSlot(): Campaign {
+        val campaign = Campaign(
+            id = "CampaignWithLongSlot",
+            startHour = "06:00",
+            stopHour = "18:00"
+        )
+
+        var campaignInDB: Campaign? = null
+        val job =  CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignRepository.insert(campaign)
+                campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
 }
