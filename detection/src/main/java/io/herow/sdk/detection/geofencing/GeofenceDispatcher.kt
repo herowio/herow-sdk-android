@@ -7,7 +7,6 @@ object GeofenceDispatcher {
     fun addGeofenceListener(geofenceListener: GeofenceListener) {
         geofenceListeners.add(geofenceListener)
     }
-
     private val geofenceListeners = CopyOnWriteArrayList<GeofenceListener>()
 
     fun dispatchGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
@@ -15,5 +14,9 @@ object GeofenceDispatcher {
             GlobalLogger.shared.info(null,"Dispatching geofence to: $geofenceListener")
             geofenceListener.onGeofenceEvent(geofenceEvents)
         }
+    }
+
+    fun reset() {
+        geofenceListeners.clear()
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
+import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.detection.HerowInitializer
@@ -36,6 +37,8 @@ class ClickAndCollectWorkerTest {
     @Before
     fun setUp() {
         TimeHelper.testing = true
+        DeviceHelper.testing = true
+
         context = ApplicationProvider.getApplicationContext()
         worker = TestListenableWorkerBuilder<ClickAndCollectWorker>(context)
             .build()
@@ -55,15 +58,14 @@ class ClickAndCollectWorkerTest {
     }
 
     @Test
-    fun testDidStartClickAndConnectShouldDisplayStart() {
+    fun testOnceFinishClickAndCollectShouldNotBeProgression() {
         ClickAndCollectDispatcher.registerClickAndCollectListener(clickAndCollectWorkerListener)
         Assert.assertEquals(clickAndCollectWorkerListener.variableTest, "click")
 
         runBlocking {
             val result = worker.doWork()
             MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(sessionHolder.getClickAndCollectProgress())
-            Assert.assertEquals(clickAndCollectWorkerListener.variableTest, "start")
+            Assert.assertFalse(sessionHolder.getClickAndCollectProgress())
         }
     }
 

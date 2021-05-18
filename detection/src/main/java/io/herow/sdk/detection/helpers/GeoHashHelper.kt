@@ -12,11 +12,11 @@ object GeoHashHelper {
         'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r',
         's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
     )
-    private val BASE32_INV = ByteArray('z'.toInt() + 1)
+    private val BASE32_INV = ByteArray('z'.code + 1)
 
     init {
         for (i in BASE32.indices) {
-            BASE32_INV[BASE32[i].toInt()] = i.toByte()
+            BASE32_INV[BASE32[i].code] = i.toByte()
         }
     }
 
@@ -97,7 +97,7 @@ object GeoHashHelper {
         var result: Long = 0
         for (element in base32) {
             result = result shl 5
-            result = result or BASE32_INV[element.toInt()].toLong()
+            result = result or BASE32_INV[element.code].toLong()
         }
         result = result or precisionTag(base32.length * 5)
         return result

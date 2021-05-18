@@ -4,8 +4,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.detection.MockLocation
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -20,10 +18,10 @@ class GeofenceEventGeneratorTest {
     private lateinit var geofenceEventGenerator: GeofenceEventGenerator
 
     private lateinit var context: Context
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     @Before
     fun setUp() {
+        GeofenceDispatcher.reset()
         context = ApplicationProvider.getApplicationContext()
         geofenceEventGenerator = GeofenceEventGenerator()
         GeofenceDispatcher.addGeofenceListener(herowGeofenceListener)
@@ -31,16 +29,17 @@ class GeofenceEventGeneratorTest {
 
     @Test
     fun testDetectedZones() {
+
         val zones = ArrayList<Zone>()
-        val firstZone = MockLocation(context).fetchZone()
-        val secondZone = MockLocation(context).fetchZone()
-        val thirdZone = MockLocation(context).fetchZone()
+        val firstZone = MockLocation(context).buildZone()
+        val secondZone = MockLocation(context).buildZone()
+        val thirdZone = MockLocation(context).buildZone()
 
         // No events at the beginning
         Assert.assertTrue(herowGeofenceListener.lastEvents.isEmpty())
 
         // Now, we have one zone, and we dispatch one event
-        zones.add(firstZone!!)
+        zones.add(firstZone)
         geofenceEventGenerator.detectedZones(zones, MockLocation(context).buildLocation())
         Assert.assertEquals(1, herowGeofenceListener.lastEvents.size)
         Assert.assertEquals(GeofenceType.ENTER, herowGeofenceListener.lastEvents[0].type)
@@ -56,14 +55,16 @@ class GeofenceEventGeneratorTest {
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
 
         // We arrived in two zones
-        zones.add(secondZone!!)
-        zones.add(thirdZone!!)
+        zones.add(secondZone)
+        zones.add(thirdZone)
         geofenceEventGenerator.detectedZones(zones, MockLocation(context).buildLocation())
         Assert.assertEquals(2, herowGeofenceListener.lastEvents.size)
 
         // We exit the third zone, but still in the second zone
         zones.removeLast()
         geofenceEventGenerator.detectedZones(zones, MockLocation(context).buildLocation())
+
+
         Assert.assertEquals(1, herowGeofenceListener.lastEvents.size)
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
 

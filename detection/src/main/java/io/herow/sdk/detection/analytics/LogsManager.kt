@@ -38,7 +38,6 @@ class LogsManager(private val context: Context) : LogsListener {
 
                 HerowInitializer.getInstance(context).launchLogsRequest(logJsonString)
             }
-
         }
     }
 }

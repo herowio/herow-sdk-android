@@ -3,12 +3,14 @@ package io.herow.sdk.connection
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import io.herow.sdk.common.helpers.DateHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.dao.CampaignDAO
 import io.herow.sdk.connection.cache.dao.PoiDAO
 import io.herow.sdk.connection.cache.dao.ZoneDAO
-import io.herow.sdk.connection.cache.model.*
+import io.herow.sdk.connection.cache.model.Access
+import io.herow.sdk.connection.cache.model.Campaign
+import io.herow.sdk.connection.cache.model.Poi
+import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
@@ -23,8 +25,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.Month
 import java.io.IOException
 
 @Config(sdk = [28])
@@ -43,7 +43,6 @@ class HerowDatabaseTest {
 
     private lateinit var zone: Zone
     private lateinit var campaign: Campaign
-    private lateinit var interval: Interval
     private lateinit var poi: Poi
 
     private lateinit var context: Context
@@ -80,64 +79,22 @@ class HerowDatabaseTest {
             zoneRepository.insert(zone)
         }
 
-        interval = Interval(
-            start = TimeHelper.getCurrentTime() - 20000,
-            end = TimeHelper.getCurrentTime()
-        )
-
-        val interval2 = Interval(
-            start = TimeHelper.getCurrentTime() - 40000,
-            end = TimeHelper.getCurrentTime() - 30000
-        )
-
         campaign = Campaign(
             id = "campaignID1",
-            company = "testCompany",
-            createdDate = DateHelper.convertDateToMilliSeconds(
-                LocalDateTime.of(
-                    2020,
-                    Month.JANUARY,
-                    11,
-                    11,
-                    50,
-                    0,
-                    0
-                ),
-                context
-            ),
-            modifiedDate = DateHelper.convertDateToMilliSeconds(
-                LocalDateTime.of(
-                    2020,
-                    Month.JANUARY,
-                    12,
-                    7,
-                    0,
-                    0,
-                    0
-                ),
-                context
-            ),
-            deleted = false,
-            simpleID = "testSimpleID",
             name = "testCampaign1",
-            begin = DateHelper.convertDateToMilliSeconds(
-                LocalDateTime.of(
+            begin = TimeHelper.convertDateToMilliSeconds(
+                java.time.LocalDateTime.of(
                     2021,
-                    Month.JANUARY,
+                    1,
                     30,
                     8,
                     0,
                     0,
                     0
-                ),
-                context
+                )
             ),
-            recurrenceEnabled = false,
-            timeZone = "Europe/Paris",
             capping = null,
-            trigger = null,
-            notification = null,
-            intervals = listOf(interval, interval2)
+            notification = null
         )
 
         runBlocking {

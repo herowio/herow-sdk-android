@@ -26,7 +26,7 @@ object LocationDispatcher {
             GlobalLogger.shared.info(null,"LastLocation is: $lastLocation")
             GlobalLogger.shared.info(null,"NewLocation is: $newLocation")
 
-            if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
+            skip = if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
                 GlobalLogger.shared.info(null,"New and Last locations are different")
                 val distance = newLocation.distanceTo(lastLocation!!)
 
@@ -35,10 +35,9 @@ object LocationDispatcher {
                 val timeInSeconds = time / 1000
                 GlobalLogger.shared.info(null,"Time is: $timeInSeconds")
 
-                skip =
-                    distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.THREE_MINUTE_MS
+                distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.THREE_MINUTE_MS
             } else {
-                skip = true
+                true
             }
         }
 

@@ -7,4 +7,5 @@ data class GeofenceEvent(
     val zone: Zone,
     val location: Location,
     val type: GeofenceType
+    //val confiance: Int
 )

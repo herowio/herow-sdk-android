@@ -12,6 +12,9 @@ interface ZoneDAO {
     @Insert
     fun insertZone(zone: Zone)
 
+    @Query("SELECT * FROM Zone WHERE hash = :hash")
+    fun getZoneByHash(hash: String): Zone?
+
     @Transaction
     @Query("SELECT * FROM Zone")
     fun getAllZones(): List<Zone>?

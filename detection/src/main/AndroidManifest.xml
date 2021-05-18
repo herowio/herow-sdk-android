@@ -11,6 +11,7 @@
 
         <receiver android:name=".location.LocationReceiver" />
         <receiver android:name=".geofencing.GeofencingReceiver" />
+        <receiver android:name=".notification.NotificationReceiver" />
 
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"

@@ -2,6 +2,7 @@ package io.herow.sdk.connection
 
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
+import io.herow.sdk.connection.cache.model.mapper.HerowCappingMapper
 import io.herow.sdk.connection.userinfo.UserInfo
 
 class SessionHolder(private val dataHolder: DataHolder) {
@@ -18,7 +19,9 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_SAVED_GEOHASH = "common.saved_geohash"
         private const val KEY_REPEAT_INTERVAL = "common.repeat_interval"
         private const val KEY_OPTIN = "common.optin"
+        private const val KEY_SDK = "common.sdk"
         private const val KEY_CLICK_AND_COLLECT_PROGRESS = "detection.click_and_collect_progress"
+        private const val KEY_HEROW_CAPPING = "detection.herow_capping"
     }
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
@@ -126,6 +129,14 @@ class SessionHolder(private val dataHolder: DataHolder) {
         dataHolder[KEY_OPTIN] = optinAccepted ?: false
     }
 
+    fun saveSDKID(sdkID: String) {
+        dataHolder[KEY_SDK] = sdkID
+    }
+
+    fun getSDKID(): String {
+        return dataHolder[KEY_SDK]
+    }
+
     fun getOptinValue(): Boolean =
         if (dataHolder.containsKey(KEY_OPTIN)) {
             dataHolder[KEY_OPTIN]
@@ -143,5 +154,11 @@ class SessionHolder(private val dataHolder: DataHolder) {
         } else {
             dataHolder[KEY_CLICK_AND_COLLECT_PROGRESS]
         }
-}
 
+    fun hasHerowCappingSaved(): Boolean = dataHolder.containsKey(KEY_HEROW_CAPPING)
+
+    fun saveHerowCapping(herowCapping: String) = dataHolder[KEY_HEROW_CAPPING] = herowCapping
+
+    fun getHerowCapping(): HerowCappingMapper =
+        GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCappingMapper::class.java)
+}

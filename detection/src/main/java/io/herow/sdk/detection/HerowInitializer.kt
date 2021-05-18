@@ -5,7 +5,6 @@ import android.location.Location
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import com.jakewharton.threetenabp.AndroidThreeTen
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
@@ -31,6 +30,7 @@ import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.*
+import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -46,19 +46,20 @@ class HerowInitializer private constructor(val context: Context) {
     private var logsManager: LogsManager
     private var workManager: WorkManager
     private var database: HerowDatabase
+    private var notificationManager: NotificationManager
 
     private lateinit var sessionHolder: SessionHolder
     private val initialRepeatInterval: Long = 900000
 
     init {
-        AndroidThreeTen.init(context)
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         workManager = WorkManager.getInstance(context)
         locationManager = LocationManager(context)
         logsManager = LogsManager(context)
-        registerListeners()
         loadIdentifiers(context)
+        notificationManager = NotificationManager(context, sessionHolder)
         database = HerowDatabase.getDatabase(context)
+        registerListeners()
     }
 
     companion object {
@@ -78,6 +79,7 @@ class HerowInitializer private constructor(val context: Context) {
         LocationDispatcher.addLocationListener(locationManager)
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
+        GeofenceDispatcher.addGeofenceListener(notificationManager)
     }
 
     /**
@@ -111,6 +113,7 @@ class HerowInitializer private constructor(val context: Context) {
 
     fun configApp(sdkId: String, sdkKey: String): HerowInitializer {
         sdkSession = SdkSession(sdkId, sdkKey)
+        sessionHolder.saveSDKID(sdkId)
         return this
     }
 
@@ -155,7 +158,7 @@ class HerowInitializer private constructor(val context: Context) {
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
      */
-    fun launchConfigRequest() {
+    private fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -288,6 +291,8 @@ class HerowInitializer private constructor(val context: Context) {
         val zoneRepository = ZoneRepository(database.zoneDAO())
         return zoneRepository.getAllZones()
     }
+    
+    fun getSDKID(): String = sessionHolder.getSDKID()
 
 
     /**

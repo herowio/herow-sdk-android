@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.network
 
 import androidx.work.Data
+import com.google.gson.Gson
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
@@ -13,6 +14,7 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
+import io.herow.sdk.detection.network.model.RetrofitConnectionObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -77,16 +79,25 @@ class AuthRequests(
         if (platformURLString.isNotEmpty()) {
             if (HerowPlatform.PRE_PROD == HerowPlatform.valueOf(platformURLString)) {
                 return HerowPlatform.PRE_PROD
+            } else if (HerowPlatform.TEST == HerowPlatform.valueOf(platformURLString)) {
+                return HerowPlatform.TEST
             }
         }
         return HerowPlatform.PROD
     }
 
     private fun getApiUrl(platform: HerowPlatform): String {
-        if (platform == HerowPlatform.PRE_PROD) {
-            return HerowAPI.PRE_PROD_BASE_URL
+        return when (platform) {
+            HerowPlatform.PRE_PROD -> {
+                HerowAPI.PRE_PROD_BASE_URL
+            }
+            HerowPlatform.TEST -> {
+                HerowAPI.TEST_BASE_URL
+            }
+            else -> {
+                HerowAPI.PROD_BASE_URL
+            }
         }
-        return HerowAPI.PROD_BASE_URL
     }
 
     /**
@@ -119,13 +130,17 @@ class AuthRequests(
 
         if (sdkId.isNotEmpty() && sdkKey.isNotEmpty()) {
             val platformData = PlatformData(platform)
-            val tokenResponse = herowAPI.token(
+
+            val retrofitObject = RetrofitConnectionObject(
                 sdkId,
                 sdkKey,
                 platformData.clientId,
                 platformData.clientSecret,
                 platformData.redirectUri
             )
+
+            val retrofitObjectString = Gson().toJson(retrofitObject, RetrofitConnectionObject::class.java)
+            val tokenResponse = herowAPI.token(retrofitObjectString)
 
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->

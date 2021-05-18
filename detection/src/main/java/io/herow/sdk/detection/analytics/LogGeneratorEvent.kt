@@ -15,16 +15,18 @@ import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.model.HerowLogContext
-import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExit
+import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExitorNotification
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.location.LocationListener
+import io.herow.sdk.detection.notification.NotificationDispatcher
+import io.herow.sdk.detection.notification.NotificationListener
 import kotlinx.coroutines.*
 
 /**
- * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT or VISIT) by listening to different
+ * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT, VISIT or GEOFENCE_ZONE_NOTIFICATION) by listening to different
  * geofencing listeners.
  */
 class LogGeneratorEvent(
@@ -32,10 +34,15 @@ class LogGeneratorEvent(
     private val sessionHolder: SessionHolder,
     val context: Context
 ) :
-    AppStateListener, CacheListener, LocationListener, GeofenceListener {
+    AppStateListener, CacheListener, LocationListener, GeofenceListener, NotificationListener {
+
     companion object {
         private const val DISTANCE_POI_MAX = 20_000
         private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    }
+
+    init {
+        NotificationDispatcher.addNotificationListener(this)
     }
 
     private val ioDispatcher = Dispatchers.IO
@@ -149,7 +156,7 @@ class LogGeneratorEvent(
         val listOfLogsVisit = ArrayList<Log>()
 
         for (geofenceEvent in geofenceEvents) {
-            val herowLogEnterOrExit = HerowLogEnterOrExit(appState, geofenceEvent)
+            val herowLogEnterOrExit = HerowLogEnterOrExitorNotification(appState, geofenceEvent)
             herowLogEnterOrExit.enrich(applicationData, sessionHolder)
             listOfLogsEnterOrExit.add(Log(herowLogEnterOrExit))
 
@@ -205,5 +212,17 @@ class LogGeneratorEvent(
         }
 
         return zonesInDb.await()
+    }
+
+    override fun onNotificationSent(geofenceEvent: GeofenceEvent) {
+        GlobalLogger.shared.info(context, "Geofence of notification is: $geofenceEvent")
+
+        val herowLogNotification = HerowLogEnterOrExitorNotification(appState, geofenceEvent)
+        herowLogNotification.enrich(applicationData, sessionHolder)
+
+        val logToSend = Log(herowLogNotification)
+
+        GlobalLogger.shared.info(context, "Log notification is: $logToSend")
+        LogsDispatcher.dispatchLogsResult(arrayListOf(logToSend))
     }
 }

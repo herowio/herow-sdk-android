@@ -9,23 +9,17 @@ import retrofit2.http.*
 
 interface HerowAPI {
     companion object {
-        const val PRE_PROD_BASE_URL = "https://m-preprod.herow.io"
-        const val PROD_BASE_URL = "https://m.herow.io"
+        const val PRE_PROD_BASE_URL = "https://sdk7-preprod.herow.io"
+        const val PROD_BASE_URL = "https://sdk7.herow.io"
+        const val TEST_BASE_URL = "https://herow-sdk-backend-poc.ew.r.appspot.com"
     }
 
     @Headers(
         "Cache-Control: noCache",
+        "Content-Type: application/json"
     )
-    @FormUrlEncoded
     @POST("auth/authorize/token")
-    suspend fun token(
-        @Field("username") username: String,
-        @Field("password") password: String,
-        @Field("client_id") clientId: String,
-        @Field("client_secret") clientSecret: String,
-        @Field("redirect_uri") redirectUri: String,
-        @Field("grant_type") grantType: String = "password"
-    ): Response<TokenResult>
+    suspend fun token(@Body body: String): Response<TokenResult>
 
     @Headers(
         "Content-Type: application/json",

@@ -33,11 +33,4 @@ object RandomGenerator {
                   max: Int = 10_000): Int {
         return (min..max).random()
     }
-
-    fun date(): String {
-        val day = Random.nextInt(1, 31)
-        val month = Random.nextInt(1, 12)
-        val year = Random.nextInt(1970, Calendar.getInstance().get(Calendar.YEAR))
-        return "$day/$month/$year"
-    }
 }

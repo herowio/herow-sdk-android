@@ -5,4 +5,5 @@ import io.herow.sdk.connection.cache.model.Zone
 
 interface ZoneListener {
     fun detectedZones(zones: List<Zone>, location: Location)
+    fun detectedNotificationZones(zonesForNotification: List<Zone>, location: Location)
 }
