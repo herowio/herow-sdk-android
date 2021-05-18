@@ -6,6 +6,7 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Capping
 import io.herow.sdk.connection.cache.model.HerowCapping
+import io.herow.sdk.connection.cache.model.mapper.HerowCappingMapper
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
@@ -46,31 +47,48 @@ object CappingFilter : NotificationFilter {
                 tomorrow.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
             }
 
-        val herowCapping: HerowCapping = sessionHolder.getHerowCapping()
-            ?: HerowCapping(
+        val herowCapping = getHerowCapping(sessionHolder, campaign, firstRazDate)
+
+        val count: Int
+
+        if (currentLocalDateTime < herowCapping.razDate) {
+            count = herowCapping.count
+        } else {
+            count = 0
+            val nextRazDate =
+                herowCapping.razDate.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
+            herowCapping.razDate =
+                nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
+        }
+
+        herowCapping.count = count + 1
+        saveHerowCapping(herowCapping, sessionHolder)
+
+        return maxCapping?.let { count < it } ?: true
+    }
+
+    private fun getHerowCapping(
+        sessionHolder: SessionHolder,
+        campaign: Campaign,
+        firstRazDate: LocalDateTime
+    ): HerowCapping {
+        return if (sessionHolder.hasHerowCappingSaved()) {
+            val herowCappingMapper = sessionHolder.getHerowCapping()
+            HerowCapping().convertMapperToCapping(herowCappingMapper)
+        } else {
+            HerowCapping(
                 campaignId = campaign.id!!,
                 razDate = firstRazDate,
                 count = 0
             )
-
-        var count = 0
-
-        if (herowCapping.razDate != null) {
-            if (currentLocalDateTime < herowCapping.razDate!!) {
-                count = herowCapping.count
-            } else {
-                count = 0
-                val nextRazDate =
-                    herowCapping.razDate!!.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
-                herowCapping.razDate =
-                    nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
-            }
         }
+    }
+    
+    private fun saveHerowCapping(herowCapping: HerowCapping, sessionHolder: SessionHolder) {
+        val herowCappingMapper = HerowCappingMapper().convertCappingToMapper(herowCapping)
 
-        herowCapping.count = count + 1
-        val herowCappingToString = GsonProvider.toJson(herowCapping, HerowCapping::class.java)
+        val herowCappingToString =
+            GsonProvider.toJson(herowCappingMapper, HerowCappingMapper::class.java)
         sessionHolder.saveHerowCapping(herowCappingToString)
-
-        return maxCapping?.let { count < it } ?: true
     }
 }

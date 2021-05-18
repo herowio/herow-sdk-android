@@ -37,25 +37,19 @@ class CappingFilterTest {
         runBlocking {
             campaign = MockDataInDatabase(context).createAndInsertCampaignTwo()
         }
-        val herowCappingNotSaved: HerowCapping? = sessionHolder.getHerowCapping()
-
-        // No HerowCapping saved yet
-        Assert.assertTrue(herowCappingNotSaved == null)
+        val herowCappingNotSaved: HerowCapping = HerowCapping().convertMapperToCapping(sessionHolder.getHerowCapping())
 
         // We have no capping
         // We should have a notification
         Assert.assertTrue(CappingFilter.createNotification(campaign!!, sessionHolder))
 
-        val herowCappingSaved: HerowCapping? = sessionHolder.getHerowCapping()
-
-        // HerowCapping should have been saved
-        Assert.assertFalse(herowCappingSaved == null)
+        val herowCappingSaved: HerowCapping = HerowCapping().convertMapperToCapping(sessionHolder.getHerowCapping())
 
         runBlocking {
             campaign = MockDataInDatabase(context).createCampaignWithCapping()
         }
 
-        herowCappingSaved!!.count = 7
+        herowCappingSaved.count = 7
         herowCappingSaved.razDate = LocalDateTime.of(2021, 7, 20, 3, 3, 30)
         sessionHolder.saveHerowCapping(GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java))
 
@@ -73,12 +67,9 @@ class CappingFilterTest {
 
         sessionHolder.saveHerowCapping("")
 
-        // We delete the saved HerowCapping
-        Assert.assertTrue(sessionHolder.getHerowCapping() == null)
-
         CappingFilter.createNotification(campaign!!, sessionHolder)
 
         // HerowCapping's campaignID should be the same as the campaign id given as parameter
-        Assert.assertTrue(campaign!!.id == sessionHolder.getHerowCapping()!!.campaignId)
+        Assert.assertTrue(campaign!!.id == sessionHolder.getHerowCapping().campaignId)
     }
 }

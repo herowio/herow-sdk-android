@@ -5,11 +5,7 @@ import android.location.Location
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Access
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 
 class MockLocation(
     private val context: Context

@@ -1,7 +1,5 @@
 package io.herow.sdk.detection.network
 
-import io.herow.sdk.detection.helpers.DispatcherProvider
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher

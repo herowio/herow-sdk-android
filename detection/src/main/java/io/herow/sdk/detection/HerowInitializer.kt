@@ -291,6 +291,8 @@ class HerowInitializer private constructor(val context: Context) {
         val zoneRepository = ZoneRepository(database.zoneDAO())
         return zoneRepository.getAllZones()
     }
+    
+    fun getSDKID(): String = sessionHolder.getSDKID()
 
 
     /**

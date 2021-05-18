@@ -1,8 +1,6 @@
 package io.herow.sdk.common.helpers
 
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneOffset
+import java.time.*
 
 object TimeHelper {
     const val TWO_SECONDS_MS = 2 * 1000L
@@ -28,4 +26,9 @@ object TimeHelper {
 
     fun convertDateToMilliSeconds(dateTime: LocalDateTime): Long =
         dateTime.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()!!
+
+    fun convertMilliSecondsToDate(epochMilli: Long): LocalDateTime {
+        val instant = Instant.ofEpochMilli(epochMilli)
+        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+    }
 }

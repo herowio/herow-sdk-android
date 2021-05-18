@@ -2,7 +2,7 @@ package io.herow.sdk.connection
 
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
-import io.herow.sdk.connection.cache.model.HerowCapping
+import io.herow.sdk.connection.cache.model.mapper.HerowCappingMapper
 import io.herow.sdk.connection.userinfo.UserInfo
 
 class SessionHolder(private val dataHolder: DataHolder) {
@@ -155,19 +155,10 @@ class SessionHolder(private val dataHolder: DataHolder) {
             dataHolder[KEY_CLICK_AND_COLLECT_PROGRESS]
         }
 
-    fun saveHerowCapping(herowCapping: String) {
-        dataHolder[KEY_HEROW_CAPPING] = herowCapping
-    }
+    fun hasHerowCappingSaved(): Boolean = dataHolder.containsKey(KEY_HEROW_CAPPING)
 
-    fun getHerowCapping(): HerowCapping? {
-        val herowCapping = dataHolder.containsKey(KEY_HEROW_CAPPING)
-        if (herowCapping) {
-            return GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCapping::class.java)
-        }
+    fun saveHerowCapping(herowCapping: String) = dataHolder[KEY_HEROW_CAPPING] = herowCapping
 
-        return null
-    }
-
-
+    fun getHerowCapping(): HerowCappingMapper =
+        GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCappingMapper::class.java)
 }
-
