@@ -164,11 +164,14 @@ class HerowInitializer private constructor(val context: Context) {
             .build()
 
         val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
+            GlobalLogger.shared.info(context, "Repeat Interval is not saved yet")
             initialRepeatInterval
         } else {
+            GlobalLogger.shared.info(context, "Repeat Interval is saved")
             sessionHolder.getRepeatInterval()
         }
 
+        GlobalLogger.shared.info(context, "Repeat Interval is: $repeatInterval")
         GlobalLogger.shared.info(context,"LaunchConfigRequest method is called")
 
         val periodicWorkRequest =

@@ -32,8 +32,7 @@ class SessionInterceptor(private val sessionHolder: SessionHolder): Interceptor 
         if (deviceId.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.DEVICE_ID_HEADER, deviceId)
         }
-
-
+        
         return chain.proceed(requestBuilder.build())
     }
 }

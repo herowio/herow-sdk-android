@@ -9,6 +9,8 @@ class GeofenceEventGenerator: ZoneListener {
     private var previousDetectedZones = ArrayList<Zone>()
     private var previousDetectedZonesForNotification = ArrayList<Zone>()
 
+    private val confidenceToUpdate = 0.0
+
     override fun detectedZones(zones: List<Zone>, location: Location) {
         defineGeofenceEventType(zones, location, null, previousDetectedZones)
     }
@@ -28,9 +30,13 @@ class GeofenceEventGenerator: ZoneListener {
                 GlobalLogger.shared.info(null,"Zone is: $zone")
 
                 if (type != null) {
-                    liveEvents.add(GeofenceEvent(zone, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER))
+                    val geofenceEvent = GeofenceEvent(zone, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER, confidenceToUpdate)
+                    geofenceEvent.confidence = geofenceEvent.computeNotificationConfidence(location, zone)
+                    liveEvents.add(geofenceEvent)
                 } else {
-                    liveEvents.add(GeofenceEvent(zone, location, GeofenceType.ENTER))
+                    val geofenceEvent = GeofenceEvent(zone, location, GeofenceType.ENTER, confidenceToUpdate)
+                    geofenceEvent.confidence = geofenceEvent.computeEnterConfidence(location, zone)
+                    liveEvents.add(GeofenceEvent(zone, location, GeofenceType.ENTER, confidenceToUpdate))
                 }
             }
         } else {
@@ -43,7 +49,9 @@ class GeofenceEventGenerator: ZoneListener {
                 val exit = zones.none { z -> z.hash == previousZone.hash }
                 if (exit) {
                     GlobalLogger.shared.info(null, "Adding zone - Type EXIT")
-                    liveEvents.add(GeofenceEvent(previousZone, location, GeofenceType.EXIT))
+                    val geofenceEvent = GeofenceEvent(previousZone, location, GeofenceType.EXIT, confidenceToUpdate)
+                    geofenceEvent.confidence = geofenceEvent.computeExitConfidence(location, previousZone)
+                    liveEvents.add(geofenceEvent)
                 }
             }
 
@@ -54,12 +62,12 @@ class GeofenceEventGenerator: ZoneListener {
                 if (type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
                     if (!previousDetectedZonesForNotification.contains(newPlace)) {
                         GlobalLogger.shared.info(null, "Adding zone - Type NOTIFICATION_ENTER")
-                        liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER))
+                        liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER, confidenceToUpdate))
                     }
                 } else {
                     if (!previousDetectedZones.contains(newPlace)) {
                         GlobalLogger.shared.info(null, "Adding zone - Type ENTER")
-                        liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.ENTER))
+                        liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.ENTER, confidenceToUpdate))
                     }
                 }
             }

@@ -6,6 +6,7 @@ import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateListener
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.model.mapper.PoiMapper
@@ -214,10 +215,10 @@ class LogGeneratorEvent(
         return zonesInDb.await()
     }
 
-    override fun onNotificationSent(geofenceEvent: GeofenceEvent) {
+    override fun onNotificationSent(geofenceEvent: GeofenceEvent, campaign: Campaign) {
         GlobalLogger.shared.info(context, "Geofence of notification is: $geofenceEvent")
 
-        val herowLogNotification = HerowLogEnterOrExitorNotification(appState, geofenceEvent)
+        val herowLogNotification = HerowLogEnterOrExitorNotification(appState, geofenceEvent, campaign)
         herowLogNotification.enrich(applicationData, sessionHolder)
 
         val logToSend = Log(herowLogNotification)

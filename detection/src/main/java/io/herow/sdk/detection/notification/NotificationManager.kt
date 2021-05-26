@@ -74,8 +74,8 @@ class NotificationManager(private val context: Context, private val sessionHolde
                             if (campaigns.isNotEmpty())
                                 for (campaign in campaigns) {
                                     if (canCreateNotification(campaign)) {
-                                        NotificationDispatcher.dispatchNotification(event)
                                         createNotification(context, event, campaign)
+                                        NotificationDispatcher.dispatchNotification(event, campaign)
                                     }
                                 }
                         }
@@ -122,6 +122,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
             .setContentTitle(title)
             .setContentText(description)
             .setSmallIcon(R.drawable.icon_notification)
+            .setAutoCancel(true)
             .apply {
                 setContentIntent(notificationPendingIntent)
             }

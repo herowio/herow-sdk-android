@@ -21,6 +21,8 @@ data class Zone(
     var lng: Double? = 0.0,
     var radius: Double? = 0.0,
     var campaigns: List<String>? = listOf(),
+    var confidence: Double? = null,
+    var centerLocation: Location? = null,
 
     @Embedded
     val access: Access?
@@ -39,4 +41,6 @@ data class Zone(
         val zoneLocation = toLocation()
         distance = zoneLocation.distanceTo(userLocation).toDouble()
     }
+
+
 }

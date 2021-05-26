@@ -1,5 +1,6 @@
 package io.herow.sdk.connection.cache.utils
 
+import android.location.Location
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -89,4 +90,10 @@ class Converters {
 
     @TypeConverter
     fun zoneToString(zone: Zone): String = Gson().toJson(zone)
+
+    @TypeConverter
+    fun stringToLocation(string: String?): Location? = Gson().fromJson(string, Location::class.java) ?: null
+
+    @TypeConverter
+    fun locationToString(location: Location?): String = Gson().toJson(location) ?: ""
 }

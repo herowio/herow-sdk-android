@@ -1,5 +1,6 @@
 package io.herow.sdk.connection
 
+import io.herow.sdk.common.logger.GlobalLogger
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -19,6 +20,8 @@ object RetrofitBuilder {
             .addConverterFactory(GsonConverterFactory.create())
             .client(getOkHttpClient(sessionHolder, addLoggingInterceptor))
             .build()
+
+        GlobalLogger.shared.info(null, "Add logging interceptor: $addLoggingInterceptor")
 
         return retrofit.create(apiClass)
     }

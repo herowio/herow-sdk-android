@@ -1,5 +1,6 @@
 package io.herow.sdk.detection.analytics.model
 
+import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
@@ -7,11 +8,13 @@ import io.herow.sdk.detection.geofencing.model.LocationMapper
 
 class HerowLogEnterOrExitorNotification(
     appState: String,
-    geofenceEvent: GeofenceEvent
+    geofenceEvent: GeofenceEvent,
+    campaign: Campaign? = null
 ) : HerowLogData() {
     companion object {
         const val LOCATION = "lastLocation"
         const val PLACE = "place"
+
     }
 
     init {
@@ -41,5 +44,11 @@ class HerowLogEnterOrExitorNotification(
             distance = geofenceEvent.zone.distance,
             radius = geofenceEvent.zone.radius
         )
+
+        if (this[SUBTYPE] == LogSubtype.GEOFENCE_ZONE_NOTIFICATION) {
+            val CAMPAIGN_ID = "campaign_id"
+            this[CAMPAIGN_ID] = campaign.let { campaign?.id } ?: ""
+        }
+
     }
 }

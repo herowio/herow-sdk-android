@@ -157,7 +157,9 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun hasHerowCappingSaved(): Boolean = dataHolder.containsKey(KEY_HEROW_CAPPING)
 
-    fun saveHerowCapping(herowCapping: String) = dataHolder[KEY_HEROW_CAPPING] = herowCapping
+    fun saveHerowCapping(herowCapping: String) {
+        dataHolder[KEY_HEROW_CAPPING] = herowCapping
+    }
 
     fun getHerowCapping(): HerowCappingMapper =
         GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCappingMapper::class.java)

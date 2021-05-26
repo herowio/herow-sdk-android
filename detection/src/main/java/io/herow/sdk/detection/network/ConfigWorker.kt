@@ -36,6 +36,8 @@ class ConfigWorker(
         val configResponse = herowAPI.config()
         GlobalLogger.shared.info(applicationContext,"ConfigResponse: $configResponse")
 
+        Thread.sleep(1000)
+
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
                 GlobalLogger.shared.info(applicationContext,"ConfigResponse is successful")
