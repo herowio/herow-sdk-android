@@ -46,10 +46,6 @@ class NotificationManager(private val context: Context, private val sessionHolde
         println("Filter list is $filterList")
     }
 
-    /* fun removeFilter(filter: NotificationFilter) {
-        if (filterList.contains(filter)) removeFilter(filter)
-    } */
-
     private fun canCreateNotification(campaign: Campaign): Boolean {
         for (filter in filterList) {
             if (!filter.createNotification(campaign, sessionHolder)) {
@@ -66,7 +62,6 @@ class NotificationManager(private val context: Context, private val sessionHolde
             for (event in geofenceEvents) {
                 GlobalLogger.shared.info(context, "Geofence type is: ${event.type}")
                 if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
-
                     runBlocking {
                         withContext(Dispatchers.IO) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
@@ -75,7 +70,6 @@ class NotificationManager(private val context: Context, private val sessionHolde
                                 for (campaign in campaigns) {
                                     if (canCreateNotification(campaign)) {
                                         createNotification(context, event, campaign)
-                                        NotificationDispatcher.dispatchNotification(event, campaign)
                                     }
                                 }
                         }
@@ -129,6 +123,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
         with(notifManager) {
             notify(NotificationHelper.hashCode(event.zone.hash + event.type), builder.build())
+            NotificationDispatcher.dispatchNotification(event, campaign)
         }
 
         GlobalLogger.shared.info(context, "Dispatching notification for $event")

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
@@ -22,10 +23,11 @@ class ConfigWorker(
 
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
+        GlobalLogger.shared.info(applicationContext, "DoWork is called")
 
         val authRequest = AuthRequests(sessionHolder, inputData)
         authRequest.execute {
-            GlobalLogger.shared.info(applicationContext,"Launching configRequest")
+            GlobalLogger.shared.info(applicationContext, "Launching configRequest")
             launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
         }
 
@@ -33,17 +35,23 @@ class ConfigWorker(
     }
 
     private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
+        GlobalLogger.shared.info(
+            applicationContext,
+            "Should launch: ${shouldLaunchConfigRequest(sessionHolder)}"
+        )
         val configResponse = herowAPI.config()
-        GlobalLogger.shared.info(applicationContext,"ConfigResponse: $configResponse")
-
-        Thread.sleep(1000)
+        GlobalLogger.shared.info(
+            applicationContext,
+            "Thread in launchConfig is: ${Thread.currentThread().name}"
+        )
+        GlobalLogger.shared.info(applicationContext, "ConfigResponse: $configResponse")
 
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
-                GlobalLogger.shared.info(applicationContext,"ConfigResponse is successful")
+                GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
 
                 ConfigDispatcher.dispatchConfigResult(configResult)
-                GlobalLogger.shared.info(applicationContext,"Dispatcher method has been called")
+                GlobalLogger.shared.info(applicationContext, "Dispatcher method has been called")
 
                 sessionHolder.saveRepeatInterval(configResult.configInterval)
 
@@ -55,6 +63,8 @@ class ConfigWorker(
                     )
                 }
             }
+
+            sessionHolder.saveConfigLaunch(TimeHelper.getCurrentTime())
         }
     }
 
@@ -91,5 +101,25 @@ class ConfigWorker(
         val remoteCachedTimeToLong = DateHelper.convertStringToTimeStamp(remoteCachedTime)
 
         return (remoteCachedTimeToLong > savedTimeStamp)
+    }
+
+    /**
+     * To avoid lauching Config request too early
+     * we need to make sure the repeat interval value is respected
+     */
+    private fun shouldLaunchConfigRequest(sessionHolder: SessionHolder): Boolean {
+        if (sessionHolder.firstTimeLaunchingConfig()) {
+            return true
+        }
+
+        val lastTimeLaunched =
+            sessionHolder.getLastConfigLaunch() + sessionHolder.getRepeatInterval()
+        val currentTime = TimeHelper.getCurrentTime()
+
+        if (currentTime > lastTimeLaunched) {
+            return true
+        }
+
+        return false
     }
 }

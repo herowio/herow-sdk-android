@@ -11,8 +11,8 @@ enum  class LocationPriority(
     VERY_LOW(  TimeHelper.THREE_MINUTE_MS, 300.0, LocationRequest.PRIORITY_LOW_POWER),
     LOW(  TimeHelper.ONE_MINUTE_MS, 100.0, LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY),
     MEDIUM(  TimeHelper.TWENTY_SECONDS_MS, 50.0, LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY),
-    HIGHT(  TimeHelper.FIVE_SECONDS_MS, 10.0, LocationRequest.PRIORITY_HIGH_ACCURACY),
-    VERY_HIGHT(  TimeHelper.TWO_SECONDS_MS, 5.0, LocationRequest.PRIORITY_HIGH_ACCURACY)
+    HIGH(  TimeHelper.FIVE_SECONDS_MS, 10.0, LocationRequest.PRIORITY_HIGH_ACCURACY),
+    VERY_HIGH(  TimeHelper.TWO_SECONDS_MS, 5.0, LocationRequest.PRIORITY_HIGH_ACCURACY)
 }
 
 

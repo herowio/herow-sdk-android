@@ -11,6 +11,7 @@ import com.google.android.gms.tasks.Task
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateListener
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
@@ -26,8 +27,8 @@ import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.*
 
 class LocationManager(
-    private val context: Context
-
+    private val context: Context,
+    sessionHolder: SessionHolder
 ) : ConfigListener, AppStateListener, LocationListener, LocationPriorityListener {
 
     companion object {
@@ -42,7 +43,7 @@ class LocationManager(
     private val fusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
-    private val geofenceEventGenerator = GeofenceEventGenerator()
+    private val geofenceEventGenerator = GeofenceEventGenerator(sessionHolder)
     private val pendingIntent = createPendingIntent(context)
 
     private val db: HerowDatabase = HerowDatabase.getDatabase(context)
@@ -81,7 +82,7 @@ class LocationManager(
 
     @SuppressLint("MissingPermission")
      fun startMonitoring() {
-        fusedLocationProviderClient.lastLocation?.addOnSuccessListener { location: Location? ->
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 LocationDispatcher.dispatchLocation(location)
             }
@@ -96,7 +97,6 @@ class LocationManager(
      */
     @SuppressLint("MissingPermission")
     private fun updateMonitoring(location: Location? = null) {
-
         zones =  zoneManager.getZones()
         var smallestDistance = Double.MAX_VALUE
         if (location != null && zones != null) {
@@ -112,7 +112,7 @@ class LocationManager(
             }
         }
         GlobalLogger.shared.debug(null, "dispatch location for dispatcher with distance : $smallestDistance")
-          LocationPriorityDispatcher.dispatchPriorityForDistance(smallestDistance)
+        LocationPriorityDispatcher.dispatchPriorityForDistance(smallestDistance)
     }
 
     @SuppressLint("MissingPermission")
@@ -144,7 +144,6 @@ class LocationManager(
     }
 
     override fun onLocationPriority(priority: LocationPriority) {
-
         updateMonitoring(priority)
     }
 
@@ -163,8 +162,10 @@ class LocationManager(
     }
 
     override fun onLocationUpdate(location: Location) {
+        GlobalLogger.shared.info(context, "LocationManager - onLocationUpdate(): Zone Empty? ${zoneManager.isZonesEmpty()}")
         updateMonitoring(location)
         scope.launch {
+            GlobalLogger.shared.info(context, "LocationManager - onLocationUpdate(): Data in DB? ${noDataInDB()}")
             if (zoneManager.isZonesEmpty() || noDataInDB()) {
                 HerowInitializer.getInstance(context).launchCacheRequest(location)
             }
@@ -191,6 +192,4 @@ class LocationManager(
         return zonesInDb.await().isNullOrEmpty() && poisInDb.await()
             .isNullOrEmpty() && campaignsInDb.await().isNullOrEmpty()
     }
-
-
 }

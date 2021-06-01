@@ -82,7 +82,8 @@ class NotificationManagerTest {
                 GeofenceEvent(
                     zoneWithCampaigns as Zone,
                     MockLocation(context).buildLocation(),
-                    GeofenceType.GEOFENCE_NOTIFICATION_ENTER
+                    GeofenceType.GEOFENCE_NOTIFICATION_ENTER,
+                    0.0
                 )
             )
             GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
@@ -102,7 +103,8 @@ class NotificationManagerTest {
                 GeofenceEvent(
                     zoneWithCampaigns as Zone,
                     MockLocation(context).buildLocation(),
-                    GeofenceType.GEOFENCE_NOTIFICATION_ENTER
+                    GeofenceType.GEOFENCE_NOTIFICATION_ENTER,
+                    0.0
                 )
             )
             GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)

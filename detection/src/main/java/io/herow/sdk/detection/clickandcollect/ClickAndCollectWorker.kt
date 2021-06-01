@@ -83,7 +83,6 @@ class ClickAndCollectWorker(
             delay(TimeHelper.TWO_HOUR_MS)
         }
 
-
         if (hasLocationPermission()) {
             stopLocationsUpdate()
         }
@@ -139,9 +138,9 @@ class ClickAndCollectWorker(
     private fun buildLocationRequest(): LocationRequest {
         val request = LocationRequest()
         request.fastestInterval = TimeHelper.TEN_SECONDS_MS
-        request.interval = LocationPriority.HIGHT.interval
-        request.priority = LocationPriority.HIGHT.priority
-        request.smallestDisplacement = LocationPriority.HIGHT.smallestDistance.toFloat()
+        request.interval = LocationPriority.HIGH.interval
+        request.priority = LocationPriority.HIGH.priority
+        request.smallestDisplacement = LocationPriority.HIGH.smallestDistance.toFloat()
         return request
     }
 

@@ -9,15 +9,12 @@ import io.herow.sdk.common.logger.GlobalLogger
 class LocationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (LocationResult.hasResult(intent)) {
-
             GlobalLogger.shared.info(context, "LocationResult.hasResult: $intent")
             val locationResult = LocationResult.extractResult(intent)
 
             GlobalLogger.shared.info(context, "LocationResult is: $locationResult")
-            if (locationResult != null && locationResult.lastLocation != null) {
-                LocationDispatcher.dispatchLocation(locationResult.lastLocation)
-                GlobalLogger.shared.info(context, "Dispatching location is done")
-            }
+            LocationDispatcher.dispatchLocation(locationResult.lastLocation)
+            GlobalLogger.shared.info(context, "Dispatching location is done")
         }
     }
 }

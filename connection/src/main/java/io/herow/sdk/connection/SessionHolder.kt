@@ -1,9 +1,13 @@
 package io.herow.sdk.connection
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
+import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.model.mapper.HerowCappingMapper
 import io.herow.sdk.connection.userinfo.UserInfo
+import java.lang.reflect.Type
 
 class SessionHolder(private val dataHolder: DataHolder) {
     companion object {
@@ -22,6 +26,9 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_SDK = "common.sdk"
         private const val KEY_CLICK_AND_COLLECT_PROGRESS = "detection.click_and_collect_progress"
         private const val KEY_HEROW_CAPPING = "detection.herow_capping"
+        private const val KEY_LAUNCH_CONFIG = "detection.config_request"
+        private const val KEY_SAVED_PREVIOUS_ZONES = "detection.previous_zones"
+        private const val KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION = "detection.previous_zones_for_notification"
     }
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
@@ -163,4 +170,46 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun getHerowCapping(): HerowCappingMapper =
         GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCappingMapper::class.java)
+
+    fun firstTimeLaunchingConfig(): Boolean = !dataHolder.containsKey(KEY_LAUNCH_CONFIG)
+
+    fun saveConfigLaunch(time: Long) {
+        dataHolder[KEY_LAUNCH_CONFIG] = time
+    }
+
+    fun getLastConfigLaunch(): Long = dataHolder[KEY_LAUNCH_CONFIG]
+    
+    fun hasPreviousZones(): Boolean = dataHolder.containsKey(KEY_SAVED_PREVIOUS_ZONES)
+    
+    fun hasPreviousZonesForNotification(): Boolean = dataHolder.containsKey(
+        KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
+
+    fun savePreviousZones(zones: List<Zone>) {
+        dataHolder[KEY_SAVED_PREVIOUS_ZONES] = Gson().toJson(zones)
+    }
+
+    fun savePreviousZonesForNotification(zonesForNotification: List<Zone>) {
+        dataHolder[KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION] = Gson().toJson(zonesForNotification)
+    }
+
+    fun getSavedPreviousZones(): ArrayList<Zone> {
+        val savedPreviousZones = dataHolder.get<String>(KEY_SAVED_PREVIOUS_ZONES)
+
+        val listType: Type = object :
+            TypeToken<ArrayList<Zone>?>() {}.type
+        return Gson().fromJson(savedPreviousZones, listType)
+    }
+
+    fun getSavedPreviousZonesForNotification(): ArrayList<Zone> {
+        val savedPreviousZonesForNotification = dataHolder.get<String>(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
+
+        val listType: Type = object :
+            TypeToken<ArrayList<Zone>?>() {}.type
+        return Gson().fromJson(savedPreviousZonesForNotification, listType)
+    }
+
+    fun clearPreviousZones() = dataHolder.removeKey(KEY_SAVED_PREVIOUS_ZONES)
+
+    fun clearPreviousZonesForNotification() = dataHolder.removeKey(
+        KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
 }

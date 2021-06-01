@@ -2,12 +2,22 @@ package io.herow.sdk.detection.geofencing
 
 import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.detection.zones.ZoneListener
 
-class GeofenceEventGenerator: ZoneListener {
-    private var previousDetectedZones = ArrayList<Zone>()
-    private var previousDetectedZonesForNotification = ArrayList<Zone>()
+class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
+    private var previousDetectedZones: ArrayList<Zone> = if (sessionHolder.hasPreviousZones()) {
+        sessionHolder.getSavedPreviousZones()
+    } else {
+        ArrayList()
+    }
+
+    private var previousDetectedZonesForNotification: ArrayList<Zone> = if (sessionHolder.hasPreviousZonesForNotification()) {
+        sessionHolder.getSavedPreviousZonesForNotification()
+    } else {
+        ArrayList()
+    }
 
     private val confidenceToUpdate = 0.0
 
@@ -22,6 +32,7 @@ class GeofenceEventGenerator: ZoneListener {
     private fun defineGeofenceEventType(zones: List<Zone>, location: Location, type: GeofenceType?, previousZonesDetected: ArrayList<Zone>) {
         val liveEvents = ArrayList<GeofenceEvent>()
         GlobalLogger.shared.info(null,"Zones at start are: $zones")
+        GlobalLogger.shared.info(null,"Previous zones are: $previousZonesDetected")
 
         if (previousZonesDetected.isEmpty()) {
             GlobalLogger.shared.info(null,"Previous detected zone is empty")
@@ -76,9 +87,15 @@ class GeofenceEventGenerator: ZoneListener {
         if (type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
             previousDetectedZonesForNotification.clear()
             previousDetectedZonesForNotification.addAll(zones)
+
+            sessionHolder.clearPreviousZonesForNotification()
+            sessionHolder.savePreviousZonesForNotification(zones)
         } else {
             previousDetectedZones.clear()
             previousDetectedZones.addAll(zones)
+
+            sessionHolder.clearPreviousZones()
+            sessionHolder.savePreviousZones(zones)
         }
 
         GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)

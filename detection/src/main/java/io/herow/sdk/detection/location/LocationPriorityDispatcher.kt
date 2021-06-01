@@ -4,7 +4,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 object LocationPriorityDispatcher {
 
-    private var currentPriority = LocationPriority.VERY_HIGHT
+    private var currentPriority = LocationPriority.VERY_HIGH
     private val locationPriorityListeners = CopyOnWriteArrayList<LocationPriorityListener>()
 
     fun registerLocationPriorityListener(listener: LocationPriorityListener) {
@@ -39,10 +39,10 @@ object LocationPriorityDispatcher {
             dispatchPriority(LocationPriority.MEDIUM)
         }
         if (distance < 100.0) {
-            dispatchPriority(LocationPriority.HIGHT)
+            dispatchPriority(LocationPriority.HIGH)
         }
         if (distance < 50) {
-            dispatchPriority(LocationPriority.VERY_HIGHT)
+            dispatchPriority(LocationPriority.VERY_HIGH)
         }
     }
 }

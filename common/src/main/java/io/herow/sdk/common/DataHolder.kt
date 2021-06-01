@@ -59,4 +59,10 @@ class DataHolder(context: Context, prefsName: String = DEFAULT_SHARED_PREFS_NAME
     }
 
     fun containsKey(key: String): Boolean = preferences.contains(key)
+
+    fun removeKey(key: String) {
+        if (containsKey(key)) {
+            preferences.edit().remove(key).apply()
+        }
+    }
 }

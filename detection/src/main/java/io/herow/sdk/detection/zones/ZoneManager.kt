@@ -67,7 +67,7 @@ class ZoneManager(
 
     @SuppressLint("MissingPermission")
     private fun updateGeofencesMonitoring() {
-        geofencingClient.removeGeofences(pendingIntent)?.run {
+        geofencingClient.removeGeofences(pendingIntent).run {
             addOnSuccessListener {
                 GlobalLogger.shared.info(context,"Inside addOnSuccessListener")
                 addGeofences()
@@ -86,7 +86,7 @@ class ZoneManager(
             val geofences = GeofencingHelper.buildGeofenceList(zones)
             val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
 
-            geofencingClient.addGeofences(geofenceRequest, pendingIntent)?.run {
+            geofencingClient.addGeofences(geofenceRequest, pendingIntent).run {
                 addOnSuccessListener {
                     GlobalLogger.shared.info(context,"addOnSuccessListener - The geofences has been correctly added")
                     println("The geofences has been correctly added")
@@ -121,7 +121,7 @@ class ZoneManager(
         }
         ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
         ZoneDispatcher.dispatchDetectedZonesForNotification(detectedZoneForNotification, location)
-        GlobalLogger.shared.info(context,"Zones dispatched: $detectedZones")
+        GlobalLogger.shared.info(context,"Zones dispatched: $detectedZones and location: $location")
         GlobalLogger.shared.info(context,"Zones dispatched for notification: $detectedZoneForNotification")
     }
 

@@ -12,7 +12,7 @@ object ZoneDispatcher {
     private val zoneListeners = CopyOnWriteArrayList<ZoneListener>()
 
     fun dispatchDetectedZones(zones: List<Zone>, location: Location) {
-        GlobalLogger.shared.info(null,"Dispatching zones: $zones")
+        GlobalLogger.shared.info(null,"Dispatching zones: $zones, and location: $location")
 
         for (zoneListener in zoneListeners) {
             zoneListener.detectedZones(zones, location)
