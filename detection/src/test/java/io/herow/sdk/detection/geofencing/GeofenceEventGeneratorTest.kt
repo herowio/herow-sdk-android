@@ -2,6 +2,8 @@ package io.herow.sdk.detection.geofencing
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import io.herow.sdk.common.DataHolder
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.detection.MockLocation
 import org.junit.Assert
@@ -23,7 +25,7 @@ class GeofenceEventGeneratorTest {
     fun setUp() {
         GeofenceDispatcher.reset()
         context = ApplicationProvider.getApplicationContext()
-        geofenceEventGenerator = GeofenceEventGenerator()
+        geofenceEventGenerator = GeofenceEventGenerator(SessionHolder(DataHolder(context)))
         GeofenceDispatcher.addGeofenceListener(herowGeofenceListener)
     }
 

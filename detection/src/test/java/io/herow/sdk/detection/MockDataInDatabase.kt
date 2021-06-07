@@ -7,17 +7,19 @@ import io.herow.sdk.connection.cache.model.Capping
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.connection.database.HerowDatabaseHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 class MockDataInDatabase(context: Context) {
-
-    private val db: HerowDatabase = HerowDatabase.getDatabase(context)
-    private val zoneRepository: ZoneRepository = ZoneRepository(db.zoneDAO())
-    private val campaignRepository: CampaignRepository = CampaignRepository(db.campaignDAO())
+    private val zoneRepository: ZoneRepository by lazy {
+        HerowDatabaseHelper.getZoneRepository(context)
+    }
+    private val campaignRepository: CampaignRepository by lazy {
+        HerowDatabaseHelper.getCampaignRepository(context)
+    }
 
     suspend fun createAndInsertZoneOne(): Zone {
         val zone = Zone(
@@ -45,7 +47,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -62,7 +64,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -80,7 +82,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -122,7 +124,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -140,7 +142,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -158,7 +160,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -176,7 +178,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -194,7 +196,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -213,7 +215,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -232,7 +234,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
@@ -253,7 +255,7 @@ class MockDataInDatabase(context: Context) {
         )
 
         var campaignInDB: Campaign? = null
-        val job =  CoroutineScope(Dispatchers.IO).async {
+        val job = CoroutineScope(Dispatchers.IO).async {
             withContext(Dispatchers.IO) {
                 campaignRepository.insert(campaign)
                 campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)

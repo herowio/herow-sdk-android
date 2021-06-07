@@ -5,7 +5,7 @@ package io.herow.sdk.common.states.app
  * When the application starts, the onAppInBackground method is called.
  * Next, if an activity starts, the onAppInForeground method is called.
  */
-interface AppStateListener {
+interface IAppStateListener {
     fun onAppInForeground()
     fun onAppInBackground()
 }

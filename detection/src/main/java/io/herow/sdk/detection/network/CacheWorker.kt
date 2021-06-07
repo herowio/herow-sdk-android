@@ -9,10 +9,8 @@ import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.CacheResult
-import io.herow.sdk.connection.cache.repository.CampaignRepository
-import io.herow.sdk.connection.cache.repository.PoiRepository
-import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.connection.database.HerowDatabaseHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -27,10 +25,10 @@ class CacheWorker(
 ) : CoroutineWorker(context, workerParameters) {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-    private lateinit var zoneRepository: ZoneRepository
-    private lateinit var poiRepository: PoiRepository
-    private lateinit var campaignRepository: CampaignRepository
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
+    private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+    private val poiRepository = HerowDatabaseHelper.getPoiRepository(context)
+    private val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
@@ -39,11 +37,7 @@ class CacheWorker(
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val authRequest = AuthRequests(sessionHolder, inputData)
-        val database: HerowDatabase = HerowDatabase.getDatabase(applicationContext)
-
-        zoneRepository = ZoneRepository(database.zoneDAO())
-        poiRepository = PoiRepository(database.poiDAO())
-        campaignRepository = CampaignRepository(database.campaignDAO())
+        val database: HerowDatabase = HerowDatabase.getDatabase(context)
 
         if (!sessionHolder.getOptinValue()) {
             GlobalLogger.shared.info(context,"Optin value is set to false")
@@ -55,7 +49,6 @@ class CacheWorker(
                 GlobalLogger.shared.info(context,"Launching cacheRequest")
                 launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
             }
-
         }
 
         return Result.success()

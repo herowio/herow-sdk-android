@@ -13,11 +13,11 @@ import java.util.concurrent.CopyOnWriteArrayList
  */
 class AppStateDetector: LifecycleObserver {
     companion object {
-        fun addAppStateListener(appStateListener: AppStateListener) {
+        fun addAppStateListener(appStateListener: IAppStateListener) {
             appStateListeners.add(appStateListener)
         }
 
-        private val appStateListeners = CopyOnWriteArrayList<AppStateListener>()
+        private val appStateListeners = CopyOnWriteArrayList<IAppStateListener>()
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)

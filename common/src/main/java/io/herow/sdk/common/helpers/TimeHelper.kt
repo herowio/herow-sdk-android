@@ -10,12 +10,7 @@ object TimeHelper {
     const val THIRTY_SECONDS_MS = 30 * 1000L
     const val ONE_MINUTE_MS = 60 * 1000L
     const val THREE_MINUTE_MS = 3 * 60 * 1000L
-    const val FIVE_MINUTES_MS = 5 * 60 * 1000L
-    const val TEN_MINUTES_MS = 10 * 60 * 1000L
-    const val FIFTEEN_MINUTES_MS = 15 * 60 * 1000L
-    const val ONE_HOUR_MS = 60 * 60 * 1000L
     const val TWO_HOUR_MS = 2 * 60 * 60 * 1000L
-    const val TWENTY_FOUR_HOUR_MS = 24 * 60 * 60 * 1000L
     var testing = false
 
     fun getCurrentTime(): Long = System.currentTimeMillis()

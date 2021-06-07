@@ -10,16 +10,13 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
-import io.herow.sdk.common.states.app.AppStateListener
+import io.herow.sdk.common.states.app.IAppStateListener
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.cache.repository.CampaignRepository
-import io.herow.sdk.connection.cache.repository.PoiRepository
-import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
 import io.herow.sdk.detection.zones.ZoneDispatcher
@@ -29,7 +26,7 @@ import kotlinx.coroutines.*
 class LocationManager(
     private val context: Context,
     sessionHolder: SessionHolder
-) : ConfigListener, AppStateListener, LocationListener, LocationPriorityListener {
+) : ConfigListener, IAppStateListener, LocationListener, LocationPriorityListener {
 
     companion object {
         private const val LOCATION_REQUEST_CODE = 1515
@@ -46,7 +43,6 @@ class LocationManager(
     private val geofenceEventGenerator = GeofenceEventGenerator(sessionHolder)
     private val pendingIntent = createPendingIntent(context)
 
-    private val db: HerowDatabase = HerowDatabase.getDatabase(context)
     private var zones: List<Zone>? = null
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
@@ -167,15 +163,26 @@ class LocationManager(
         scope.launch {
             GlobalLogger.shared.info(context, "LocationManager - onLocationUpdate(): Data in DB? ${noDataInDB()}")
             if (zoneManager.isZonesEmpty() || noDataInDB()) {
-                HerowInitializer.getInstance(context).launchCacheRequest(location)
+
+                withContext(Dispatchers.Default) {
+                    HerowInitializer.getInstance(context).launchCacheRequest(location)
+                }
+
+                val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+                val job = scope.async(dispatcher) { zoneRepository.getAllZones() }
+                val zonesResult = job.await() as ArrayList<Zone>
+
+                GlobalLogger.shared.info(context, "ZonesResult is $zonesResult")
+
+                ZoneManager(context, zonesResult).dispatchZonesAndNotification(location)
             }
         }
     }
 
     private suspend fun noDataInDB(): Boolean {
-        val zoneRepository = ZoneRepository(db.zoneDAO())
-        val poiRepository = PoiRepository(db.poiDAO())
-        val campaignRepository = CampaignRepository(db.campaignDAO())
+        val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+        val poiRepository = HerowDatabaseHelper.getPoiRepository(context)
+        val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
 
         val zonesInDb = scope.async(dispatcher) {
             zoneRepository.getAllZones()

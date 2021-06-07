@@ -57,12 +57,14 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                 GlobalLogger.shared.info(null, "Zones are: $zones")
                 GlobalLogger.shared.info(null, "PreviousZone is: $previousZone")
 
-                val exit = zones.none { z -> z.hash == previousZone.hash }
-                if (exit) {
-                    GlobalLogger.shared.info(null, "Adding zone - Type EXIT")
-                    val geofenceEvent = GeofenceEvent(previousZone, location, GeofenceType.EXIT, confidenceToUpdate)
-                    geofenceEvent.confidence = geofenceEvent.computeExitConfidence(location, previousZone)
-                    liveEvents.add(geofenceEvent)
+                if (type == null) {
+                    val exit = zones.none { z -> z.hash == previousZone.hash }
+                    if (exit) {
+                        GlobalLogger.shared.info(null, "Adding zone - Type EXIT")
+                        val geofenceEvent = GeofenceEvent(previousZone, location, GeofenceType.EXIT, confidenceToUpdate)
+                        geofenceEvent.confidence = geofenceEvent.computeExitConfidence(location, previousZone)
+                        liveEvents.add(geofenceEvent)
+                    }
                 }
             }
 

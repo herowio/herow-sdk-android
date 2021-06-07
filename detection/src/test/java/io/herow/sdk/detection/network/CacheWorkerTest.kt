@@ -2,6 +2,7 @@ package io.herow.sdk.detection.network
 
 import android.content.Context
 import android.location.Location
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
@@ -50,7 +51,10 @@ class CacheWorkerTest {
 
         sessionHolder.saveOptinValue(true)
         sessionHolder.saveSDKID("test")
-        db = HerowDatabase.getDatabase(context)
+        db = Room
+            .inMemoryDatabaseBuilder(context, HerowDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
         zoneRepository = ZoneRepository(db.zoneDAO())
         poiRepository = PoiRepository(db.poiDAO())
 

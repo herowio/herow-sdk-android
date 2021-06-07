@@ -14,9 +14,8 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigDispatcher
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
@@ -35,6 +34,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class HerowInitializer private constructor(val context: Context) {
     private val appStateDetector = AppStateDetector()
@@ -44,11 +44,9 @@ class HerowInitializer private constructor(val context: Context) {
     private var locationManager: LocationManager
     private var logsManager: LogsManager
     private var workManager: WorkManager
-    private var database: HerowDatabase
     private var notificationManager: NotificationManager
 
     private var sessionHolder: SessionHolder
-    private val initialRepeatInterval: Long = 900000
 
     init {
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
@@ -58,7 +56,6 @@ class HerowInitializer private constructor(val context: Context) {
         loadIdentifiers(context)
         locationManager = LocationManager(context, sessionHolder)
         notificationManager = NotificationManager(context, sessionHolder)
-        database = HerowDatabase.getDatabase(context)
         registerListeners()
     }
 
@@ -155,14 +152,14 @@ class HerowInitializer private constructor(val context: Context) {
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
      */
-    /* private fun launchConfigRequest() {
+    private fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
             GlobalLogger.shared.info(context, "Repeat Interval is not saved yet")
-            initialRepeatInterval
+            900000
         } else {
             GlobalLogger.shared.info(context, "Repeat Interval is saved")
             val savedRepeat = sessionHolder.getRepeatInterval()
@@ -198,30 +195,6 @@ class HerowInitializer private constructor(val context: Context) {
             ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest
         )
-        GlobalLogger.shared.info(context, "Config request is enqueued")
-    } */
-
-    private fun launchConfigRequest() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
-
-        val workRequest =
-            OneTimeWorkRequestBuilder<ConfigWorker>()
-                .addTag(NetworkWorkerTags.CONFIG)
-                .setConstraints(constraints)
-                .setInputData(
-                    workDataOf(
-                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customID,
-                        AuthRequests.KEY_PLATFORM to platform.name
-                    )
-                )
-                .build()
-        workManager.enqueue(workRequest)
         GlobalLogger.shared.info(context, "Config request is enqueued")
     }
 
@@ -321,12 +294,11 @@ class HerowInitializer private constructor(val context: Context) {
     }
 
     fun fetchZonesInDatabase(): List<Zone>? {
-        val zoneRepository = ZoneRepository(database.zoneDAO())
+        val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
         return zoneRepository.getAllZones()
     }
 
     fun getSDKID(): String = sessionHolder.getSDKID()
-
 
     /**
      * Save user choice optin value

@@ -37,9 +37,6 @@ class MockServerTest {
     private lateinit var context: Context
     private lateinit var herowDatabase: HerowDatabase
 
-    private lateinit var zoneDAO: ZoneDAO
-    private lateinit var poiDAO: PoiDAO
-    private lateinit var campaignDAO: CampaignDAO
     private lateinit var zoneRepository: ZoneRepository
     private lateinit var poiRepository: PoiRepository
     private lateinit var campaignRepository: CampaignRepository
@@ -54,14 +51,9 @@ class MockServerTest {
             .allowMainThreadQueries()
             .build()
 
-        zoneDAO = herowDatabase.zoneDAO()
-        zoneRepository = ZoneRepository(zoneDAO)
-
-        poiDAO = herowDatabase.poiDAO()
-        poiRepository = PoiRepository(poiDAO)
-
-        campaignDAO = herowDatabase.campaignDAO()
-        campaignRepository = CampaignRepository(campaignDAO)
+        zoneRepository = ZoneRepository(herowDatabase.zoneDAO())
+        poiRepository = PoiRepository(herowDatabase.poiDAO())
+        campaignRepository = CampaignRepository(herowDatabase.campaignDAO())
 
         runBlocking {
             result = api.cache()

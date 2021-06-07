@@ -7,7 +7,6 @@ import android.os.BatteryManager
 import android.provider.Settings
 
 object DeviceHelper {
-
     var testing: Boolean = false
 
     @SuppressLint("HardwareIds")
@@ -17,7 +16,6 @@ object DeviceHelper {
         } else {
             Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
         }
-
     }
 
     fun getUserAgent(): String {

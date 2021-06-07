@@ -8,9 +8,7 @@ import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.cache.repository.CampaignRepository
-import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.detection.R
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
@@ -24,9 +22,8 @@ class NotificationManager(private val context: Context, private val sessionHolde
     GeofenceListener {
 
     private val filterList: ArrayList<NotificationFilter> = arrayListOf()
-    private val zoneRepository = ZoneRepository(HerowDatabase.getDatabase(context).zoneDAO())
-    private val campaignRepository =
-        CampaignRepository(HerowDatabase.getDatabase(context).campaignDAO())
+    private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+    private val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
 
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000

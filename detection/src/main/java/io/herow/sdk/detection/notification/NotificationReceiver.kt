@@ -13,8 +13,8 @@ import io.herow.sdk.detection.analytics.model.LogRedirect
 
 class NotificationReceiver : BroadcastReceiver() {
 
-    // This event is called when user clicks on a notification
-    // We dispatch a Log with subtype REDIRECT whenever someone clicks on a notification
+    /** This event is called when user clicks on a notification
+     * We dispatch a Log with subtype REDIRECT whenever someone clicks on a notification **/
     override fun onReceive(context: Context?, intent: Intent) {
         GlobalLogger.shared.info(context, "Data received from notification: $intent")
 

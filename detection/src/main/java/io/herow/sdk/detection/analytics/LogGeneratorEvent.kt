@@ -3,7 +3,7 @@ package io.herow.sdk.detection.analytics
 import android.content.Context
 import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
-import io.herow.sdk.common.states.app.AppStateListener
+import io.herow.sdk.common.states.app.IAppStateListener
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.Campaign
@@ -11,9 +11,7 @@ import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.model.mapper.PoiMapper
 import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
-import io.herow.sdk.connection.cache.repository.PoiRepository
-import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExitorNotification
@@ -35,7 +33,7 @@ class LogGeneratorEvent(
     private val sessionHolder: SessionHolder,
     val context: Context
 ) :
-    AppStateListener, CacheListener, LocationListener, GeofenceListener, NotificationListener {
+    IAppStateListener, CacheListener, LocationListener, GeofenceListener, NotificationListener {
 
     companion object {
         private const val DISTANCE_POI_MAX = 20_000
@@ -50,9 +48,13 @@ class LogGeneratorEvent(
     private var appState: String = "bg"
     var cachePois = ArrayList<Poi>()
     var cacheZones = ArrayList<Zone>()
-    private val db: HerowDatabase = HerowDatabase.getDatabase(context)
-
     private val listOfTemporaryLogsVisit = ArrayList<HerowLogVisit>()
+    private val zoneRepository by lazy {
+        HerowDatabaseHelper.getZoneRepository(context)
+    }
+    private val poiRepository by lazy {
+        HerowDatabaseHelper.getPoiRepository(context)
+    }
 
     override fun onAppInForeground() {
         appState = "fg"
@@ -140,12 +142,10 @@ class LogGeneratorEvent(
         GlobalLogger.shared.info(context, "CachePois before fetching are: $cachePois")
 
         runBlocking {
-            val job = async(ioDispatcher) {
+            withContext(ioDispatcher) {
                 retrievePois().let { cachePois.addAll(it) }
                 retrieveZones().let { cacheZones.addAll(it) }
             }
-
-            job.await()
         }
 
         GlobalLogger.shared.info(context, "CachePois after fetching are: $cachePois")
@@ -157,6 +157,10 @@ class LogGeneratorEvent(
         val listOfLogsVisit = ArrayList<Log>()
 
         for (geofenceEvent in geofenceEvents) {
+            if (geofenceEvent.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
+                return
+            }
+
             val herowLogEnterOrExit = HerowLogEnterOrExitorNotification(appState, geofenceEvent)
             herowLogEnterOrExit.enrich(applicationData, sessionHolder)
             listOfLogsEnterOrExit.add(Log(herowLogEnterOrExit))
@@ -196,8 +200,6 @@ class LogGeneratorEvent(
     }
 
     private suspend fun retrievePois(): ArrayList<Poi> {
-        val poiRepository = PoiRepository(db.poiDAO())
-
         val poisInDB = scope.async(ioDispatcher) {
             poiRepository.getAllPois() as ArrayList<Poi>
         }
@@ -206,8 +208,6 @@ class LogGeneratorEvent(
     }
 
     private suspend fun retrieveZones(): ArrayList<Zone> {
-        val zoneRepository = ZoneRepository(db.zoneDAO())
-
         val zonesInDb = scope.async(ioDispatcher) {
             zoneRepository.getAllZones() as ArrayList<Zone>
         }
