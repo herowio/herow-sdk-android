@@ -138,7 +138,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
         intent.putExtra(ID_ZONE, hash)
         intent.putExtra(ID_CAMPAIGN, idCampaign)
 
-        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion(context) < 30) {
+        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
             PendingIntent.FLAG_CANCEL_CURRENT
         } else {
             PendingIntent.FLAG_IMMUTABLE

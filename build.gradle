@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlin_version = "1.5.0"
+        kotlin_version = "1.5.10"
         kotlin_coroutines_version = "1.4.3"
         lifecycle_version = "2.2.0"
         okhttp_version = "4.9.0"

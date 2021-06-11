@@ -49,7 +49,7 @@ class LocationManager(
     @SuppressLint("InlinedApi")
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
-        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion(context) < 30) {
+        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
             PendingIntent.FLAG_CANCEL_CURRENT
         } else {
             PendingIntent.FLAG_IMMUTABLE

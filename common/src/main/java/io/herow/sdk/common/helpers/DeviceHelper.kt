@@ -28,7 +28,7 @@ object DeviceHelper {
         return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
     }
 
-    fun getCurrentAndroidVersion(context: Context): Int {
+    fun getCurrentAndroidVersion(): Int {
         return Build.VERSION.SDK_INT
     }
 }

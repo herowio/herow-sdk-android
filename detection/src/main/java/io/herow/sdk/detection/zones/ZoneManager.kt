@@ -7,6 +7,7 @@ import android.content.Intent
 import android.location.Location
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
+import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.Zone
@@ -36,11 +37,17 @@ class ZoneManager(
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)
+        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
+            PendingIntent.FLAG_CANCEL_CURRENT
+        } else {
+            PendingIntent.FLAG_IMMUTABLE
+        }
+
         return PendingIntent.getBroadcast(
             context,
             GEOFENCE_REQUEST_CODE,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
+            pendingIntent
         )
     }
 

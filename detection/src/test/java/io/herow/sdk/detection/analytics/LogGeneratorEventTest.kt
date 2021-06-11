@@ -30,6 +30,7 @@ class LogGeneratorEventTest {
     private lateinit var logGeneratorEvent: LogGeneratorEvent
 
     private lateinit var context: Context
+    private val confidence: Double = 0.0
 
     @Before
     fun setUp() {
@@ -94,14 +95,14 @@ class LogGeneratorEventTest {
             )
         )
 
-        val firstGeofenceEvent = GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
-        val secondGeofenceEvent = GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.ENTER)
+        val firstGeofenceEvent = GeofenceEvent(firstZone, MockLocation().buildLocation(), GeofenceType.ENTER, confidence)
+        val secondGeofenceEvent = GeofenceEvent(secondZone, MockLocation().buildLocation(), GeofenceType.ENTER, confidence)
         logGeneratorEvent.onGeofenceEvent(listOf(firstGeofenceEvent, secondGeofenceEvent))
         Assert.assertEquals(0, herowLogsListener.herowLogsVisit.size)
 
         delay(500)
 
-        val updatedFirstGeofenceEvent = GeofenceEvent(firstZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
+        val updatedFirstGeofenceEvent = GeofenceEvent(firstZone, MockLocation().buildLocation(), GeofenceType.EXIT, confidence)
         logGeneratorEvent.onGeofenceEvent(listOf(updatedFirstGeofenceEvent, secondGeofenceEvent))
         Assert.assertEquals(1, herowLogsListener.herowLogsVisit.size)
 
@@ -114,7 +115,7 @@ class LogGeneratorEventTest {
 
         delay(1_000)
 
-        val updatedSecondGeofenceEvent = GeofenceEvent(secondZone, MockLocation(context).buildLocation(), GeofenceType.EXIT)
+        val updatedSecondGeofenceEvent = GeofenceEvent(secondZone, MockLocation().buildLocation(), GeofenceType.EXIT, confidence)
         logGeneratorEvent.onGeofenceEvent(listOf(updatedSecondGeofenceEvent))
         Assert.assertEquals(1, herowLogsListener.herowLogsVisit.size)
 

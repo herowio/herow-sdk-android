@@ -38,7 +38,7 @@ class ClickAndCollectWorker(
     @SuppressLint("InlinedApi")
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
-        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion(context) < 30) {
+        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
             PendingIntent.FLAG_CANCEL_CURRENT
         } else {
             PendingIntent.FLAG_IMMUTABLE
@@ -114,13 +114,13 @@ class ClickAndCollectWorker(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun buildLocationRequest(priority: LocationPriority): LocationRequest {
-        val request = LocationRequest()
-        request.smallestDisplacement = priority.smallestDistance.toFloat()
-        request.fastestInterval = TimeHelper.TEN_SECONDS_MS
-        request.interval = priority.interval
-        request.priority = priority.priority
-        return request
+    private fun buildLocationRequest(locationPriority: LocationPriority): LocationRequest {
+        return LocationRequest.create().apply {
+            smallestDisplacement = locationPriority.smallestDistance.toFloat()
+            fastestInterval = TimeHelper.TEN_SECONDS_MS
+            interval = locationPriority.interval
+            priority = locationPriority.priority
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -144,12 +144,12 @@ class ClickAndCollectWorker(
     }
 
     private fun buildLocationRequest(): LocationRequest {
-        val request = LocationRequest()
-        request.fastestInterval = TimeHelper.TEN_SECONDS_MS
-        request.interval = LocationPriority.HIGH.interval
-        request.priority = LocationPriority.HIGH.priority
-        request.smallestDisplacement = LocationPriority.HIGH.smallestDistance.toFloat()
-        return request
+        return LocationRequest.create().apply {
+            fastestInterval = TimeHelper.TEN_SECONDS_MS
+            interval = LocationPriority.HIGH.interval
+            priority = LocationPriority.HIGH.priority
+            smallestDisplacement = LocationPriority.HIGH.smallestDistance.toFloat()
+        }
     }
 
     @SuppressLint("MissingPermission")

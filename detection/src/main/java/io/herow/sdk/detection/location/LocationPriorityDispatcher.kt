@@ -20,10 +20,6 @@ object LocationPriorityDispatcher {
         locationPriorityListeners.add(listener)
     }
 
-    fun unregisterLocationPriorityListener(listener: LocationPriorityListener) {
-        locationPriorityListeners.remove(listener)
-    }
-
     private fun dispatchPriority(priority: LocationPriority) {
         if (priority != currentPriority) {
             currentPriority = priority

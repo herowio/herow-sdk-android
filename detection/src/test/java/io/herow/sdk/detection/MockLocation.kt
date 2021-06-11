@@ -1,17 +1,11 @@
 package io.herow.sdk.detection
 
-import android.content.Context
 import android.location.Location
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Access
 import io.herow.sdk.connection.cache.model.Zone
-import kotlinx.coroutines.Dispatchers
 
-class MockLocation(
-    private val context: Context
-) {
-
-    private val ioDispatcher = Dispatchers.IO
+class MockLocation {
 
      fun buildZone(
         lat: Double = RandomGenerator.lat(),
@@ -20,7 +14,7 @@ class MockLocation(
         radius: Double = RandomGenerator.randomInt().toDouble(),
         hash: String = RandomGenerator.alphanumericalString()
     ): Zone {
-        return Zone(zoneId, hash, lat, lng, radius, null, buildAccess())
+        return Zone(zoneId, hash, lat, lng, radius, null, access = buildAccess())
     }
 
     private fun buildAccess(

@@ -34,7 +34,8 @@ abstract class HerowDatabase: RoomDatabase() {
                 context,
                 HerowDatabase::class.java,
                 "herow_BDD"
-            ).build()
+            ).fallbackToDestructiveMigration()
+                .build()
 
             INSTANCE = instance
             instance
