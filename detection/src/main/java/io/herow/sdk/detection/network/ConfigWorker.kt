@@ -57,7 +57,7 @@ class ConfigWorker(
 
                 val headers = configResponse.headers()
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->
-                    checkCacheState(
+                    defineCacheStatus(
                         sessionHolder,
                         remoteCachedTime
                     )
@@ -71,7 +71,7 @@ class ConfigWorker(
     /**
      * Check if cache time has already been saved into SP
      */
-    private fun checkCacheState(
+    private fun defineCacheStatus(
         sessionHolder: SessionHolder,
         remoteCachedTime: String
     ) {
@@ -100,7 +100,9 @@ class ConfigWorker(
             DateHelper.convertStringToTimeStamp(sessionHolder.getLastSavedModifiedDateTimeCache())
         val remoteCachedTimeToLong = DateHelper.convertStringToTimeStamp(remoteCachedTime)
 
-        return (remoteCachedTimeToLong > savedTimeStamp)
+        GlobalLogger.shared.info(null, "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp")
+
+        return remoteCachedTimeToLong > savedTimeStamp
     }
 
     /**

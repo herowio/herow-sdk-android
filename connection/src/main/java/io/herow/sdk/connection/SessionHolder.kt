@@ -13,13 +13,16 @@ class SessionHolder(private val dataHolder: DataHolder) {
     companion object {
         private const val KEY_ACCESS_TOKEN = "common.access_token"
         private const val KEY_HEROW_ID = "common.herow_id"
+        private const val KEY_SDK_KEY = "common.sdk_key"
         private const val KEY_DEVICE_ID = "common.device_id"
         private const val KEY_CUSTOM_ID = "common.custom_id"
+        private const val KEY_PLATFORM_NAME = "common.platform_name"
         private const val KEY_ADVERTISER_ID = "detection.ad_id"
         private const val KEY_TOKEN_TIMEOUT = "common.timeout_token"
         private const val KEY_USER_INFO = "common.user_info"
         private const val KEY_CACHE_TIMEOUT = "common.timeout_cache"
         private const val KEY_UPDATE_CACHE = "common_update_cache"
+        private const val KEY_LAST_LAUNCH_CACHE = "common_last_cache_request"
         private const val KEY_SAVED_GEOHASH = "common.saved_geohash"
         private const val KEY_REPEAT_INTERVAL = "common.repeat_interval"
         private const val KEY_OPTIN = "common.optin"
@@ -28,7 +31,8 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_HEROW_CAPPING = "detection.herow_capping"
         private const val KEY_LAUNCH_CONFIG = "detection.config_request"
         private const val KEY_SAVED_PREVIOUS_ZONES = "detection.previous_zones"
-        private const val KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION = "detection.previous_zones_for_notification"
+        private const val KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION =
+            "detection.previous_zones_for_notification"
     }
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
@@ -67,6 +71,20 @@ class SessionHolder(private val dataHolder: DataHolder) {
         if (herowId.isNotEmpty()) {
             dataHolder[KEY_HEROW_ID] = herowId
         }
+    }
+
+    fun getSdkKey(): String = dataHolder[KEY_SDK_KEY]
+
+    fun saveSdkKey(key: String) {
+        if (key.isNotEmpty()) {
+            dataHolder[KEY_SDK_KEY] = key
+        }
+    }
+
+    fun getPlatformName(): HerowPlatform = GsonProvider.fromJson(dataHolder[KEY_PLATFORM_NAME], HerowPlatform::class.java)
+
+    fun savePlatform(platform: HerowPlatform) {
+        dataHolder[KEY_PLATFORM_NAME] = Gson().toJson(platform)
     }
 
     fun getCustomID(): String {
@@ -115,6 +133,20 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun hasNoCacheTimeSaved(): Boolean = !dataHolder.containsKey(KEY_CACHE_TIMEOUT)
+
+    private fun didSaveLastLaunchCache(): Boolean = dataHolder.containsKey(KEY_LAST_LAUNCH_CACHE)
+
+    fun saveLastLaunchCacheRequest(timestamp: Long) {
+        dataHolder[KEY_LAST_LAUNCH_CACHE] = timestamp
+    }
+
+    fun getLastTimeCacheWasLaunched(): Long {
+        return if (didSaveLastLaunchCache()) {
+            dataHolder[KEY_LAST_LAUNCH_CACHE]
+        } else {
+            0L
+        }
+    }
 
     fun saveGeohash(geoHash: String?) {
         dataHolder[KEY_SAVED_GEOHASH] = geoHash
@@ -178,11 +210,12 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun getLastConfigLaunch(): Long = dataHolder[KEY_LAUNCH_CONFIG]
-    
+
     fun hasPreviousZones(): Boolean = dataHolder.containsKey(KEY_SAVED_PREVIOUS_ZONES)
-    
+
     fun hasPreviousZonesForNotification(): Boolean = dataHolder.containsKey(
-        KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
+        KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION
+    )
 
     fun savePreviousZones(zones: List<Zone>) {
         dataHolder[KEY_SAVED_PREVIOUS_ZONES] = Gson().toJson(zones)
@@ -201,7 +234,8 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun getSavedPreviousZonesForNotification(): ArrayList<Zone> {
-        val savedPreviousZonesForNotification = dataHolder.get<String>(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
+        val savedPreviousZonesForNotification =
+            dataHolder.get<String>(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
 
         val listType: Type = object :
             TypeToken<ArrayList<Zone>?>() {}.type
@@ -211,5 +245,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun clearPreviousZones() = dataHolder.removeKey(KEY_SAVED_PREVIOUS_ZONES)
 
     fun clearPreviousZonesForNotification() = dataHolder.removeKey(
-        KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
+        KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION
+    )
 }

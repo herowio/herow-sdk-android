@@ -5,7 +5,15 @@ import java.util.concurrent.CopyOnWriteArrayList
 object LocationPriorityDispatcher {
 
     private var currentPriority = LocationPriority.VERY_HIGH
+    private  var onForeGround = false
     private val locationPriorityListeners = CopyOnWriteArrayList<LocationPriorityListener>()
+
+    fun setOnForeGround(value: Boolean) {
+        onForeGround = value
+        if (onForeGround) {
+            dispatchPriority(LocationPriority.VERY_HIGH)
+        }
+    }
 
     fun registerLocationPriorityListener(listener: LocationPriorityListener) {
         GlobalLogger.shared.debug(null, "register  priority listener  : $listener")
@@ -29,6 +37,10 @@ object LocationPriorityDispatcher {
     }
 
     fun dispatchPriorityForDistance( distance: Double) {
+        if (onForeGround) {
+            dispatchPriority(LocationPriority.VERY_HIGH)
+            return
+        }
         if (distance < 3000.0) {
             dispatchPriority(LocationPriority.VERY_LOW)
         }
@@ -45,4 +57,5 @@ object LocationPriorityDispatcher {
             dispatchPriority(LocationPriority.VERY_HIGH)
         }
     }
+
 }

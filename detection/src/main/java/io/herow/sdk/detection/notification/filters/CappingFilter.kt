@@ -2,6 +2,7 @@ package io.herow.sdk.detection.notification.filters
 
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
+import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Capping
@@ -37,6 +38,10 @@ object CappingFilter : NotificationFilter {
             }
         }
 
+        GlobalLogger.shared.info(null, "Campaign is: $campaign")
+        GlobalLogger.shared.info(null, "Reset delay is: $resetDelay")
+        GlobalLogger.shared.info(null, "Start hour is: $startHour && start minutes is: $startMinutes")
+
         val firstRazDate: LocalDateTime =
             if (resetDelay > (oneDayInMillisSecond / 1000).toDouble()) {
                 val nextRazTime =
@@ -47,19 +52,23 @@ object CappingFilter : NotificationFilter {
                 tomorrow.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
             }
 
+        GlobalLogger.shared.info(null, "First raz date is: $firstRazDate")
+
         val herowCapping = getHerowCapping(sessionHolder, campaign, firstRazDate)
 
-        val count: Int
+        GlobalLogger.shared.info(null, "HerowCapping is: $herowCapping")
 
-        if (currentLocalDateTime < herowCapping.razDate) {
-            count = herowCapping.count
+        val count = if (currentLocalDateTime < herowCapping.razDate) {
+            herowCapping.count
         } else {
-            count = 0
             val nextRazDate =
                 herowCapping.razDate.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
             herowCapping.razDate =
                 nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
+            0
         }
+
+        GlobalLogger.shared.info(null, "Count is: $count")
 
         herowCapping.count = count + 1
         saveHerowCapping(herowCapping, sessionHolder)

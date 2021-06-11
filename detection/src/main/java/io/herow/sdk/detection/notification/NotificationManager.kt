@@ -1,9 +1,11 @@
 package io.herow.sdk.detection.notification
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
+import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
@@ -126,6 +128,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
         GlobalLogger.shared.info(context, "Dispatching notification for $event")
     }
 
+    @SuppressLint("InlinedApi")
     private fun createNotificationPendingIntent(
         context: Context,
         hash: String,
@@ -135,11 +138,17 @@ class NotificationManager(private val context: Context, private val sessionHolde
         intent.putExtra(ID_ZONE, hash)
         intent.putExtra(ID_CAMPAIGN, idCampaign)
 
+        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion(context) < 30) {
+            PendingIntent.FLAG_CANCEL_CURRENT
+        } else {
+            PendingIntent.FLAG_IMMUTABLE
+        }
+
         return PendingIntent.getBroadcast(
             context,
             NOTIFICATION_REQUEST_CODE,
             intent,
-            PendingIntent.FLAG_CANCEL_CURRENT
+            pendingIntent
         )
     }
 }

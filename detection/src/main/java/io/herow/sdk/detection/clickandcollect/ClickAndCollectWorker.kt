@@ -12,6 +12,7 @@ import androidx.work.WorkerParameters
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
@@ -34,13 +35,20 @@ class ClickAndCollectWorker(
     }
     private val pendingIntent = createPendingIntent(applicationContext)
 
+    @SuppressLint("InlinedApi")
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
+        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion(context) < 30) {
+            PendingIntent.FLAG_CANCEL_CURRENT
+        } else {
+            PendingIntent.FLAG_IMMUTABLE
+        }
+
         return PendingIntent.getBroadcast(
             context,
             LOCATION_REQUEST_CODE,
             intent,
-            PendingIntent.FLAG_CANCEL_CURRENT
+            pendingIntent
         )
     }
 

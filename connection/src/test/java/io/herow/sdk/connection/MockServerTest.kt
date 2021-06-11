@@ -3,9 +3,6 @@ package io.herow.sdk.connection
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import io.herow.sdk.connection.cache.dao.CampaignDAO
-import io.herow.sdk.connection.cache.dao.PoiDAO
-import io.herow.sdk.connection.cache.dao.ZoneDAO
 import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository

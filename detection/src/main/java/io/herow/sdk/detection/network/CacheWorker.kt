@@ -4,16 +4,24 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.Constants
+import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.CacheResult
+import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.detection.geofencing.model.LocationMapper
+import io.herow.sdk.detection.geofencing.model.toLocation
+import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.*
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the
@@ -39,6 +47,15 @@ class CacheWorker(
         val authRequest = AuthRequests(sessionHolder, inputData)
         val database: HerowDatabase = HerowDatabase.getDatabase(context)
 
+        GlobalLogger.shared.info(context, "Inside doWork() from CacheWorker")
+        GlobalLogger.shared.info(context, "InputData $inputData")
+
+        val locationMapper: LocationMapper = inputData.getString(Constants.LOCATION_DATA).let {
+            GsonProvider.fromJson(it!!, LocationMapper::class.java)
+        }
+
+        GlobalLogger.shared.info(context, "Location from JSON is: $locationMapper")
+
         if (!sessionHolder.getOptinValue()) {
             GlobalLogger.shared.info(context,"Optin value is set to false")
             return Result.failure()
@@ -47,7 +64,7 @@ class CacheWorker(
         authRequest.execute {
             withContext(ioDispatcher) {
                 GlobalLogger.shared.info(context,"Launching cacheRequest")
-                launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database)
+                launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database, locationMapper)
             }
         }
 
@@ -61,9 +78,9 @@ class CacheWorker(
     private suspend fun launchCacheRequest(
         sessionHolder: SessionHolder,
         herowAPI: HerowAPI,
-        database: HerowDatabase
+        database: HerowDatabase,
+        locationMapper: LocationMapper
     ) {
-        if (sessionHolder.getUpdateCacheStatus() || isGeoHashUnknownOrDifferent(sessionHolder)) {
             val extractedGeoHash = extractGeoHash(sessionHolder)
             if (extractedGeoHash.isNotEmpty()) {
                 val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
@@ -71,6 +88,9 @@ class CacheWorker(
 
                 if (cacheResponse.isSuccessful) {
                     GlobalLogger.shared.info(context,"CacheResponse is successful")
+
+                    sessionHolder.saveLastLaunchCacheRequest(TimeHelper.getCurrentTime())
+
                     cacheResponse.body()?.let { cacheResult: CacheResult? ->
                         GlobalLogger.shared.info(context, "Cache response body: ${cacheResponse.body()}")
                         GlobalLogger.shared.info(context,"CacheResult is $cacheResult")
@@ -88,6 +108,9 @@ class CacheWorker(
 
                                 CacheDispatcher.dispatch()
                                 GlobalLogger.shared.info(context,"Dispatching zones")
+
+                                GlobalLogger.shared.info(context,"Sending notification")
+                                sendNotification(locationMapper)
                             } catch (e: Exception) {
                                 GlobalLogger.shared.error(context,"Exception catched is: $e")
                             }
@@ -95,23 +118,6 @@ class CacheWorker(
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * First check if GeoHash has already been saved into SP
-     * Then check if GeoHash is empty or different from saved data
-     */
-    private fun isGeoHashUnknownOrDifferent(sessionHolder: SessionHolder): Boolean {
-        if (sessionHolder.hasNoGeoHashSaved()) {
-            return true
-        } else {
-            if (inputGeoHash.isEmpty() || inputGeoHash != sessionHolder.getGeohash()) {
-                return true
-            }
-        }
-
-        return false
     }
 
     /**
@@ -148,5 +154,16 @@ class CacheWorker(
             }
             GlobalLogger.shared.info(context,"Campaigns have been saved in DB")
         }
+    }
+
+    private fun sendNotification(locationMapper: LocationMapper) {
+        val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+        val zonesResult = zoneRepository.getAllZones() as ArrayList<Zone>
+        val location = LocationMapper().toLocation(locationMapper)
+
+        GlobalLogger.shared.info(context, "ZonesResult is $zonesResult")
+        GlobalLogger.shared.info(context, "Location is $location")
+
+        ZoneManager(context, zonesResult).dispatchZonesAndNotification(location)
     }
 }

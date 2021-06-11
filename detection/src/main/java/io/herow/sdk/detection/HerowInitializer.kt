@@ -1,7 +1,6 @@
 package io.herow.sdk.detection
 
 import android.content.Context
-import android.location.Location
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
@@ -24,16 +23,15 @@ import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.GeofenceListener
-import io.herow.sdk.detection.helpers.GeoHashHelper
-import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
-import io.herow.sdk.detection.network.*
+import io.herow.sdk.detection.network.AuthRequests
+import io.herow.sdk.detection.network.ConfigWorker
+import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 class HerowInitializer private constructor(val context: Context) {
@@ -108,11 +106,13 @@ class HerowInitializer private constructor(val context: Context) {
     fun configApp(sdkId: String, sdkKey: String): HerowInitializer {
         sdkSession = SdkSession(sdkId, sdkKey)
         sessionHolder.saveSDKID(sdkId)
+        sessionHolder.saveSdkKey(sdkKey)
         return this
     }
 
     fun configPlatform(platform: HerowPlatform): HerowInitializer {
         this.platform = platform
+        sessionHolder.savePlatform(platform)
         return this
     }
 
@@ -196,69 +196,6 @@ class HerowInitializer private constructor(val context: Context) {
             periodicWorkRequest
         )
         GlobalLogger.shared.info(context, "Config request is enqueued")
-    }
-
-    /**
-     * Launch the cache request to get the zones the SDK must monitored
-     */
-    fun launchCacheRequest(location: Location) {
-        GlobalLogger.shared.info(context, "LaunchCacheRequest method is called")
-
-        if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-            val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<CacheWorker>()
-                .addTag(NetworkWorkerTags.CACHE)
-                .setConstraints(constraints)
-                .setInputData(
-                    workDataOf(
-                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customID,
-                        AuthRequests.KEY_PLATFORM to platform.name,
-                        CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location)
-                    )
-                )
-                .build()
-            workManager.enqueue(workerRequest)
-        }
-        GlobalLogger.shared.info(context, "Cache request is enqueued")
-    }
-
-    /**
-     * Launch the logs request to send the events to he Herow Platform
-     */
-    fun launchLogsRequest(log: String) {
-        val uuid = UUID.randomUUID().toString()
-        LogsWorker.logsWorkerHashMap[uuid] = log
-        GlobalLogger.shared.info(context, "CurrentID is $uuid")
-        GlobalLogger.shared.info(context, "LaunchLogsRequest method is called")
-
-        if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-            GlobalLogger.shared.info(context, "Log to send is: $log")
-
-            val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
-                .addTag(NetworkWorkerTags.LOGS)
-                .setConstraints(constraints)
-                .setInputData(
-                    workDataOf(
-                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customID,
-                        AuthRequests.KEY_PLATFORM to platform.name,
-                        LogsWorker.workerID to uuid
-                    )
-                )
-                .build()
-
-            workManager.enqueue(workerRequest)
-            GlobalLogger.shared.info(context, "Log request is enqueued")
-        }
     }
 
     fun launchClickAndCollect() {

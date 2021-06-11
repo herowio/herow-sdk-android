@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.BATTERY_SERVICE
 import android.os.BatteryManager
+import android.os.Build
 import android.provider.Settings
 
 object DeviceHelper {
@@ -25,5 +26,9 @@ object DeviceHelper {
     fun getBatteryLevel(context: Context): Int {
         val batteryManager = context.getSystemService(BATTERY_SERVICE) as BatteryManager
         return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+    }
+
+    fun getCurrentAndroidVersion(context: Context): Int {
+        return Build.VERSION.SDK_INT
     }
 }

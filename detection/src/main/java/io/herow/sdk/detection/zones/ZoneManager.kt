@@ -14,7 +14,10 @@ import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.detection.geofencing.GeofencingReceiver
 import io.herow.sdk.detection.helpers.GeofencingHelper
 import io.herow.sdk.detection.location.LocationListener
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class ZoneManager(
     val context: Context,
@@ -23,7 +26,6 @@ class ZoneManager(
 
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919
-        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     private val ioDispatcher = Dispatchers.IO
@@ -44,10 +46,6 @@ class ZoneManager(
 
     fun getZones(): ArrayList<Zone> {
         return zones
-    }
-
-    fun isZonesEmpty(): Boolean {
-        return zones.isEmpty()
     }
 
     override fun onCacheReception() {

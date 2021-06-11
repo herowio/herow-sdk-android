@@ -8,6 +8,7 @@ import android.location.Location
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
+import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.IAppStateListener
@@ -16,16 +17,18 @@ import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
-import io.herow.sdk.connection.database.HerowDatabaseHelper
-import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.detection.cache.CacheManager
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class LocationManager(
     private val context: Context,
-    sessionHolder: SessionHolder
+    val sessionHolder: SessionHolder
 ) : ConfigListener, IAppStateListener, LocationListener, LocationPriorityListener {
 
     companion object {
@@ -33,7 +36,6 @@ class LocationManager(
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
     private var isOnForeground: Boolean = false
     private var isGeofencingEnable: Boolean = false
 
@@ -44,22 +46,31 @@ class LocationManager(
     private val pendingIntent = createPendingIntent(context)
 
     private var zones: List<Zone>? = null
+    @SuppressLint("InlinedApi")
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
+        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion(context) < 30) {
+            PendingIntent.FLAG_CANCEL_CURRENT
+        } else {
+            PendingIntent.FLAG_IMMUTABLE
+        }
+
         return PendingIntent.getBroadcast(
             context,
             LOCATION_REQUEST_CODE,
             intent,
-            PendingIntent.FLAG_CANCEL_CURRENT
+            pendingIntent
         )
     }
+
+    private val cacheManager = CacheManager(context)
 
     init {
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
         CoroutineScope(Dispatchers.IO).launch {
-            zones =  zoneManager.getZones()
+            zones = zoneManager.getZones()
 
         }
         LocationPriorityDispatcher.registerLocationPriorityListener(this)
@@ -77,7 +88,7 @@ class LocationManager(
     }
 
     @SuppressLint("MissingPermission")
-     fun startMonitoring() {
+    fun startMonitoring() {
         fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 LocationDispatcher.dispatchLocation(location)
@@ -93,7 +104,7 @@ class LocationManager(
      */
     @SuppressLint("MissingPermission")
     private fun updateMonitoring(location: Location? = null) {
-        zones =  zoneManager.getZones()
+        zones = zoneManager.getZones()
         var smallestDistance = Double.MAX_VALUE
         if (location != null && zones != null) {
             for (zone in zones!!) {
@@ -107,7 +118,10 @@ class LocationManager(
                 }
             }
         }
-        GlobalLogger.shared.debug(null, "dispatch location for dispatcher with distance : $smallestDistance")
+        GlobalLogger.shared.debug(
+            null,
+            "dispatch location for dispatcher with distance : $smallestDistance"
+        )
         LocationPriorityDispatcher.dispatchPriorityForDistance(smallestDistance)
     }
 
@@ -130,7 +144,7 @@ class LocationManager(
         return request
     }
 
-     private fun stopMonitoring() {
+    private fun stopMonitoring() {
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
             .addOnCompleteListener { task: Task<Void> ->
                 if (task.isSuccessful) {
@@ -145,6 +159,7 @@ class LocationManager(
 
     override fun onAppInForeground() {
         isOnForeground = true
+        LocationPriorityDispatcher.setOnForeGround(isOnForeground)
         if (isGeofencingEnable) {
             updateMonitoring()
         }
@@ -152,51 +167,20 @@ class LocationManager(
 
     override fun onAppInBackground() {
         isOnForeground = false
+        LocationPriorityDispatcher.setOnForeGround(isOnForeground)
         if (isGeofencingEnable) {
             updateMonitoring()
         }
     }
 
     override fun onLocationUpdate(location: Location) {
-        GlobalLogger.shared.info(context, "LocationManager - onLocationUpdate(): Zone Empty? ${zoneManager.isZonesEmpty()}")
         updateMonitoring(location)
-        scope.launch {
-            GlobalLogger.shared.info(context, "LocationManager - onLocationUpdate(): Data in DB? ${noDataInDB()}")
-            if (zoneManager.isZonesEmpty() || noDataInDB()) {
 
-                withContext(Dispatchers.Default) {
-                    HerowInitializer.getInstance(context).launchCacheRequest(location)
-                }
-
-                val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-                val job = scope.async(dispatcher) { zoneRepository.getAllZones() }
-                val zonesResult = job.await() as ArrayList<Zone>
-
-                GlobalLogger.shared.info(context, "ZonesResult is $zonesResult")
-
-                ZoneManager(context, zonesResult).dispatchZonesAndNotification(location)
-            }
+        if (sessionHolder.getUpdateCacheStatus()
+            || cacheManager.isGeoHashUnknownOrDifferent(sessionHolder, location)
+            || cacheManager.shouldFetchNow(sessionHolder)
+        ) {
+            scope.launch { CacheManager(context).launchCacheRequest(location) }
         }
-    }
-
-    private suspend fun noDataInDB(): Boolean {
-        val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-        val poiRepository = HerowDatabaseHelper.getPoiRepository(context)
-        val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
-
-        val zonesInDb = scope.async(dispatcher) {
-            zoneRepository.getAllZones()
-        }
-
-        val poisInDb = scope.async(dispatcher) {
-            poiRepository.getAllPois()
-        }
-
-        val campaignsInDb = scope.async(dispatcher) {
-            campaignRepository.getAllCampaigns()
-        }
-
-        return zonesInDb.await().isNullOrEmpty() && poisInDb.await()
-            .isNullOrEmpty() && campaignsInDb.await().isNullOrEmpty()
     }
 }
