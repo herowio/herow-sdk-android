@@ -17,7 +17,6 @@ import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
-import io.herow.sdk.detection.cache.CacheManager
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
@@ -75,6 +74,7 @@ class LocationManager(
     }
 
     override fun onConfigResult(configResult: ConfigResult) {
+        GlobalLogger.shared.info(context = null, "Config Result is: $configResult")
         synchronized(isGeofencingEnable) {
             isGeofencingEnable = configResult.isGeofenceEnable
         }
