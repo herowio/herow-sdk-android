@@ -27,7 +27,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class LocationManager(
-    private val context: Context,
+    context: Context,
     val sessionHolder: SessionHolder
 ) : ConfigListener, IAppStateListener, LocationListener, LocationPriorityListener {
 
@@ -62,8 +62,6 @@ class LocationManager(
             pendingIntent
         )
     }
-
-    private val cacheManager = CacheManager(context)
 
     init {
         CacheDispatcher.addCacheListener(zoneManager)
@@ -175,12 +173,5 @@ class LocationManager(
 
     override fun onLocationUpdate(location: Location) {
         updateMonitoring(location)
-
-        if (sessionHolder.getUpdateCacheStatus()
-            || cacheManager.isGeoHashUnknownOrDifferent(sessionHolder, location)
-            || cacheManager.shouldFetchNow(sessionHolder)
-        ) {
-            scope.launch { CacheManager(context).launchCacheRequest(location) }
-        }
     }
 }

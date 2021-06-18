@@ -7,12 +7,16 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
+import com.google.gson.Gson
+import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.MockLocation
+import io.herow.sdk.detection.geofencing.model.LocationMapper
+import io.herow.sdk.detection.geofencing.model.toLocationMapper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
@@ -42,6 +46,7 @@ class CacheWorkerTest {
     private lateinit var poiRepository: PoiRepository
 
     private val rennesGeohash: String = "gbwc"
+    private val mockLocation = MockLocation()
 
     @Before
     fun setUp() {
@@ -60,7 +65,9 @@ class CacheWorkerTest {
 
         // Mandatory to test testLaunchUser
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
-        location = MockLocation(context).buildLocation()
+        location = mockLocation.buildLocation()
+
+        val locationMapper = LocationMapper().toLocationMapper(location)
 
         val cacheWorkerFactory = CacheWorkerFactory()
 
@@ -70,7 +77,8 @@ class CacheWorkerTest {
                 AuthRequests.KEY_SDK_KEY to NetworkConstants.PASSWORD,
                 AuthRequests.KEY_PLATFORM to HerowPlatform.TEST.name,
                 AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID,
-                CacheWorker.KEY_GEOHASH to rennesGeohash
+                CacheWorker.KEY_GEOHASH to rennesGeohash,
+                Constants.LOCATION_DATA to Gson().toJson(locationMapper)
             )
         )
             .setWorkerFactory(cacheWorkerFactory)

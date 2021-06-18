@@ -40,6 +40,7 @@ class NotificationManagerTest {
 
     private val ioDispatcher = Dispatchers.IO
     private val liveEvents = arrayListOf<GeofenceEvent>()
+    private val mockLocation = MockLocation()
 
     companion object {
         var campaignOne: Campaign? = null
@@ -81,7 +82,7 @@ class NotificationManagerTest {
             liveEvents.add(
                 GeofenceEvent(
                     zoneWithCampaigns as Zone,
-                    MockLocation(context).buildLocation(),
+                    mockLocation.buildLocation(),
                     GeofenceType.GEOFENCE_NOTIFICATION_ENTER,
                     0.0
                 )
@@ -102,7 +103,7 @@ class NotificationManagerTest {
             liveEvents.add(
                 GeofenceEvent(
                     zoneWithCampaigns as Zone,
-                    MockLocation(context).buildLocation(),
+                    mockLocation.buildLocation(),
                     GeofenceType.GEOFENCE_NOTIFICATION_ENTER,
                     0.0
                 )

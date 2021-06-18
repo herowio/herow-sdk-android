@@ -7,10 +7,10 @@ import java.time.format.DateTimeFormatter
 
 object DateHelper {
 
-    fun convertStringToTimeStamp(stringDate: String): Long {
+    fun convertStringToTimeStampInMilliSeconds(stringDate: String): Long {
         return LocalDateTime.parse(stringDate, DateTimeFormatter.RFC_1123_DATE_TIME).toEpochSecond(
             ZoneOffset.UTC
-        )
+        ) * 1000
     }
 
     fun getCurrentWeekDay(): String = LocalDate.now().dayOfWeek.name.uppercase()

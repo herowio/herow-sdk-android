@@ -18,6 +18,7 @@ import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
+import io.herow.sdk.detection.cache.CacheManager
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
@@ -43,6 +44,7 @@ class HerowInitializer private constructor(val context: Context) {
     private var logsManager: LogsManager
     private var workManager: WorkManager
     private var notificationManager: NotificationManager
+    private var cacheManager: CacheManager
 
     private var sessionHolder: SessionHolder
 
@@ -51,6 +53,7 @@ class HerowInitializer private constructor(val context: Context) {
         sessionHolder = SessionHolder(DataHolder(context))
         workManager = WorkManager.getInstance(context)
         logsManager = LogsManager(context)
+        cacheManager = CacheManager(context)
         loadIdentifiers(context)
         locationManager = LocationManager(context, sessionHolder)
         notificationManager = NotificationManager(context, sessionHolder)
@@ -72,6 +75,7 @@ class HerowInitializer private constructor(val context: Context) {
     private fun registerListeners() {
         AppStateDetector.addAppStateListener(locationManager)
         LocationDispatcher.addLocationListener(locationManager)
+        LocationDispatcher.addLocationListener(cacheManager)
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
         GeofenceDispatcher.addGeofenceListener(notificationManager)

@@ -37,25 +37,28 @@ class CappingFilterTest {
         runBlocking {
             campaign = MockDataInDatabase(context).createAndInsertCampaignTwo()
         }
-        val herowCappingNotSaved: HerowCapping = HerowCapping().convertMapperToCapping(sessionHolder.getHerowCapping())
 
         // We have no capping
         // We should have a notification
         Assert.assertTrue(CappingFilter.createNotification(campaign!!, sessionHolder))
 
-        val herowCappingSaved: HerowCapping = HerowCapping().convertMapperToCapping(sessionHolder.getHerowCapping())
+        val herowCappingSaved: HerowCapping = sessionHolder.getHerowCapping()
 
         runBlocking {
-            campaign = MockDataInDatabase(context).createCampaignWithCapping()
+            campaign = MockDataInDatabase(context).updateCampaignTwoWithCapping()
         }
 
         herowCappingSaved.count = 7
-        herowCappingSaved.razDate = LocalDateTime.of(2021, 7, 20, 3, 3, 30)
+        herowCappingSaved.razDate = LocalDateTime.of(2021, 7, 20, 0, 0, 0)
         sessionHolder.saveHerowCapping(GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java))
 
         // We create a Campaign with a Capping - MaxNumberOfNotifications is 5
         // HerowCapping count is 7 - Saved razTime is superior to current time
         // We should not have a notification
+        println("Gson is: ${GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java)}")
+        println("Campaign is: $campaign")
+        println("HerowCappingSaved is: $herowCappingSaved")
+        println("HerowCapping is: ${sessionHolder.getHerowCapping()}")
         Assert.assertFalse(CappingFilter.createNotification(campaign!!, sessionHolder))
 
         herowCappingSaved.razDate = LocalDateTime.of(2021, 4, 3, 12, 0, 0)
@@ -65,8 +68,9 @@ class CappingFilterTest {
         // We should have a notification
         Assert.assertTrue(CappingFilter.createNotification(campaign!!, sessionHolder))
 
-        sessionHolder.saveHerowCapping("")
+        sessionHolder.removeSavedHerowCapping()
 
+        println("HerowCapping in TEST is: ${sessionHolder.getHerowCapping()}")
         CappingFilter.createNotification(campaign!!, sessionHolder)
 
         // HerowCapping's campaignID should be the same as the campaign id given as parameter

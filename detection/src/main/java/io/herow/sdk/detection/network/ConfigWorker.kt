@@ -62,6 +62,8 @@ class ConfigWorker(
                         remoteCachedTime
                     )
                 }
+
+                GlobalLogger.shared.info(context = null, "Headers are: $headers")
             }
 
             sessionHolder.saveConfigLaunch(TimeHelper.getCurrentTime())
@@ -97,8 +99,8 @@ class ConfigWorker(
         sessionHolder: SessionHolder
     ): Boolean {
         val savedTimeStamp =
-            DateHelper.convertStringToTimeStamp(sessionHolder.getLastSavedModifiedDateTimeCache())
-        val remoteCachedTimeToLong = DateHelper.convertStringToTimeStamp(remoteCachedTime)
+            DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
+        val remoteCachedTimeToLong = DateHelper.convertStringToTimeStampInMilliSeconds(remoteCachedTime)
 
         GlobalLogger.shared.info(null, "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp")
 

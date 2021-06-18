@@ -14,12 +14,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 class MockDataInDatabase(context: Context) {
-    private val zoneRepository: ZoneRepository by lazy {
-        HerowDatabaseHelper.getZoneRepository(context)
-    }
-    private val campaignRepository: CampaignRepository by lazy {
-        HerowDatabaseHelper.getCampaignRepository(context)
-    }
+    private val zoneRepository: ZoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+    private val campaignRepository: CampaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
 
     suspend fun createAndInsertZoneOne(): Zone {
         val zone = Zone(
@@ -74,6 +70,23 @@ class MockDataInDatabase(context: Context) {
         job.await()
         return campaignInDB!!
     }
+    
+    suspend fun updateCampaignTwoWithCapping(): Campaign {
+        val capping = Capping(
+            maxNumberNotifications = 5
+        )
+        var campaignInDB: Campaign? = null
+        val job = CoroutineScope(Dispatchers.IO).async {
+            withContext(Dispatchers.IO) {
+                campaignInDB = campaignRepository.getCampaignByID("campaignTwo")
+                campaignInDB!!.capping = capping
+                campaignRepository.update(campaignInDB!!)
+            }
+        }
+
+        job.await()
+        return campaignInDB!!
+    }
 
     suspend fun createCampaignWithNoEnd(): Campaign {
         val campaign = Campaign(
@@ -120,7 +133,7 @@ class MockDataInDatabase(context: Context) {
     suspend fun createCampaignWithLateBegin(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithLateBegin",
-            begin = 1620848900292
+            begin = 1780264800000
         )
 
         var campaignInDB: Campaign? = null
@@ -229,8 +242,8 @@ class MockDataInDatabase(context: Context) {
     suspend fun createCampaignWithLongSlot(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithLongSlot",
-            startHour = "06:00",
-            stopHour = "18:00"
+            startHour = "02:00",
+            stopHour = "23:00"
         )
 
         var campaignInDB: Campaign? = null

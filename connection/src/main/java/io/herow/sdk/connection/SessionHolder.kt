@@ -4,8 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
+import io.herow.sdk.connection.cache.model.HerowCapping
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.cache.model.mapper.HerowCappingMapper
 import io.herow.sdk.connection.userinfo.UserInfo
 import java.lang.reflect.Type
 
@@ -134,7 +134,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun hasNoCacheTimeSaved(): Boolean = !dataHolder.containsKey(KEY_CACHE_TIMEOUT)
 
-    private fun didSaveLastLaunchCache(): Boolean = dataHolder.containsKey(KEY_LAST_LAUNCH_CACHE)
+    fun didSaveLastLaunchCache(): Boolean = dataHolder.containsKey(KEY_LAST_LAUNCH_CACHE)
 
     fun saveLastLaunchCacheRequest(timestamp: Long) {
         dataHolder[KEY_LAST_LAUNCH_CACHE] = timestamp
@@ -196,12 +196,14 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun hasHerowCappingSaved(): Boolean = dataHolder.containsKey(KEY_HEROW_CAPPING)
 
+    fun removeSavedHerowCapping() = dataHolder.removeKey(KEY_HEROW_CAPPING)
+
     fun saveHerowCapping(herowCapping: String) {
         dataHolder[KEY_HEROW_CAPPING] = herowCapping
     }
 
-    fun getHerowCapping(): HerowCappingMapper =
-        GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCappingMapper::class.java)
+    fun getHerowCapping(): HerowCapping =
+        GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCapping::class.java)
 
     fun firstTimeLaunchingConfig(): Boolean = !dataHolder.containsKey(KEY_LAUNCH_CONFIG)
 
