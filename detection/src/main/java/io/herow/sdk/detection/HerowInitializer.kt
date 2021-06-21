@@ -33,7 +33,6 @@ import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 class HerowInitializer private constructor(val context: Context) {
     private val appStateDetector = AppStateDetector()
@@ -156,33 +155,60 @@ class HerowInitializer private constructor(val context: Context) {
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
      */
+/* private fun launchConfigRequest() {
+    val constraints = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build()
+
+    val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
+        GlobalLogger.shared.info(context, "Repeat Interval is not saved yet")
+        900000
+    } else {
+        GlobalLogger.shared.info(context, "Repeat Interval is saved")
+        val savedRepeat = sessionHolder.getRepeatInterval()
+        if (savedRepeat < 900000) {
+            900000
+        } else {
+            savedRepeat
+        }
+    }
+
+    GlobalLogger.shared.info(context, "Repeat Interval is: $repeatInterval")
+    GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
+
+    val periodicWorkRequest =
+        PeriodicWorkRequest.Builder(
+            ConfigWorker::class.java,
+            repeatInterval,
+            TimeUnit.MILLISECONDS
+        )
+            .addTag(NetworkWorkerTags.CONFIG)
+            .setConstraints(constraints)
+            .setInputData(
+                workDataOf(
+                    AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                    AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                    AuthRequests.KEY_CUSTOM_ID to customID,
+                    AuthRequests.KEY_PLATFORM to platform.name
+                )
+            )
+            .build()
+    workManager.enqueueUniquePeriodicWork(
+        "ConfigWorker",
+        ExistingPeriodicWorkPolicy.KEEP,
+        periodicWorkRequest
+    )
+    GlobalLogger.shared.info(context, "Config request is enqueued")
+}  */
+
     private fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
-            GlobalLogger.shared.info(context, "Repeat Interval is not saved yet")
-            900000
-        } else {
-            GlobalLogger.shared.info(context, "Repeat Interval is saved")
-            val savedRepeat = sessionHolder.getRepeatInterval()
-            if (savedRepeat < 900000) {
-                900000
-            } else {
-                savedRepeat
-            }
-        }
-
-        GlobalLogger.shared.info(context, "Repeat Interval is: $repeatInterval")
         GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
 
-        val periodicWorkRequest =
-            PeriodicWorkRequest.Builder(
-                ConfigWorker::class.java,
-                repeatInterval,
-                TimeUnit.MILLISECONDS
-            )
+        val configWorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
                 .addTag(NetworkWorkerTags.CONFIG)
                 .setConstraints(constraints)
                 .setInputData(
@@ -194,11 +220,7 @@ class HerowInitializer private constructor(val context: Context) {
                     )
                 )
                 .build()
-        workManager.enqueueUniquePeriodicWork(
-            "ConfigWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
-            periodicWorkRequest
-        )
+        workManager.enqueue(configWorkRequest)
         GlobalLogger.shared.info(context, "Config request is enqueued")
     }
 

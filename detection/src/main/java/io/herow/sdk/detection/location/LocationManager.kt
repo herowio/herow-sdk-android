@@ -78,6 +78,9 @@ class LocationManager(
         synchronized(isGeofencingEnable) {
             isGeofencingEnable = configResult.isGeofenceEnable
         }
+
+        GlobalLogger.shared.debug(context = null, "Geofence enable is: $isGeofencingEnable")
+
         if (isGeofencingEnable) {
             startMonitoring()
         } else {
@@ -88,6 +91,7 @@ class LocationManager(
     @SuppressLint("MissingPermission")
     fun startMonitoring() {
         fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
+            GlobalLogger.shared.debug(context = null, "Last location is: $location")
             if (location != null) {
                 LocationDispatcher.dispatchLocation(location)
             }

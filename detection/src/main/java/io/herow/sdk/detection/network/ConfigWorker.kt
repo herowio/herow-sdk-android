@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
@@ -49,6 +50,9 @@ class ConfigWorker(
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
                 GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
+
+                val jsonConfigResult = GsonProvider.toJson(configResult, ConfigResult::class.java)
+                sessionHolder.saveConfigResult(jsonConfigResult)
 
                 ConfigDispatcher.dispatchConfigResult(configResult)
                 GlobalLogger.shared.info(applicationContext, "Dispatcher method has been called")

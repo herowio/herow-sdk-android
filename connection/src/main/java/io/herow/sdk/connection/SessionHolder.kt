@@ -6,6 +6,7 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.cache.model.HerowCapping
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.userinfo.UserInfo
 import java.lang.reflect.Type
 
@@ -33,6 +34,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_SAVED_PREVIOUS_ZONES = "detection.previous_zones"
         private const val KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION =
             "detection.previous_zones_for_notification"
+        private const val KEY_SAVED_CONFIG_RESULT = "detection.config_result"
     }
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
@@ -249,4 +251,16 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun clearPreviousZonesForNotification() = dataHolder.removeKey(
         KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION
     )
+
+    fun saveConfigResult(configResult: String) {
+        dataHolder[KEY_SAVED_CONFIG_RESULT] = configResult
+    }
+
+    fun getConfigResult(): ConfigResult? {
+        return if (dataHolder.containsKey(KEY_SAVED_CONFIG_RESULT)) {
+            GsonProvider.fromJson(dataHolder[KEY_SAVED_CONFIG_RESULT], ConfigResult::class.java)
+        } else {
+            null
+        }
+    }
 }
