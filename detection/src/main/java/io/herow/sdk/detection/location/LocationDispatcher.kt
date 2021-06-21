@@ -20,7 +20,9 @@ object LocationDispatcher {
      */
     fun dispatchLocation(newLocation: Location) {
         var skip = false
-
+        GlobalLogger.shared.debug(
+            null,
+            " try to dispatchLocation : $newLocation")
         if (lastLocation != null) {
             GlobalLogger.shared.info(null,"LastLocation is: $lastLocation")
             GlobalLogger.shared.info(null,"NewLocation is: $newLocation")

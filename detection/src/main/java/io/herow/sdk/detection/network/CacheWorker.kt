@@ -95,7 +95,7 @@ class CacheWorker(
                         GlobalLogger.shared.info(context, "Cache response body: ${cacheResponse.body()}")
                         GlobalLogger.shared.info(context,"CacheResult is $cacheResult")
                         withContext(ioDispatcher) {
-                            try {
+                          //  try {
                                 database.clearAllTables()
                                 GlobalLogger.shared.info(context,"Database has been cleared")
 
@@ -111,9 +111,9 @@ class CacheWorker(
 
                                 GlobalLogger.shared.info(context,"Sending notification")
                                 sendNotification(locationMapper)
-                            } catch (e: Exception) {
-                                GlobalLogger.shared.error(context,"Exception catched is: $e")
-                            }
+                          //  } catch (e: Exception) {
+                           //     GlobalLogger.shared.error(context,"Exception catched is: $e")
+                          //  }
                         }
                     }
                 }

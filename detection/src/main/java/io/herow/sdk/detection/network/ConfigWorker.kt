@@ -54,6 +54,7 @@ class ConfigWorker(
                 GlobalLogger.shared.info(applicationContext, "Dispatcher method has been called")
 
                 sessionHolder.saveRepeatInterval(configResult.configInterval)
+                sessionHolder.saveConfig(configResult)
 
                 val headers = configResponse.headers()
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->

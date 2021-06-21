@@ -87,6 +87,10 @@ class LocationManager(
 
     @SuppressLint("MissingPermission")
     fun startMonitoring() {
+        GlobalLogger.shared.debug(
+            null,
+            "startMonitoring"
+        )
         fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
             if (location != null) {
                 LocationDispatcher.dispatchLocation(location)
@@ -126,7 +130,7 @@ class LocationManager(
     @SuppressLint("MissingPermission")
     private fun updateMonitoring(priority: LocationPriority) {
         GlobalLogger.shared.debug(null, "update priority  : $priority")
-        val locationRequest = buildLocationRequest(priority)
+        val locationRequest = buildLocationRequest(LocationPriority.HIGH)
         fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
             GlobalLogger.shared.debug(null, "relaunch with priority : $priority")
             fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
@@ -134,7 +138,7 @@ class LocationManager(
     }
 
     private fun buildLocationRequest(priority: LocationPriority): LocationRequest {
-        val request = LocationRequest()
+        val request = LocationRequest.create()
         request.smallestDisplacement = priority.smallestDistance.toFloat()
         request.fastestInterval = TimeHelper.TEN_SECONDS_MS
         request.interval = priority.interval

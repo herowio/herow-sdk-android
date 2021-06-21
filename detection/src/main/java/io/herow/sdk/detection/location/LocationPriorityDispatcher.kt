@@ -37,19 +37,19 @@ object LocationPriorityDispatcher {
             dispatchPriority(LocationPriority.VERY_HIGH)
             return
         }
-        if (distance < 3000.0) {
+        if (distance >= 3000.0) {
             dispatchPriority(LocationPriority.VERY_LOW)
         }
-        if (distance < 1000.0) {
+        else if (distance >= 1000.0) {
             dispatchPriority(LocationPriority.LOW)
         }
-        if (distance < 500) {
+        else if (distance >= 500) {
             dispatchPriority(LocationPriority.MEDIUM)
         }
-        if (distance < 100.0) {
+        else if (distance >= 100.0) {
             dispatchPriority(LocationPriority.HIGH)
         }
-        if (distance < 50) {
+       else {
             dispatchPriority(LocationPriority.VERY_HIGH)
         }
     }

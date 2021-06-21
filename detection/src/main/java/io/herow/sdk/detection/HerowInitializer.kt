@@ -1,11 +1,15 @@
 package io.herow.sdk.detection
 
 import android.content.Context
+import android.location.Location
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import com.google.gson.Gson
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.DeviceHelper
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.connection.HerowPlatform
@@ -14,6 +18,7 @@ import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigDispatcher
+import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
@@ -24,9 +29,12 @@ import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.GeofenceListener
+import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.location.LocationDispatcher
+import io.herow.sdk.detection.location.LocationListener
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.AuthRequests
+import io.herow.sdk.detection.network.CacheWorker
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
@@ -35,7 +43,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-class HerowInitializer private constructor(val context: Context) {
+class HerowInitializer private constructor(val context: Context): LocationListener {
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
@@ -76,6 +84,7 @@ class HerowInitializer private constructor(val context: Context) {
         AppStateDetector.addAppStateListener(locationManager)
         LocationDispatcher.addLocationListener(locationManager)
         LocationDispatcher.addLocationListener(cacheManager)
+        LocationDispatcher.addLocationListener(this)
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
         GeofenceDispatcher.addGeofenceListener(notificationManager)
@@ -152,6 +161,22 @@ class HerowInitializer private constructor(val context: Context) {
         }
     }
 
+    private fun shouldLaunchConfigRequest(): Boolean {
+        if (sessionHolder.firstTimeLaunchingConfig()) {
+            return true
+        }
+
+        val lastTimeLaunched =
+            sessionHolder.getLastConfigLaunch() + sessionHolder.getRepeatInterval()
+        val currentTime = TimeHelper.getCurrentTime()
+
+        if (currentTime > lastTimeLaunched) {
+            return true
+        }
+
+        return false
+    }
+
     /**
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
@@ -161,7 +186,7 @@ class HerowInitializer private constructor(val context: Context) {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
+     /*   val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
             GlobalLogger.shared.info(context, "Repeat Interval is not saved yet")
             900000
         } else {
@@ -172,12 +197,32 @@ class HerowInitializer private constructor(val context: Context) {
             } else {
                 savedRepeat
             }
+        }*/
+
+      //  GlobalLogger.shared.info(context, "Repeat Interval is: $repeatInterval")
+       // GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
+
+
+        val datas =   workDataOf(
+            AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+            AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+            AuthRequests.KEY_CUSTOM_ID to customID,
+            AuthRequests.KEY_PLATFORM to platform.name
+        )
+       val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
+            .setConstraints(constraints)
+            .setInputData(
+                datas
+            )
+            .build()
+        if (shouldLaunchConfigRequest()) {
+            workManager.enqueue(workerRequest)
+        } else {
+           val lastConfig = sessionHolder.getConfig()
+            ConfigDispatcher.dispatchConfigResult(lastConfig)
         }
 
-        GlobalLogger.shared.info(context, "Repeat Interval is: $repeatInterval")
-        GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
-
-        val periodicWorkRequest =
+      /*  val periodicWorkRequest =
             PeriodicWorkRequest.Builder(
                 ConfigWorker::class.java,
                 repeatInterval,
@@ -186,22 +231,20 @@ class HerowInitializer private constructor(val context: Context) {
                 .addTag(NetworkWorkerTags.CONFIG)
                 .setConstraints(constraints)
                 .setInputData(
-                    workDataOf(
-                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customID,
-                        AuthRequests.KEY_PLATFORM to platform.name
-                    )
+                        datas
                 )
                 .build()
         workManager.enqueueUniquePeriodicWork(
             "ConfigWorker",
             ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest
-        )
+        )*/
         GlobalLogger.shared.info(context, "Config request is enqueued")
     }
 
+    fun didAcceptLocationUpdates() {
+        launchConfigRequest()
+    }
     fun launchClickAndCollect() {
         val workRequest: WorkRequest = OneTimeWorkRequest.Builder(ClickAndCollectWorker::class.java)
             .addTag(ClickAndCollectWorker.tag)
@@ -246,5 +289,9 @@ class HerowInitializer private constructor(val context: Context) {
      */
     private fun saveOptinValue(optinAccepted: Boolean?) {
         sessionHolder.saveOptinValue(optinAccepted)
+    }
+
+    override fun onLocationUpdate(location: Location) {
+       launchConfigRequest()
     }
 }

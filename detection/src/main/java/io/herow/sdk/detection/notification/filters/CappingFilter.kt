@@ -78,8 +78,10 @@ object CappingFilter : NotificationFilter {
         firstRazDate: LocalDateTime
     ): HerowCapping {
         return if (sessionHolder.hasHerowCappingSaved()) {
+            GlobalLogger.shared.info(null, "HerowCapping exists")
             sessionHolder.getHerowCapping()
         } else {
+            GlobalLogger.shared.info(null, "HerowCapping creation")
             HerowCapping(
                 campaignId = campaign.id!!,
                 razDate = firstRazDate,
