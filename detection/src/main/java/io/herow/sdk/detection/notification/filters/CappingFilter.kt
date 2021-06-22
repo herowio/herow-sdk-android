@@ -91,7 +91,9 @@ object CappingFilter : NotificationFilter {
     }
     
     private fun saveHerowCapping(herowCapping: HerowCapping, sessionHolder: SessionHolder) {
+        GlobalLogger.shared.info(null, "HerowCapping exists")
         val herowCappingToString = GsonProvider.toJson(herowCapping, HerowCapping::class.java)
+        GlobalLogger.shared.info(null, "HerowCapping crash?")
         sessionHolder.saveHerowCapping(herowCappingToString)
     }
 }
