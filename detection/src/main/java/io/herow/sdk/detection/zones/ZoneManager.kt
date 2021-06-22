@@ -60,7 +60,7 @@ class ZoneManager(
 
         runBlocking {
             withContext(ioDispatcher) {
-                retrieveZones().let { zones.addAll(it) }
+                retrieveZones().run { zones.addAll(this) }
             }
         }
         GlobalLogger.shared.info(context, "Zones from BDD are: $zones")

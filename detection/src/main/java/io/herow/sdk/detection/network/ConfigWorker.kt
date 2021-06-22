@@ -47,29 +47,29 @@ class ConfigWorker(
         )
         GlobalLogger.shared.info(applicationContext, "ConfigResponse: $configResponse")
 
-        if (configResponse.isSuccessful) {
-            configResponse.body()?.let { configResult: ConfigResult ->
-                GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
+        if (configResponse.isSuccessful && configResponse.body() != null) {
+            val configResult: ConfigResult = configResponse.body()!!
 
-                val jsonConfigResult = GsonProvider.toJson(configResult, ConfigResult::class.java)
-                sessionHolder.saveConfigResult(jsonConfigResult)
+            GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
 
-                ConfigDispatcher.dispatchConfigResult(configResult)
-                GlobalLogger.shared.info(applicationContext, "Dispatcher method has been called")
+            val jsonConfigResult = GsonProvider.toJson(configResult, ConfigResult::class.java)
+            sessionHolder.saveConfigResult(jsonConfigResult)
 
-                sessionHolder.saveRepeatInterval(configResult.configInterval)
+            ConfigDispatcher.dispatchConfigResult(configResult)
+            GlobalLogger.shared.info(applicationContext, "Dispatcher method has been called")
 
-                val headers = configResponse.headers()
-                headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->
-                    defineCacheStatus(
-                        sessionHolder,
-                        remoteCachedTime
-                    )
-                }
+            sessionHolder.saveRepeatInterval(configResult.configInterval)
 
-                GlobalLogger.shared.info(context = null, "Headers are: $headers")
+            val headers = configResponse.headers()
+
+            if (headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED] != null) {
+                defineCacheStatus(
+                    sessionHolder,
+                    headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]!!
+                )
             }
 
+            GlobalLogger.shared.info(context = null, "Headers are: $headers")
             sessionHolder.saveConfigLaunch(TimeHelper.getCurrentTime())
         }
     }
@@ -104,9 +104,13 @@ class ConfigWorker(
     ): Boolean {
         val savedTimeStamp =
             DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
-        val remoteCachedTimeToLong = DateHelper.convertStringToTimeStampInMilliSeconds(remoteCachedTime)
+        val remoteCachedTimeToLong =
+            DateHelper.convertStringToTimeStampInMilliSeconds(remoteCachedTime)
 
-        GlobalLogger.shared.info(null, "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp")
+        GlobalLogger.shared.info(
+            null,
+            "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp"
+        )
 
         return remoteCachedTimeToLong > savedTimeStamp
     }

@@ -109,7 +109,8 @@ class LogGeneratorEventTest {
         val herowLogVisit = herowLogsListener.herowLogsVisit.first()
         Assert.assertEquals(herowLogVisit[HerowLogVisit.PLACE_ID], firstZone.hash)
 
-        (herowLogVisit[HerowLogVisit.DURATION] as? Long)?.let { visitDuration: Long ->
+        if ((herowLogVisit[HerowLogVisit.DURATION] as? Long) != null) {
+            val visitDuration: Long = herowLogVisit[HerowLogVisit.DURATION] as Long
             assertThat("Log visit duration in zone", visitDuration, greaterThan(500L))
         }
 

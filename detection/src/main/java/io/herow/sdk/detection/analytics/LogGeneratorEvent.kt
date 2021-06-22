@@ -143,8 +143,8 @@ class LogGeneratorEvent(
 
         runBlocking {
             withContext(ioDispatcher) {
-                retrievePois().let { cachePois.addAll(it) }
-                retrieveZones().let { cacheZones.addAll(it) }
+                retrievePois().run { cachePois.addAll(this) }
+                retrieveZones().run { cacheZones.addAll(this) }
             }
         }
 
@@ -218,7 +218,8 @@ class LogGeneratorEvent(
     override fun onNotificationSent(geofenceEvent: GeofenceEvent, campaign: Campaign) {
         GlobalLogger.shared.info(context, "Geofence of notification is: $geofenceEvent")
 
-        val herowLogNotification = HerowLogEnterOrExitorNotification(appState, geofenceEvent, campaign)
+        val herowLogNotification =
+            HerowLogEnterOrExitorNotification(appState, geofenceEvent, campaign)
         herowLogNotification.enrich(applicationData, sessionHolder)
 
         val logToSend = Log(herowLogNotification)

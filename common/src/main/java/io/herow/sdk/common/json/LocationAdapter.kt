@@ -9,20 +9,20 @@ class LocationAdapter: JsonSerializer<Location>, JsonDeserializer<Location> {
                            typeOfSrc: Type?,
                            context: JsonSerializationContext?): JsonElement {
         val jsonObject = JsonObject()
-        location?.let {
-            jsonObject.addProperty("lat", location.latitude)
-            jsonObject.addProperty("lng", location.longitude)
-            jsonObject.addProperty("alt", location.altitude)
-            jsonObject.addProperty("horizontalAccuracy", location.accuracy)
-            jsonObject.addProperty("speed", location.speed)
+        location?.run {
+            jsonObject.addProperty("lat", this.latitude)
+            jsonObject.addProperty("lng", this.longitude)
+            jsonObject.addProperty("alt", this.altitude)
+            jsonObject.addProperty("horizontalAccuracy", this.accuracy)
+            jsonObject.addProperty("speed", this.speed)
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                jsonObject.addProperty("verticalAccuracy", location.verticalAccuracyMeters)
-                jsonObject.addProperty("speedAccuracy", location.speedAccuracyMetersPerSecond)
-                jsonObject.addProperty("bearingAccuracy", location.bearingAccuracyDegrees)
+                jsonObject.addProperty("verticalAccuracy", this.verticalAccuracyMeters)
+                jsonObject.addProperty("speedAccuracy", this.speedAccuracyMetersPerSecond)
+                jsonObject.addProperty("bearingAccuracy", this.bearingAccuracyDegrees)
             }
-            jsonObject.addProperty("bearing", location.bearing)
-            jsonObject.addProperty("timestamp", location.time)
-            jsonObject.addProperty("provider", location.provider)
+            jsonObject.addProperty("bearing", this.bearing)
+            jsonObject.addProperty("timestamp", this.time)
+            jsonObject.addProperty("provider", this.provider)
         }
         return jsonObject
     }
@@ -30,20 +30,20 @@ class LocationAdapter: JsonSerializer<Location>, JsonDeserializer<Location> {
     override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Location {
         val jsonObject: JsonObject? = json as? JsonObject
         val location = Location(jsonObject?.get("provider")?.asString ?: "unknown")
-        jsonObject?.let {
-            location.latitude = it["lng"].asDouble
-            location.longitude = it["lng"].asDouble
-            location.altitude = it["alt"].asDouble
-            location.accuracy = it["horizontalAccuracy"].asFloat
-            location.speed = it["speed"].asFloat
-            location.bearing = it["mBearing"].asFloat
+        jsonObject?.run {
+            location.latitude = this["lng"].asDouble
+            location.longitude = this["lng"].asDouble
+            location.altitude = this["alt"].asDouble
+            location.accuracy = this["horizontalAccuracy"].asFloat
+            location.speed = this["speed"].asFloat
+            location.bearing = this["mBearing"].asFloat
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                location.verticalAccuracyMeters = it["verticalAccuracy"].asFloat
-                location.speedAccuracyMetersPerSecond = it["speedAccuracy"].asFloat
-                location.bearingAccuracyDegrees = it["bearingAccuracy"].asFloat
+                location.verticalAccuracyMeters = this["verticalAccuracy"].asFloat
+                location.speedAccuracyMetersPerSecond = this["speedAccuracy"].asFloat
+                location.bearingAccuracyDegrees = this["bearingAccuracy"].asFloat
             }
-            location.bearing = it["bearing"].asFloat
-            location.time = it["timestamp"].asLong
+            location.bearing = this["bearing"].asFloat
+            location.time = this["timestamp"].asLong
         }
         return location
     }

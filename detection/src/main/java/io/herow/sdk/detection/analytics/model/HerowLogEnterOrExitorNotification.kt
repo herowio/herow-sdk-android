@@ -47,7 +47,7 @@ class HerowLogEnterOrExitorNotification(
 
         if (this[SUBTYPE] == LogSubtype.GEOFENCE_ZONE_NOTIFICATION) {
             val CAMPAIGN_ID = "campaign_id"
-            this[CAMPAIGN_ID] = campaign.let { campaign?.id } ?: ""
+            this[CAMPAIGN_ID] = campaign?.run { this.id } ?: ""
         }
 
     }

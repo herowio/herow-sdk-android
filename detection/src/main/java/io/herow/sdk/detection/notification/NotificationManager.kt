@@ -71,6 +71,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
                                         createNotification(context, event, campaign)
                                     }
                                 }
+
                         }
                     }
                 }
@@ -82,9 +83,11 @@ class NotificationManager(private val context: Context, private val sessionHolde
         val campaigns: MutableList<Campaign> = mutableListOf()
         val zoneCampaigns = zoneRepository.getZoneByHash(zone.hash)!!.campaigns
 
-        for (id in zoneCampaigns as List<String>) {
-            campaignRepository.getCampaignByID(id)?.let {
-                campaigns.add(it)
+        zoneCampaigns?.run {
+            for (id in this) {
+                campaignRepository.getCampaignByID(id)?.run {
+                    campaigns.add(this)
+                }
             }
         }
 

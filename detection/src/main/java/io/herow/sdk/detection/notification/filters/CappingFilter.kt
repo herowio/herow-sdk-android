@@ -68,7 +68,11 @@ object CappingFilter : NotificationFilter {
         herowCapping.count = count + 1
         saveHerowCapping(herowCapping, sessionHolder)
 
-        return maxCapping?.let { count < it } ?: true
+        return if (maxCapping != null) {
+            count < maxCapping
+        } else {
+            true
+        }
     }
 
     private fun getHerowCapping(

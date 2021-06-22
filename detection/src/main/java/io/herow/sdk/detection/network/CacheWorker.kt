@@ -50,21 +50,28 @@ class CacheWorker(
         GlobalLogger.shared.info(context, "Inside doWork() from CacheWorker")
         GlobalLogger.shared.info(context, "InputData $inputData")
 
-        val locationMapper: LocationMapper = inputData.getString(Constants.LOCATION_DATA).let {
-            GsonProvider.fromJson(it!!, LocationMapper::class.java)
+        val locationMapper: LocationMapper? = inputData.getString(Constants.LOCATION_DATA)?.run {
+            GsonProvider.fromJson(this, LocationMapper::class.java)
         }
 
         GlobalLogger.shared.info(context, "Location from JSON is: $locationMapper")
 
         if (!sessionHolder.getOptinValue()) {
-            GlobalLogger.shared.info(context,"Optin value is set to false")
+            GlobalLogger.shared.info(context, "Optin value is set to false")
             return Result.failure()
         }
 
         authRequest.execute {
             withContext(ioDispatcher) {
-                GlobalLogger.shared.info(context,"Launching cacheRequest")
-                launchCacheRequest(sessionHolder, authRequest.getHerowAPI(), database, locationMapper)
+                GlobalLogger.shared.info(context, "Launching cacheRequest")
+                if (locationMapper != null) {
+                    launchCacheRequest(
+                        sessionHolder,
+                        authRequest.getHerowAPI(),
+                        database,
+                        locationMapper
+                    )
+                }
             }
         }
 
@@ -81,43 +88,44 @@ class CacheWorker(
         database: HerowDatabase,
         locationMapper: LocationMapper
     ) {
-            val extractedGeoHash = extractGeoHash(sessionHolder)
-            if (extractedGeoHash.isNotEmpty()) {
-                val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
-                GlobalLogger.shared.info(context,"Cache response is $cacheResponse")
+        val extractedGeoHash = extractGeoHash(sessionHolder)
+        if (extractedGeoHash.isNotEmpty()) {
+            val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
+            GlobalLogger.shared.info(context, "Cache response is $cacheResponse")
 
-                if (cacheResponse.isSuccessful) {
-                    GlobalLogger.shared.info(context,"CacheResponse is successful")
+            if (cacheResponse.isSuccessful && cacheResponse.body() != null) {
+                GlobalLogger.shared.info(context, "CacheResponse is successful")
+                sessionHolder.saveLastLaunchCacheRequest(TimeHelper.getCurrentTime())
 
-                    sessionHolder.saveLastLaunchCacheRequest(TimeHelper.getCurrentTime())
+                val cacheResult: CacheResult = cacheResponse.body()!!
+                GlobalLogger.shared.info(
+                    context,
+                    "Cache response body: ${cacheResponse.body()}"
+                )
+                GlobalLogger.shared.info(context, "CacheResult is $cacheResult")
+                withContext(ioDispatcher) {
+                    try {
+                        database.clearAllTables()
+                        GlobalLogger.shared.info(context, "Database has been cleared")
 
-                    cacheResponse.body()?.let { cacheResult: CacheResult? ->
-                        GlobalLogger.shared.info(context, "Cache response body: ${cacheResponse.body()}")
-                        GlobalLogger.shared.info(context,"CacheResult is $cacheResult")
-                        withContext(ioDispatcher) {
-                            try {
-                                database.clearAllTables()
-                                GlobalLogger.shared.info(context,"Database has been cleared")
-
-                                for (zone in cacheResult!!.zones) {
-                                    GlobalLogger.shared.info(context, "Zone is: $zone")
-                                }
-
-                                saveCacheDataInDB(cacheResult)
-                                GlobalLogger.shared.info(context,"CacheResult has been saved in BDD")
-
-                                CacheDispatcher.dispatch()
-                                GlobalLogger.shared.info(context,"Dispatching zones")
-
-                                GlobalLogger.shared.info(context,"Sending notification")
-                                sendNotification(locationMapper)
-                            } catch (e: Exception) {
-                                GlobalLogger.shared.error(context,"Exception catched is: $e")
-                            }
+                        for (zone in cacheResult.zones) {
+                            GlobalLogger.shared.info(context, "Zone is: $zone")
                         }
+
+                        saveCacheDataInDB(cacheResult)
+                        GlobalLogger.shared.info(context, "CacheResult has been saved in BDD")
+
+                        CacheDispatcher.dispatch()
+                        GlobalLogger.shared.info(context, "Dispatching zones")
+
+                        GlobalLogger.shared.info(context, "Sending notification")
+                        sendNotification(locationMapper)
+                    } catch (e: Exception) {
+                        GlobalLogger.shared.error(context, "Exception catched is: $e")
                     }
                 }
             }
+        }
     }
 
     /**
@@ -133,26 +141,26 @@ class CacheWorker(
     }
 
     private fun saveCacheDataInDB(cacheResult: CacheResult) {
-        GlobalLogger.shared.info(context,"Cache result is: $cacheResult")
+        GlobalLogger.shared.info(context, "Cache result is: $cacheResult")
         if (!cacheResult.zones.isNullOrEmpty()) {
             for (zone in cacheResult.zones) {
                 zoneRepository.insert(zone)
             }
-            GlobalLogger.shared.info(context,"Zones have been saved in DB")
+            GlobalLogger.shared.info(context, "Zones have been saved in DB")
         }
 
         if (!cacheResult.pois.isNullOrEmpty()) {
             for (poi in cacheResult.pois) {
                 poiRepository.insert(poi)
             }
-            GlobalLogger.shared.info(context,"Pois have been saved in DB")
+            GlobalLogger.shared.info(context, "Pois have been saved in DB")
         }
 
         if (!cacheResult.campaigns.isNullOrEmpty()) {
             for (campaign in cacheResult.campaigns) {
                 campaignRepository.insert(campaign)
             }
-            GlobalLogger.shared.info(context,"Campaigns have been saved in DB")
+            GlobalLogger.shared.info(context, "Campaigns have been saved in DB")
         }
     }
 
