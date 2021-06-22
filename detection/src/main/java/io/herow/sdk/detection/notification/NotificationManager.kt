@@ -37,7 +37,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
         addFilter(ValidityFilter)
         addFilter(TimeSlotFilter)
         addFilter(DayRecurrencyFilter)
-        addFilter(CappingFilter)
+        //addFilter(CappingFilter)
     }
 
     private fun addFilter(filter: NotificationFilter) {

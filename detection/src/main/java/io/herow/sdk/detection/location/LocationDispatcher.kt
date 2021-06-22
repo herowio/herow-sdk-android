@@ -8,7 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 object LocationDispatcher {
 
     private var lastLocation: Location? = null
-
+    private var skipCount = 0
     fun addLocationListener(locationListener: LocationListener) {
         locationListeners.add(locationListener)
     }
@@ -27,7 +27,7 @@ object LocationDispatcher {
             GlobalLogger.shared.info(null,"LastLocation is: $lastLocation")
             GlobalLogger.shared.info(null,"NewLocation is: $newLocation")
 
-            skip = if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
+            skip = if (skipCount > 5 || lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
                 GlobalLogger.shared.info(null,"New and Last locations are different")
                 val distance = newLocation.distanceTo(lastLocation!!)
 
@@ -36,7 +36,7 @@ object LocationDispatcher {
                 val timeInSeconds = time / 1000
                 GlobalLogger.shared.info(null,"Time is: $timeInSeconds")
 
-                distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.THREE_MINUTE_MS
+                distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_SECONDS_MS
             } else {
                 true
             }
@@ -45,12 +45,15 @@ object LocationDispatcher {
         GlobalLogger.shared.info(null,"Value of skip: $skip")
 
         if (!skip) {
+            skipCount = 0
             for (locationListener in locationListeners) {
                 GlobalLogger.shared.info(null,"Dispatching location to: $locationListener")
                 locationListener.onLocationUpdate(newLocation)
             }
 
             lastLocation = newLocation
+        } else {
+            skipCount = skipCount + 1
         }
         GlobalLogger.shared.info(null,"End value of skip: $skip")
     }
