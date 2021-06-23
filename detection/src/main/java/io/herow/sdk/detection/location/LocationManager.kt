@@ -1,14 +1,13 @@
 package io.herow.sdk.detection.location
 
 import android.annotation.SuppressLint
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.location.Location
+import android.os.Looper
+import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.tasks.Task
-import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.IAppStateListener
@@ -25,13 +24,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+//TODO Where should you call ConfigWorker?
 class LocationManager(
     context: Context,
     val sessionHolder: SessionHolder
 ) : ConfigListener, IAppStateListener, LocationListener, LocationPriorityListener {
 
     companion object {
-        private const val LOCATION_REQUEST_CODE = 1515
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
@@ -42,25 +41,17 @@ class LocationManager(
         LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
     private val geofenceEventGenerator = GeofenceEventGenerator(sessionHolder)
-    private val pendingIntent = createPendingIntent(context)
+    private var locationCallback: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult?) {
+            locationResult ?: return
 
-    private var zones: List<Zone>? = null
-    @SuppressLint("InlinedApi")
-    private fun createPendingIntent(context: Context): PendingIntent {
-        val intent = Intent(context, LocationReceiver::class.java)
-        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
-            PendingIntent.FLAG_CANCEL_CURRENT
-        } else {
-            PendingIntent.FLAG_IMMUTABLE
+            if (locationResult.locations.isNotEmpty()) {
+                val lastLocation = locationResult.locations.last()
+                LocationDispatcher.dispatchLocation(lastLocation)
+            }
         }
-
-        return PendingIntent.getBroadcast(
-            context,
-            LOCATION_REQUEST_CODE,
-            intent,
-            pendingIntent
-        )
     }
+    private var zones: List<Zone>? = null
 
     init {
         CacheDispatcher.addCacheListener(zoneManager)
@@ -68,7 +59,6 @@ class LocationManager(
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
         CoroutineScope(Dispatchers.IO).launch {
             zones = zoneManager.getZones()
-
         }
         LocationPriorityDispatcher.registerLocationPriorityListener(this)
     }
@@ -90,13 +80,14 @@ class LocationManager(
 
     @SuppressLint("MissingPermission")
     fun startMonitoring() {
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
-            GlobalLogger.shared.debug(context = null, "Last location is: $location")
-            if (location != null) {
-                LocationDispatcher.dispatchLocation(location)
-            }
-        }
-        updateMonitoring()
+        GlobalLogger.shared.debug(null, "StartMonitoring")
+        val locationRequest = buildLocationRequest(LocationPriority.HIGH)
+
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
     }
 
     /**
@@ -130,15 +121,15 @@ class LocationManager(
     @SuppressLint("MissingPermission")
     private fun updateMonitoring(priority: LocationPriority) {
         GlobalLogger.shared.debug(null, "update priority  : $priority")
-        val locationRequest = buildLocationRequest(priority)
-        fusedLocationProviderClient.removeLocationUpdates(pendingIntent).addOnCompleteListener {
-            GlobalLogger.shared.debug(null, "relaunch with priority : $priority")
-            fusedLocationProviderClient.requestLocationUpdates(locationRequest, pendingIntent)
-        }
+        val locationRequest = buildLocationRequest(LocationPriority.HIGH)
+
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        GlobalLogger.shared.debug(null, "relaunch with priority : $priority")
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
     }
 
     private fun buildLocationRequest(priority: LocationPriority): LocationRequest {
-        val request = LocationRequest()
+        val request = LocationRequest.create()
         request.smallestDisplacement = priority.smallestDistance.toFloat()
         request.fastestInterval = TimeHelper.TEN_SECONDS_MS
         request.interval = priority.interval
@@ -147,12 +138,7 @@ class LocationManager(
     }
 
     private fun stopMonitoring() {
-        fusedLocationProviderClient.removeLocationUpdates(pendingIntent)
-            .addOnCompleteListener { task: Task<Void> ->
-                if (task.isSuccessful) {
-                    println("Stop making location update")
-                }
-            }
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
     override fun onLocationPriority(priority: LocationPriority) {

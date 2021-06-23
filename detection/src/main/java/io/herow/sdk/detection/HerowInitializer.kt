@@ -2,7 +2,9 @@ package io.herow.sdk.detection
 
 import android.content.Context
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.work.*
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
@@ -22,13 +24,11 @@ import io.herow.sdk.detection.cache.CacheManager
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
+import io.herow.sdk.detection.config.ConfigManager
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
-import io.herow.sdk.detection.network.AuthRequests
-import io.herow.sdk.detection.network.ConfigWorker
-import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -44,6 +44,7 @@ class HerowInitializer private constructor(val context: Context) {
     private var workManager: WorkManager
     private var notificationManager: NotificationManager
     private var cacheManager: CacheManager
+    private var configManager: ConfigManager
 
     private var sessionHolder: SessionHolder
 
@@ -53,6 +54,7 @@ class HerowInitializer private constructor(val context: Context) {
         workManager = WorkManager.getInstance(context)
         logsManager = LogsManager(context)
         cacheManager = CacheManager(context)
+        configManager = ConfigManager(context)
         loadIdentifiers(context)
         locationManager = LocationManager(context, sessionHolder)
         notificationManager = NotificationManager(context, sessionHolder)
@@ -141,7 +143,9 @@ class HerowInitializer private constructor(val context: Context) {
 
     fun synchronize() {
         if (sdkSession.hasBeenFilled()) {
-            launchConfigRequest()
+            if (configManager.shouldLaunchConfigWorker()) {
+                configManager.launchConfigRequest()
+            }
         } else {
             GlobalLogger.shared.error(context, "Credentials needed")
             println(
@@ -149,79 +153,6 @@ class HerowInitializer private constructor(val context: Context) {
                         "configApp & configPlatform methods"
             )
         }
-    }
-
-    /**
-     * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
-     * Interval is by default 15 minutes
-     */
-/* private fun launchConfigRequest() {
-    val constraints = Constraints.Builder()
-        .setRequiredNetworkType(NetworkType.CONNECTED)
-        .build()
-
-    val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
-        GlobalLogger.shared.info(context, "Repeat Interval is not saved yet")
-        900000
-    } else {
-        GlobalLogger.shared.info(context, "Repeat Interval is saved")
-        val savedRepeat = sessionHolder.getRepeatInterval()
-        if (savedRepeat < 900000) {
-            900000
-        } else {
-            savedRepeat
-        }
-    }
-
-    GlobalLogger.shared.info(context, "Repeat Interval is: $repeatInterval")
-    GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
-
-    val periodicWorkRequest =
-        PeriodicWorkRequest.Builder(
-            ConfigWorker::class.java,
-            repeatInterval,
-            TimeUnit.MILLISECONDS
-        )
-            .addTag(NetworkWorkerTags.CONFIG)
-            .setConstraints(constraints)
-            .setInputData(
-                workDataOf(
-                    AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-                    AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                    AuthRequests.KEY_CUSTOM_ID to customID,
-                    AuthRequests.KEY_PLATFORM to platform.name
-                )
-            )
-            .build()
-    workManager.enqueueUniquePeriodicWork(
-        "ConfigWorker",
-        ExistingPeriodicWorkPolicy.KEEP,
-        periodicWorkRequest
-    )
-    GlobalLogger.shared.info(context, "Config request is enqueued")
-}  */
-
-    private fun launchConfigRequest() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
-
-        val configWorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
-                .addTag(NetworkWorkerTags.CONFIG)
-                .setConstraints(constraints)
-                .setInputData(
-                    workDataOf(
-                        AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-                        AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-                        AuthRequests.KEY_CUSTOM_ID to customID,
-                        AuthRequests.KEY_PLATFORM to platform.name
-                    )
-                )
-                .build()
-        workManager.enqueue(configWorkRequest)
-        GlobalLogger.shared.info(context, "Config request is enqueued")
     }
 
     fun launchClickAndCollect() {

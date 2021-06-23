@@ -48,6 +48,8 @@ class ConfigWorker(
         GlobalLogger.shared.info(applicationContext, "ConfigResponse: $configResponse")
 
         if (configResponse.isSuccessful && configResponse.body() != null) {
+            sessionHolder.saveConfigLaunch(TimeHelper.getCurrentTime())
+
             val configResult: ConfigResult = configResponse.body()!!
 
             GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
@@ -70,7 +72,6 @@ class ConfigWorker(
             }
 
             GlobalLogger.shared.info(context = null, "Headers are: $headers")
-            sessionHolder.saveConfigLaunch(TimeHelper.getCurrentTime())
         }
     }
 

@@ -3,6 +3,7 @@ package io.herow.sdk.detection.notification.filters
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
@@ -49,7 +50,7 @@ class CappingFilterTest {
         }
 
         herowCappingSaved.count = 7
-        herowCappingSaved.razDate = LocalDateTime.of(2021, 7, 20, 0, 0, 0)
+        herowCappingSaved.razDateInTimestamp = TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 7, 20, 0, 0, 0))
         sessionHolder.saveHerowCapping(GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java))
 
         // We create a Campaign with a Capping - MaxNumberOfNotifications is 5
@@ -61,7 +62,7 @@ class CappingFilterTest {
         println("HerowCapping is: ${sessionHolder.getHerowCapping()}")
         Assert.assertFalse(CappingFilter.createNotification(campaign!!, sessionHolder))
 
-        herowCappingSaved.razDate = LocalDateTime.of(2021, 4, 3, 12, 0, 0)
+        herowCappingSaved.razDateInTimestamp = TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 4, 3, 12, 0, 0))
         sessionHolder.saveHerowCapping(GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java))
 
         // With the same campaign, the saved razTime is inferior to currentTime
@@ -75,5 +76,6 @@ class CappingFilterTest {
 
         // HerowCapping's campaignID should be the same as the campaign id given as parameter
         Assert.assertTrue(campaign!!.id == sessionHolder.getHerowCapping().campaignId)
+        println("HerowCapping in TEST after execution is: ${sessionHolder.getHerowCapping()}")
     }
 }

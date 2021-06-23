@@ -1,11 +1,9 @@
 package io.herow.sdk.connection.cache.model
 
-import java.time.LocalDateTime
+import io.herow.sdk.common.helpers.TimeHelper
 
 data class HerowCapping(
     var campaignId: String = "",
-    var razDate: LocalDateTime = LocalDateTime.now(),
+    var razDateInTimestamp: Long = TimeHelper.getCurrentTime(),
     var count: Int = 0
 )
-
-

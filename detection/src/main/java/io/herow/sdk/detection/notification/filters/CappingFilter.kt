@@ -53,13 +53,15 @@ object CappingFilter : NotificationFilter {
 
         GlobalLogger.shared.info(null, "First raz date is: $firstRazDate")
 
-        val herowCapping = getHerowCapping(sessionHolder, campaign, firstRazDate)
+        val herowCapping = getHerowCapping(sessionHolder, campaign, TimeHelper.convertLocalDateTimeToTimestamp(firstRazDate))
+        val razDateConvertedInLocalDateTime = TimeHelper.convertTimestampToLocalDateTime(herowCapping.razDateInTimestamp)
 
-        val count = if (currentLocalDateTime < herowCapping.razDate) {
+        val count = if (currentLocalDateTime < razDateConvertedInLocalDateTime) {
             herowCapping.count
         } else {
-            val nextRazDate = herowCapping.razDate.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
-            herowCapping.razDate = nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
+            val nextRazDate = razDateConvertedInLocalDateTime.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
+            val localDateTimeToConvert = nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
+            herowCapping.razDateInTimestamp = TimeHelper.convertLocalDateTimeToTimestamp(localDateTimeToConvert)
             0
         }
 
@@ -78,14 +80,14 @@ object CappingFilter : NotificationFilter {
     private fun getHerowCapping(
         sessionHolder: SessionHolder,
         campaign: Campaign,
-        firstRazDate: LocalDateTime
+        firstRazDate: Long
     ): HerowCapping {
         return if (sessionHolder.hasHerowCappingSaved()) {
             sessionHolder.getHerowCapping()
         } else {
             HerowCapping(
                 campaignId = campaign.id!!,
-                razDate = firstRazDate,
+                razDateInTimestamp = firstRazDate,
                 count = 0
             )
         }
