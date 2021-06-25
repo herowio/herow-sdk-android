@@ -37,7 +37,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
         addFilter(ValidityFilter)
         addFilter(TimeSlotFilter)
         addFilter(DayRecurrencyFilter)
-        //addFilter(CappingFilter)
+        addFilter(CappingFilter)
     }
 
     private fun addFilter(filter: NotificationFilter) {
@@ -60,7 +60,8 @@ class NotificationManager(private val context: Context, private val sessionHolde
         if (geofenceEvents.isNotEmpty()) {
             for (event in geofenceEvents) {
                 GlobalLogger.shared.info(context, "Geofence type is: ${event.type}")
-                if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
+                if (event.type == GeofenceType.ENTER) {
+                    //  if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
                     runBlocking {
                         withContext(Dispatchers.IO) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
@@ -81,13 +82,13 @@ class NotificationManager(private val context: Context, private val sessionHolde
     private fun fetchCampaignInDatabase(zone: Zone): List<Campaign> {
         val campaigns: MutableList<Campaign> = mutableListOf()
         val zoneCampaigns = zoneRepository.getZoneByHash(zone.hash)!!.campaigns
-
-        for (id in zoneCampaigns as List<String>) {
-            campaignRepository.getCampaignByID(id)?.let {
-                campaigns.add(it)
+        if (zoneCampaigns != null) {
+            for (id in zoneCampaigns) {
+                campaignRepository.getCampaignByID(id)?.let {
+                    campaigns.add(it)
+                }
             }
         }
-
         return campaigns
     }
 

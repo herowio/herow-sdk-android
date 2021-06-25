@@ -60,30 +60,32 @@ class LogsManager(private val context: Context) : LogsListener {
 
         val workOfData = WorkHelper.getWorkOfData(sessionHolder)
         val platform = WorkHelper.getPlatform(sessionHolder)
-
-        if (WorkHelper.isWorkNotScheduled(workManager, NetworkWorkerTags.CACHE)) {
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-            GlobalLogger.shared.info(context, "Log to send is: $log")
-
-            val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
-                .addTag(NetworkWorkerTags.LOGS)
-                .setConstraints(constraints)
-                .setInputData(
-                    workDataOf(
-                        AuthRequests.KEY_SDK_ID to workOfData[Constants.SDK_ID],
-                        AuthRequests.KEY_SDK_KEY to workOfData[Constants.SDK_KEY],
-                        AuthRequests.KEY_CUSTOM_ID to workOfData[Constants.CUSTOM_ID],
-                        AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name,
-                        LogsWorker.workerID to uuid
-                    )
+        GlobalLogger.shared.debug(
+            context,
+            "Is work scheduled: ${
+                WorkHelper.isWorkNotScheduled(
+                    workManager,
+                    NetworkWorkerTags.LOGS
                 )
-                .build()
-
-            workManager.enqueue(workerRequest)
-            GlobalLogger.shared.info(context, "Log request is enqueued")
-        }
+            }"
+        )
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
+            .addTag(NetworkWorkerTags.LOGS)
+            .setConstraints(constraints)
+            .setInputData(
+                workDataOf(
+                    AuthRequests.KEY_SDK_ID to workOfData[Constants.SDK_ID],
+                    AuthRequests.KEY_SDK_KEY to workOfData[Constants.SDK_KEY],
+                    AuthRequests.KEY_CUSTOM_ID to workOfData[Constants.CUSTOM_ID],
+                    AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name,
+                    LogsWorker.workerID to uuid
+                )
+            )
+            .build()
+        workManager.enqueue(workerRequest)
+        GlobalLogger.shared.info(context, "Log request is enqueued")
     }
 }

@@ -15,6 +15,7 @@ import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExitorNotification
+import io.herow.sdk.detection.analytics.model.HerowLogNotification
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
@@ -84,7 +85,6 @@ class LogGeneratorEvent(
         herowLogContext.enrich(applicationData, sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext))
         GlobalLogger.shared.info(context, "List of logs are:  $listOfLogs")
-
         LogsDispatcher.dispatchLogsResult(listOfLogs)
     }
 
@@ -195,8 +195,18 @@ class LogGeneratorEvent(
                 listOfTemporaryLogsVisit.removeAll(logsToRemove)
             }
         }
-        LogsDispatcher.dispatchLogsResult(listOfLogsEnterOrExit)
-        LogsDispatcher.dispatchLogsResult(listOfLogsVisit)
+
+        val logs = ArrayList<Log>()
+        if (listOfLogsEnterOrExit.isNotEmpty()) {
+            GlobalLogger.shared.debug(context,"list of logEvents is: $listOfLogsEnterOrExit")
+            logs.addAll(listOfLogsEnterOrExit)
+        }
+        if (listOfLogsVisit.isNotEmpty()) {
+            logs.addAll(listOfLogsVisit)
+            GlobalLogger.shared.debug(context,"list of logVisits is: $listOfLogsVisit")
+        }
+
+        LogsDispatcher.dispatchLogsResult(logs)
     }
 
     private suspend fun retrievePois(): ArrayList<Poi> {
@@ -217,12 +227,9 @@ class LogGeneratorEvent(
 
     override fun onNotificationSent(geofenceEvent: GeofenceEvent, campaign: Campaign) {
         GlobalLogger.shared.info(context, "Geofence of notification is: $geofenceEvent")
-
-        val herowLogNotification = HerowLogEnterOrExitorNotification(appState, geofenceEvent, campaign)
+        val herowLogNotification = HerowLogNotification(appState, geofenceEvent, campaign)
         herowLogNotification.enrich(applicationData, sessionHolder)
-
         val logToSend = Log(herowLogNotification)
-
         GlobalLogger.shared.info(context, "Log notification is: $logToSend")
         LogsDispatcher.dispatchLogsResult(arrayListOf(logToSend))
     }

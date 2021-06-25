@@ -61,7 +61,7 @@ class CacheManager(val context: Context): LocationListener {
                         AuthRequests.KEY_SDK_KEY to workOfData[Constants.SDK_KEY],
                         AuthRequests.KEY_CUSTOM_ID to workOfData[Constants.CUSTOM_ID],
                         AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name,
-                        CacheWorker.KEY_GEOHASH to GeoHashHelper.encodeBase32(location),
+                        CacheWorker.KEY_GEOHASH to sessionHolder.getGeohash(),
                         Constants.LOCATION_DATA to Gson().toJson(locationMapper)
                     )
                 )
@@ -77,9 +77,15 @@ class CacheManager(val context: Context): LocationListener {
      * Then check if GeoHash is empty or different from saved data
      */
     private fun isGeoHashUnknownOrDifferent(sessionHolder: SessionHolder, location: Location): Boolean {
-        val inputGeohash: String = GeoHashHelper.encodeBase32(location)
+        val inputGeohash: String = GeoHashHelper.encodeBase32(location).substring(0,4)
+        val noGeoHash =  sessionHolder.hasNoGeoHashSaved()
+        val oldGeoHash = sessionHolder.getGeohash()
+        val differentGeoHash =  inputGeohash != sessionHolder.getGeohash()
+        GlobalLogger.shared.debug(context, "geohash state: noGeoHash = $noGeoHash, differentGeoHash=$differentGeoHash ")
+        GlobalLogger.shared.debug(context, "geohash state: savedGeoHash = $oldGeoHash, newGeo=$inputGeohash ")
 
-        if (sessionHolder.hasNoGeoHashSaved() || inputGeohash != sessionHolder.getGeohash()) {
+        if (noGeoHash || differentGeoHash) {
+            sessionHolder.saveGeohash(inputGeohash)
             return true
         }
 
@@ -90,7 +96,7 @@ class CacheManager(val context: Context): LocationListener {
         val expirationCacheTime = DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
         val lastTimeCacheWasLaunched = sessionHolder.getLastTimeCacheWasLaunched()
 
-        return lastTimeCacheWasLaunched == 0L || lastTimeCacheWasLaunched > expirationCacheTime
+        return lastTimeCacheWasLaunched == 0L || lastTimeCacheWasLaunched < expirationCacheTime
     }
 
     private fun shouldGetCache(sessionHolder: SessionHolder, location: Location): Boolean {

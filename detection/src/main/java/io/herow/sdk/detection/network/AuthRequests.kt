@@ -32,6 +32,7 @@ class AuthRequests(
         const val KEY_PLATFORM = "detection.platform"
     }
 
+    private var isWorking = false
     private val platform = getPlatform()
     private val herowAPI: HerowAPI = RetrofitBuilder.buildRetrofitForAPI(
         sessionHolder,
@@ -51,14 +52,14 @@ class AuthRequests(
         GlobalLogger.shared.info(null,"Beginning of execute method in AuthRequests")
         GlobalLogger.shared.info(null, "Token, before isTokenUsable, is: ${sessionHolder.getAccessToken()}")
 
-        if (!isTokenUsable(sessionHolder)) {
+        if (!isTokenUsable(sessionHolder) && !isWorking) {
             GlobalLogger.shared.info(null,"Token is not usable")
 
             withContext(Dispatchers.IO) {
                 launchTokenRequest(sessionHolder, platform, herowAPI)
             }
         } else {
-            GlobalLogger.shared.info(null,"Token is usable")
+            GlobalLogger.shared.info(null,"Token is usable or isWorking")
         }
 
         GlobalLogger.shared.info(null,"Token, after isTokenUsable, is: ${sessionHolder.getAccessToken()}")
@@ -118,13 +119,15 @@ class AuthRequests(
         recordedTime > TimeHelper.getCurrentTime()
 
     private suspend fun launchTokenRequest(
+
         sessionHolder: SessionHolder,
         platform: HerowPlatform,
         herowAPI: HerowAPI
     ) {
+        isWorking = true
         val sdkId = data.getString(KEY_SDK_ID) ?: ""
         val sdkKey = data.getString(KEY_SDK_KEY) ?: ""
-
+        GlobalLogger.shared.info(null, "AuthRequest isWorking = $isWorking")
         GlobalLogger.shared.info(null,"SdkID is $sdkId")
         GlobalLogger.shared.info(null,"SdkKey is $sdkKey")
 
@@ -141,7 +144,7 @@ class AuthRequests(
 
             val retrofitObjectString = Gson().toJson(retrofitObject, RetrofitConnectionObject::class.java)
             val tokenResponse = herowAPI.token(retrofitObjectString)
-
+            isWorking = false
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
                     sessionHolder.saveAccessToken(tokenResult.getToken())

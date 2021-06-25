@@ -1,5 +1,6 @@
 package io.herow.sdk.common.helpers
 
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneOffset
@@ -22,6 +23,11 @@ object TimeHelper {
 
     fun getCurrentLocalTime(): LocalTime = LocalTime.now()
 
-    fun convertDateToMilliSeconds(dateTime: LocalDateTime): Long =
+    fun convertLocalDateTimeToTimestamp(dateTime: LocalDateTime): Long =
         dateTime.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()!!
+
+    fun convertTimestampToLocalDateTime(timestamp: Long): LocalDateTime {
+        val instant = Instant.ofEpochMilli(timestamp)
+        return instant.atZone(ZoneOffset.UTC).toLocalDateTime()
+    }
 }

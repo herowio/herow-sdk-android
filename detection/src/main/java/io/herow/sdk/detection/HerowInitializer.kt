@@ -82,7 +82,6 @@ class HerowInitializer private constructor(val context: Context): LocationListen
 
     private fun registerListeners() {
         AppStateDetector.addAppStateListener(locationManager)
-        LocationDispatcher.addLocationListener(locationManager)
         LocationDispatcher.addLocationListener(cacheManager)
         LocationDispatcher.addLocationListener(this)
         ConfigDispatcher.addConfigListener(locationManager)
@@ -245,6 +244,7 @@ class HerowInitializer private constructor(val context: Context): LocationListen
     fun didAcceptLocationUpdates() {
         launchConfigRequest()
     }
+
     fun launchClickAndCollect() {
         val workRequest: WorkRequest = OneTimeWorkRequest.Builder(ClickAndCollectWorker::class.java)
             .addTag(ClickAndCollectWorker.tag)

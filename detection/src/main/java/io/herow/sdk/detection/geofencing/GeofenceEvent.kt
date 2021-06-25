@@ -14,7 +14,7 @@ data class GeofenceEvent(
 
     fun computeEnterConfidence(location: Location, zone: Zone): Double {
         zone.radius = zone.radius ?: 0.0
-        val confidence = 1 - computeConfidence(location, zone)
+        val confidence = computeConfidence(location, zone)
         GlobalLogger.shared.debug(null, "GeofenceEvent enter zone confidence: $confidence")
 
         return confidence
@@ -22,7 +22,7 @@ data class GeofenceEvent(
 
     fun computeNotificationConfidence(location: Location, zone: Zone): Double {
         zone.radius = 3.times(zone.radius ?: 0.0)
-        val confidence = 1 - computeConfidence(location, zone)
+        val confidence = computeConfidence(location, zone)
         GlobalLogger.shared.debug(null, "GeofenceEvent enter notification zone confidence: $confidence")
 
         return confidence

@@ -141,7 +141,7 @@ class ZoneManager(
 
         synchronized(zones) {
             GlobalLogger.shared.info(context, "Zones synchronization: $zones")
-            for (zone in zones) {
+            for (zone in ArrayList(zones)) {
                 val zoneLocation = zone.toLocation()
                 val distanceToCenterOfZone = location.distanceTo(zoneLocation)
                 if (distanceToCenterOfZone - zone.radius!! <= 0) {
@@ -149,10 +149,10 @@ class ZoneManager(
                     detectedZones.add(zone)
                 }
 
-                if (distanceToCenterOfZone - zone.radius!! * 3 <= 0) {
+               /* if (distanceToCenterOfZone - zone.radius!! * 3 <= 0) {
                     GlobalLogger.shared.info(context, "Adding zone for radius x3: $zone")
                     detectedZoneForNotification.add(zone)
-                }
+                }*/
             }
         }
 

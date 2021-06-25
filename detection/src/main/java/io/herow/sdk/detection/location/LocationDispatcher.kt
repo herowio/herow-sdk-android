@@ -27,7 +27,7 @@ object LocationDispatcher {
             GlobalLogger.shared.info(null,"LastLocation is: $lastLocation")
             GlobalLogger.shared.info(null,"NewLocation is: $newLocation")
 
-            skip = if (skipCount > 5 || lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
+            skip = if ( lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
                 GlobalLogger.shared.info(null,"New and Last locations are different")
                 val distance = newLocation.distanceTo(lastLocation!!)
 
@@ -44,7 +44,7 @@ object LocationDispatcher {
 
         GlobalLogger.shared.info(null,"Value of skip: $skip")
 
-        if (!skip) {
+        if (!skip || skipCount > 5) {
             skipCount = 0
             for (locationListener in locationListeners) {
                 GlobalLogger.shared.info(null,"Dispatching location to: $locationListener")

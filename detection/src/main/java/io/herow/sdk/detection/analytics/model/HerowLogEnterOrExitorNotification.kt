@@ -6,7 +6,7 @@ import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.geofencing.model.LocationMapper
 
-class HerowLogEnterOrExitorNotification(
+open class HerowLogEnterOrExitorNotification(
     appState: String,
     geofenceEvent: GeofenceEvent,
     campaign: Campaign? = null
