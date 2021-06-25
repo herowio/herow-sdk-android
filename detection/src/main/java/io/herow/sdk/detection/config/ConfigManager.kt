@@ -2,11 +2,11 @@ package io.herow.sdk.detection.config
 
 import android.content.Context
 import androidx.work.*
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
@@ -15,17 +15,15 @@ import io.herow.sdk.detection.network.NetworkWorkerTags
 class ConfigManager(val context: Context) {
 
     private val workManager = WorkManager.getInstance(context)
-    private val sessionHolder = SessionHolder(DataHolder(context))
-    private val workOfData = WorkHelper.getWorkOfData(sessionHolder)
-    private val platform = WorkHelper.getPlatform(sessionHolder)
-
 
     /**
      * Launch the necessary requests to configure the SDK & thus launch the geofencing monitoring.
      * Interval is by default 15 minutes
      */
+    private fun launchConfigRequest(sessionHolder: SessionHolder) {
+        val workOfData = WorkHelper.getWorkOfData(sessionHolder)
+        val platform = WorkHelper.getPlatform(sessionHolder)
 
-    fun launchConfigRequest() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -48,7 +46,7 @@ class ConfigManager(val context: Context) {
         GlobalLogger.shared.info(context, "Config request is enqueued")
     }
 
-    fun shouldLaunchConfigWorker(): Boolean {
+    private fun shouldLaunchConfigWorker(sessionHolder: SessionHolder): Boolean {
         if (sessionHolder.firstTimeLaunchingConfig()) {
             return true
         }
@@ -70,5 +68,18 @@ class ConfigManager(val context: Context) {
         }
 
         return lastConfigLaunchTimestamp.plus(repeatInterval) > currentTimestamp
+    }
+
+    fun checkConfig(sessionHolder: SessionHolder) {
+        if (shouldLaunchConfigWorker(sessionHolder)) {
+            GlobalLogger.shared.info(context, "Config request should be launched")
+            launchConfigRequest(sessionHolder)
+        } else {
+            GlobalLogger.shared.info(context, "Dispatching saved config but not fetching it")
+            val configResult = sessionHolder.getConfigResult()
+            if (configResult != null) {
+                ConfigDispatcher.dispatchConfigResult(configResult)
+            }
+        }
     }
 }

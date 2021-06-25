@@ -7,11 +7,14 @@ import android.content.Intent
 import android.location.Location
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
+import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
+import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.detection.config.ConfigManager
 import io.herow.sdk.detection.geofencing.GeofencingReceiver
 import io.herow.sdk.detection.helpers.GeofencingHelper
 import io.herow.sdk.detection.location.LocationListener
@@ -34,6 +37,8 @@ class ZoneManager(
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
     private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+    private val configManager = ConfigManager(context)
+    private val sessionHolder = SessionHolder(DataHolder(context))
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)
@@ -114,6 +119,7 @@ class ZoneManager(
     }
 
     override fun onLocationUpdate(location: Location) {
+        configManager.checkConfig(sessionHolder)
         dispatchZonesAndNotification(location)
     }
 

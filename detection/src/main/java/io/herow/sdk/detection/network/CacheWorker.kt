@@ -37,13 +37,13 @@ class CacheWorker(
     private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
     private val poiRepository = HerowDatabaseHelper.getPoiRepository(context)
     private val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
+    val sessionHolder = SessionHolder(DataHolder(applicationContext))
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
     }
 
     override suspend fun doWork(): Result {
-        val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val authRequest = AuthRequests(sessionHolder, inputData)
         val database: HerowDatabase = HerowDatabase.getDatabase(context)
 

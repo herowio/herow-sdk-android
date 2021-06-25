@@ -143,9 +143,7 @@ class HerowInitializer private constructor(val context: Context) {
 
     fun synchronize() {
         if (sdkSession.hasBeenFilled()) {
-            if (configManager.shouldLaunchConfigWorker()) {
-                configManager.launchConfigRequest()
-            }
+            configManager.checkConfig(sessionHolder)
         } else {
             GlobalLogger.shared.error(context, "Credentials needed")
             println(

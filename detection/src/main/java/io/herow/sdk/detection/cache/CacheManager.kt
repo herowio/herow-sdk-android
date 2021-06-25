@@ -8,6 +8,7 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.config.ConfigManager
 import io.herow.sdk.detection.geofencing.model.LocationMapper
 import io.herow.sdk.detection.geofencing.model.toLocationMapper
 import io.herow.sdk.detection.helpers.DateHelper
@@ -20,12 +21,13 @@ import io.herow.sdk.detection.network.CacheWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import kotlinx.coroutines.launch
 
-class CacheManager(val context: Context): LocationListener {
+class CacheManager(val context: Context) : LocationListener {
 
     private val workManager = WorkManager.getInstance(context)
     private val sessionHolder = SessionHolder(DataHolder(context))
     private val workOfData = WorkHelper.getWorkOfData(sessionHolder)
     private val platform = WorkHelper.getPlatform(sessionHolder)
+    private val configManager = ConfigManager(context)
 
     /**
      * Launch cache request if
@@ -33,7 +35,9 @@ class CacheManager(val context: Context): LocationListener {
      * -
      */
     override fun onLocationUpdate(location: Location) {
+        configManager.checkConfig(sessionHolder)
         GlobalLogger.shared.info(context, "Into onLocationUpdate from CacheManager")
+
         if (shouldGetCache(sessionHolder, location)) {
             LocationManager.scope.launch { CacheManager(context).launchCacheRequest(location) }
         }
@@ -76,7 +80,10 @@ class CacheManager(val context: Context): LocationListener {
      * First check if GeoHash has already been saved into SP
      * Then check if GeoHash is empty or different from saved data
      */
-    private fun isGeoHashUnknownOrDifferent(sessionHolder: SessionHolder, location: Location): Boolean {
+    private fun isGeoHashUnknownOrDifferent(
+        sessionHolder: SessionHolder,
+        location: Location
+    ): Boolean {
         val inputGeohash: String = GeoHashHelper.encodeBase32(location)
 
         if (sessionHolder.hasNoGeoHashSaved() || inputGeohash != sessionHolder.getGeohash()) {
@@ -87,7 +94,8 @@ class CacheManager(val context: Context): LocationListener {
     }
 
     private fun shouldFetchNow(sessionHolder: SessionHolder): Boolean {
-        val expirationCacheTime = DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
+        val expirationCacheTime =
+            DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
         val lastTimeCacheWasLaunched = sessionHolder.getLastTimeCacheWasLaunched()
 
         return lastTimeCacheWasLaunched == 0L || lastTimeCacheWasLaunched > expirationCacheTime
@@ -96,9 +104,18 @@ class CacheManager(val context: Context): LocationListener {
     private fun shouldGetCache(sessionHolder: SessionHolder, location: Location): Boolean {
         val differentHash = isGeoHashUnknownOrDifferent(sessionHolder, location)
         val lastFetchDate = sessionHolder.getLastTimeCacheWasLaunched()
-        val lastCacheModifiedDate = DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
+        val stringModifiedDate: String = sessionHolder.getLastSavedModifiedDateTimeCache()
 
-        GlobalLogger.shared.info(context, "Cache already launched: ${sessionHolder.didSaveLastLaunchCache()}")
+        val lastCacheModifiedDate: Long = if (stringModifiedDate.isNotEmpty()) {
+            DateHelper.convertStringToTimeStampInMilliSeconds(stringModifiedDate)
+        } else {
+            0L
+        }
+
+        GlobalLogger.shared.info(
+            context,
+            "Cache already launched: ${sessionHolder.didSaveLastLaunchCache()}"
+        )
 
         if (!sessionHolder.didSaveLastLaunchCache()) {
             return true
@@ -115,11 +132,17 @@ class CacheManager(val context: Context): LocationListener {
         }
 
         if (cacheIsNotUpToDate) {
-            GlobalLogger.shared.debug(context, "Cache should be fetch because of cache is not up to date")
+            GlobalLogger.shared.debug(
+                context,
+                "Cache should be fetch because of cache is not up to date"
+            )
         }
 
         if (fetchNow) {
-            GlobalLogger.shared.debug(context, "Cache should be fetch because of cache interval is done")
+            GlobalLogger.shared.debug(
+                context,
+                "Cache should be fetch because of cache interval is done"
+            )
         }
 
         return differentHash || cacheIsNotUpToDate || fetchNow

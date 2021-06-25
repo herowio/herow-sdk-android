@@ -16,6 +16,7 @@ import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExitorNotification
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
+import io.herow.sdk.detection.config.ConfigManager
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
@@ -44,6 +45,7 @@ class LogGeneratorEvent(
         NotificationDispatcher.addNotificationListener(this)
     }
 
+    private val configManager = ConfigManager(context)
     private val ioDispatcher = Dispatchers.IO
     private var appState: String = "bg"
     var cachePois = ArrayList<Poi>()
@@ -67,6 +69,8 @@ class LogGeneratorEvent(
     override fun onLocationUpdate(location: Location) {
         GlobalLogger.shared.info(context, "onLocationUpdate method is called")
         GlobalLogger.shared.info(context, "Location is: $location")
+
+        configManager.checkConfig(sessionHolder)
 
         var nearbyPois = computeNearbyPois(location)
         if (nearbyPois.size > 10) {
