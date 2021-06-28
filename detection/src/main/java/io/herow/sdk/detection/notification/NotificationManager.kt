@@ -11,6 +11,7 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.R
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
@@ -26,7 +27,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
     private val filterList: ArrayList<NotificationFilter> = arrayListOf()
     private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
     private val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
-
+    private var notificationOnExactEntry = false
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000
         const val ID_ZONE: String = "idZone"
@@ -56,12 +57,16 @@ class NotificationManager(private val context: Context, private val sessionHolde
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
+        val trigger: GeofenceType = if (notificationOnExactEntry) {
+            GeofenceType.ENTER
+        } else {
+            GeofenceType.GEOFENCE_NOTIFICATION_ENTER
+        }
         GlobalLogger.shared.info(context, "GeofenceEvents received: $geofenceEvents")
         if (geofenceEvents.isNotEmpty()) {
             for (event in geofenceEvents) {
                 GlobalLogger.shared.info(context, "Geofence type is: ${event.type}")
-                if (event.type == GeofenceType.ENTER) {
-                    //  if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
+                if (event.type == trigger) {
                     runBlocking {
                         withContext(Dispatchers.IO) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
@@ -160,5 +165,9 @@ class NotificationManager(private val context: Context, private val sessionHolde
             intent,
             pendingIntent
         )
+    }
+
+    fun notificationsOnExactZoneEntry(value: Boolean) {
+        notificationOnExactEntry = value
     }
 }

@@ -286,4 +286,8 @@ class HerowInitializer private constructor(val context: Context): LocationListen
     override fun onLocationUpdate(location: Location) {
        launchConfigRequest()
     }
+
+    fun notificationsOnExactZoneEntry(value: Boolean) {
+        notificationManager.notificationsOnExactZoneEntry(value)
+    }
 }
