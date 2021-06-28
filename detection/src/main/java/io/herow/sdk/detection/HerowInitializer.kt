@@ -5,9 +5,8 @@ import android.location.Location
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import com.google.gson.Gson
+import com.google.common.util.concurrent.ListenableFuture
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
@@ -18,7 +17,6 @@ import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.CacheListener
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigDispatcher
-import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
@@ -29,19 +27,19 @@ import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.GeofenceListener
-import io.herow.sdk.detection.helpers.GeoHashHelper
+import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationListener
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.AuthRequests
-import io.herow.sdk.detection.network.CacheWorker
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.ExecutionException
+
 
 class HerowInitializer private constructor(val context: Context): LocationListener {
     private val appStateDetector = AppStateDetector()
@@ -87,6 +85,7 @@ class HerowInitializer private constructor(val context: Context): LocationListen
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
         GeofenceDispatcher.addGeofenceListener(notificationManager)
+
     }
 
     /**
@@ -161,19 +160,23 @@ class HerowInitializer private constructor(val context: Context): LocationListen
     }
 
     private fun shouldLaunchConfigRequest(): Boolean {
+        var result = false
         if (sessionHolder.firstTimeLaunchingConfig()) {
+            GlobalLogger.shared.debug(context,"Launch Config du to first launch")
             return true
         }
 
-        val lastTimeLaunched =
+        val nextTimeToLaunch =
             sessionHolder.getLastConfigLaunch() + sessionHolder.getRepeatInterval()
         val currentTime = TimeHelper.getCurrentTime()
 
-        if (currentTime > lastTimeLaunched) {
+        if (currentTime > nextTimeToLaunch) {
+            GlobalLogger.shared.debug(context,"Launch Config du config repeatInterval is done: currentTime = $currentTime, timeToRelaunch = $nextTimeToLaunch")
             return true
         }
 
         return false
+
     }
 
     /**
@@ -181,64 +184,53 @@ class HerowInitializer private constructor(val context: Context): LocationListen
      * Interval is by default 15 minutes
      */
     private fun launchConfigRequest() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
 
-     /*   val repeatInterval: Long = if (sessionHolder.hasNoRepeatIntervalSaved()) {
-            GlobalLogger.shared.info(context, "Repeat Interval is not saved yet")
-            900000
-        } else {
-            GlobalLogger.shared.info(context, "Repeat Interval is saved")
-            val savedRepeat = sessionHolder.getRepeatInterval()
-            if (savedRepeat < 900000) {
-                900000
-            } else {
-                savedRepeat
-            }
-        }*/
-
-      //  GlobalLogger.shared.info(context, "Repeat Interval is: $repeatInterval")
-       // GlobalLogger.shared.info(context, "LaunchConfigRequest method is called")
-
-
-        val datas =   workDataOf(
-            AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
-            AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
-            AuthRequests.KEY_CUSTOM_ID to customID,
-            AuthRequests.KEY_PLATFORM to platform.name
-        )
-       val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
-            .setConstraints(constraints)
-            .setInputData(
-                datas
+        if (shouldLaunchConfigRequest() && WorkHelper.isWorkNotScheduled(
+                workManager,
+                NetworkWorkerTags.CONFIG
+            ) ) {
+            GlobalLogger.shared.debug(context,"launch ConfigRequest")
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val datas =   workDataOf(
+                AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+                AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+                AuthRequests.KEY_CUSTOM_ID to customID,
+                AuthRequests.KEY_PLATFORM to platform.name
             )
-            .build()
-        if (shouldLaunchConfigRequest()) {
-            workManager.enqueue(workerRequest)
-        } else {
-           val lastConfig = sessionHolder.getConfig()
-            ConfigDispatcher.dispatchConfigResult(lastConfig)
-        }
-
-      /*  val periodicWorkRequest =
-            PeriodicWorkRequest.Builder(
-                ConfigWorker::class.java,
-                repeatInterval,
-                TimeUnit.MILLISECONDS
-            )
+            val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
                 .addTag(NetworkWorkerTags.CONFIG)
                 .setConstraints(constraints)
                 .setInputData(
-                        datas
+                    datas
                 )
                 .build()
-        workManager.enqueueUniquePeriodicWork(
-            "ConfigWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
-            periodicWorkRequest
-        )*/
-        GlobalLogger.shared.info(context, "Config request is enqueued")
+            workManager.enqueue(workerRequest)
+            GlobalLogger.shared.info(context, "Config request is enqueued")
+        } else {
+            val lastConfig = sessionHolder.getConfig()
+            ConfigDispatcher.dispatchConfigResult(lastConfig)
+        }
+    }
+    private fun isWorkScheduled(tag: String): Boolean {
+        val instance = WorkManager.getInstance()
+        val statuses: ListenableFuture<List<WorkInfo>> = instance.getWorkInfosByTag(tag)
+        return try {
+            var running = false
+            val workInfoList: List<WorkInfo> = statuses.get()
+            for (workInfo in workInfoList) {
+                val state = workInfo.state
+                running = state == WorkInfo.State.RUNNING || state == WorkInfo.State.ENQUEUED
+            }
+            running
+        } catch (e: ExecutionException) {
+            e.printStackTrace()
+            false
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+            false
+        }
     }
 
     fun didAcceptLocationUpdates() {

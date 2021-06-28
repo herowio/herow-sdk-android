@@ -65,12 +65,15 @@ object CappingFilter : NotificationFilter {
             0
         }
 
-        GlobalLogger.shared.info(null, "Count is: $count")
+
 
         herowCapping.count = count + 1
+        GlobalLogger.shared.info(null, "CappingFilter Count is: $count")
+        GlobalLogger.shared.info(null, "CappingFilter HerowCapping  is: $herowCapping")
         saveHerowCapping(herowCapping, sessionHolder)
-
-        return maxCapping?.let { count < it } ?: true
+        val result =  maxCapping?.let { count < it } ?: true
+        GlobalLogger.shared.debug(null,"CappingFilter will display: $result for campaign $campaign")
+        return result
     }
 
     private fun getHerowCapping(
@@ -78,23 +81,18 @@ object CappingFilter : NotificationFilter {
         campaign: Campaign,
         firstRazDate: Long
     ): HerowCapping {
-        return if (sessionHolder.hasHerowCappingSaved()) {
-            GlobalLogger.shared.info(null, "HerowCapping exists")
-            sessionHolder.getHerowCapping()
-        } else {
-            GlobalLogger.shared.info(null, "HerowCapping creation")
-            HerowCapping(
-                campaignId = campaign.id!!,
-                razDate = firstRazDate,
-                count = 0
-            )
-        }
+        return sessionHolder.getHerowCapping(campaign) ?: HerowCapping(
+            campaignId = campaign.id!!,
+            razDate = firstRazDate,
+            count = 0
+        )
+
     }
     
     private fun saveHerowCapping(herowCapping: HerowCapping, sessionHolder: SessionHolder) {
         GlobalLogger.shared.info(null, "HerowCapping exists")
         val herowCappingToString = GsonProvider.toJson(herowCapping, HerowCapping::class.java)
         GlobalLogger.shared.info(null, "HerowCapping crash?")
-        sessionHolder.saveHerowCapping(herowCappingToString)
+        sessionHolder.saveHerowCapping(herowCapping.campaignId,herowCappingToString)
     }
 }

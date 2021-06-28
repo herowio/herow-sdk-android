@@ -10,7 +10,7 @@ object TimeSlotFilter: NotificationFilter {
 
     override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
         val now = TimeHelper.getCurrentLocalTime()
-
+        var result = true
         if (!campaign.startHour.isNullOrEmpty() && !campaign.stopHour.isNullOrEmpty()) {
             val startComponent = campaign.startHour!!.split(":")
             val stopComponent = campaign.stopHour!!.split(":")
@@ -27,11 +27,11 @@ object TimeSlotFilter: NotificationFilter {
                     GlobalLogger.shared.info(null, "TimeSlotFilter: ${campaign.name} CAN NOT create notification slot date: $now - start date: $startHour - stop date: $stopHour")
                 }
 
-                return result
             }
         }
 
-        GlobalLogger.shared.info(null, "TimeSlotFilter: can create notification no slot")
-        return true
+        GlobalLogger.shared.debug(null,"TimeSlotFilter will display: $result for campaign $campaign")
+
+        return result
     }
 }

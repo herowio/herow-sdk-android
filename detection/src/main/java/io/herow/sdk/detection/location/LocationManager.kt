@@ -67,6 +67,7 @@ class LocationManager(
             zones = zoneManager.getZones()
 
         }
+        zoneManager.loadZones()
         LocationPriorityDispatcher.registerLocationPriorityListener(this)
     }
 

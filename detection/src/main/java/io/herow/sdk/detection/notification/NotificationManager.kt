@@ -66,12 +66,21 @@ class NotificationManager(private val context: Context, private val sessionHolde
                         withContext(Dispatchers.IO) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
 
-                            if (campaigns.isNotEmpty())
+                            if (campaigns.isNotEmpty()) {
                                 for (campaign in campaigns) {
+                                    GlobalLogger.shared.info(context, "Campaign are: $campaign")
                                     if (canCreateNotification(campaign)) {
                                         createNotification(context, event, campaign)
+                                    } else {
+                                        GlobalLogger.shared.info(
+                                            context,
+                                            "Campaign: $campaign not displayed"
+                                        )
                                     }
                                 }
+                            } else {
+                                GlobalLogger.shared.info(context, "no Campaign")
+                            }
                         }
                     }
                 }
@@ -94,7 +103,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
 
     private fun createNotification(context: Context, event: GeofenceEvent, campaign: Campaign) {
-        GlobalLogger.shared.info(context, "Creating notification for $event")
+        GlobalLogger.shared.info(context, "Creating notification for $campaign")
         val notifManager = NotificationHelper.setUpNotificationChannel(context)
 
         val notificationPendingIntent =
@@ -111,7 +120,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
             event.zone,
             sessionHolder
         )
-
+        GlobalLogger.shared.info(context, "Creating notification for $title $description")
         val builder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(description)
@@ -122,7 +131,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
             }
 
         with(notifManager) {
-            notify(NotificationHelper.hashCode(event.zone.hash + event.type), builder.build())
+            notify(NotificationHelper.hashCode(event.zone.hash + event.type + campaign.campaignID), builder.build())
             NotificationDispatcher.dispatchNotification(event, campaign)
         }
 

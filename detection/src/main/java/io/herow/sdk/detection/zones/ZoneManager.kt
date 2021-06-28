@@ -55,7 +55,8 @@ class ZoneManager(
         return zones
     }
 
-    override fun onCacheReception() {
+
+    fun loadZones() {
         zones.clear()
 
         runBlocking {
@@ -65,6 +66,9 @@ class ZoneManager(
         }
         GlobalLogger.shared.info(context, "Zones from BDD are: $zones")
         updateGeofencesMonitoring()
+    }
+    override fun onCacheReception() {
+        loadZones()
     }
 
     @SuppressLint("MissingPermission")
@@ -114,6 +118,7 @@ class ZoneManager(
     }
 
     override fun onLocationUpdate(location: Location) {
+
         dispatchZonesAndNotification(location)
     }
 

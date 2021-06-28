@@ -36,6 +36,9 @@ object DayRecurrencyFilter : NotificationFilter {
             null,
             "DayRecurrencyFilter: ${campaign.name} $can create notification"
         )
+
+        GlobalLogger.shared.debug(null,"DayRecurrencyFilter will display: $result for campaign $campaign")
+
         return result
     }
 }

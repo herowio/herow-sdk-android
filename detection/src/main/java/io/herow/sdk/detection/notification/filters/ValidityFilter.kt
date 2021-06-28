@@ -24,7 +24,8 @@ object ValidityFilter : NotificationFilter {
             result = end > now
         }
 
-        GlobalLogger.shared.info(null, "Validity filter result is: $result")
+        GlobalLogger.shared.debug(null,"ValidityFilter will display: $result for campaign $campaign")
+
         return result
     }
 }

@@ -45,7 +45,6 @@ class ConfigWorker(
             "Thread in launchConfig is: ${Thread.currentThread().name}"
         )
         GlobalLogger.shared.info(applicationContext, "ConfigResponse: $configResponse")
-
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
                 GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
