@@ -1,6 +1,5 @@
 package io.herow.sdk.connection
 
-import android.provider.Settings
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.herow.sdk.common.DataHolder
@@ -34,7 +33,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_CLICK_AND_COLLECT_PROGRESS = "detection.click_and_collect_progress"
         private const val KEY_HEROW_CAPPING = "detection.herow_capping"
         private const val KEY_HEROW_CAPPINGS = "detection.herow_cappings"
-        private const val KEY_HEROW_CONFIG= "detection.config_object"
+        private const val KEY_HEROW_CONFIG = "detection.config_object"
         private const val KEY_LAUNCH_CONFIG = "detection.config_request"
         private const val KEY_SAVED_PREVIOUS_ZONES = "detection.previous_zones"
         private const val KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION =
@@ -51,11 +50,11 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun saveConfig(config: ConfigResult) {
         val configToString = GsonProvider.toJson(config, ConfigResult::class.java)
-        dataHolder[KEY_HEROW_CONFIG] =  configToString
+        dataHolder[KEY_HEROW_CONFIG] = configToString
     }
 
     fun getConfig(): ConfigResult {
-       return GsonProvider.fromJson( dataHolder[KEY_HEROW_CONFIG], ConfigResult::class.java)
+        return GsonProvider.fromJson(dataHolder[KEY_HEROW_CONFIG], ConfigResult::class.java)
     }
 
     fun getAdvertiserId(): String? {
@@ -96,7 +95,8 @@ class SessionHolder(private val dataHolder: DataHolder) {
         }
     }
 
-    fun getPlatformName(): HerowPlatform = GsonProvider.fromJson(dataHolder[KEY_PLATFORM_NAME], HerowPlatform::class.java)
+    fun getPlatformName(): HerowPlatform =
+        GsonProvider.fromJson(dataHolder[KEY_PLATFORM_NAME], HerowPlatform::class.java)
 
     fun savePlatform(platform: HerowPlatform) {
         dataHolder[KEY_PLATFORM_NAME] = Gson().toJson(platform)
@@ -137,7 +137,13 @@ class SessionHolder(private val dataHolder: DataHolder) {
         dataHolder[KEY_CACHE_TIMEOUT] = date
     }
 
-    fun getLastSavedModifiedDateTimeCache(): String = dataHolder[KEY_CACHE_TIMEOUT]
+    fun getLastSavedModifiedDateTimeCache(): String =
+        if (!dataHolder.containsKey(KEY_CACHE_TIMEOUT)) {
+            ""
+        } else {
+            dataHolder[KEY_CACHE_TIMEOUT]
+        }
+
 
     fun updateCache(update: Boolean) {
         dataHolder[KEY_UPDATE_CACHE] = update
@@ -215,30 +221,34 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun saveHerowCapping(campaignId: String, herowCapping: String) {
         var cappings = getHerowCappings()
-            cappings[campaignId] = herowCapping
-        val mapString  = GsonProvider.toJson(cappings, HashMap::class.java)
-            dataHolder[KEY_HEROW_CAPPINGS] = mapString
+        cappings[campaignId] = herowCapping
+        val mapString = GsonProvider.toJson(cappings, HashMap::class.java)
+        dataHolder[KEY_HEROW_CAPPINGS] = mapString
     }
 
 
-    fun getHerowCappings(): HashMap<String,String> {
-        if (!dataHolder.containsKey(KEY_HEROW_CAPPINGS))  {
+    private fun getHerowCappings(): HashMap<String, String> {
+        if (!dataHolder.containsKey(KEY_HEROW_CAPPINGS)) {
             val emptyMap = emptyMap<String, String>()
-            val emptyString  = GsonProvider.toJson(emptyMap, HashMap::class.java)
+            val emptyString = GsonProvider.toJson(emptyMap, HashMap::class.java)
             dataHolder[KEY_HEROW_CAPPINGS] = emptyString
         }
         val map =
-            GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPINGS],HashMap::class.java) as HashMap<String, String>
+            GsonProvider.fromJson(
+                dataHolder[KEY_HEROW_CAPPINGS],
+                HashMap::class.java
+            )
         GlobalLogger.shared.info(null, "All Cappings = $map")
-        return map
+        return map as HashMap<String, String>
     }
 
-    fun getHerowCapping(campaign: Campaign): HerowCapping? {
-        val string =   getHerowCappings()[campaign.id] ?: ""
-        val result =  GsonProvider.fromJson(string, HerowCapping::class.java)
+    fun getHerowCapping(campaign: Campaign): HerowCapping {
+        val string = getHerowCappings()[campaign.id] ?: ""
+        val result = GsonProvider.fromJson(string, HerowCapping::class.java)
         GlobalLogger.shared.info(null, "All Cappings = $result")
-       return result
+        return result
     }
+
     fun getHerowCapping(): HerowCapping =
         GsonProvider.fromJson(dataHolder[KEY_HEROW_CAPPING], HerowCapping::class.java)
 
@@ -286,4 +296,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun clearPreviousZonesForNotification() = dataHolder.removeKey(
         KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION
     )
+
+    fun reset() = dataHolder.removeAll()
 }

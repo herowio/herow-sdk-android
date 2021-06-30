@@ -45,11 +45,7 @@ class AuthRequests(
      */
     fun getHerowAPI(): HerowAPI = herowAPI
 
-    /**
-     * Reusable execute method in any worker that needs a token
-     */
-
-    suspend fun authenticationWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
+    private suspend fun authenticationWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
         GlobalLogger.shared.info(null,"flow: authenticatoinWorkFlow")
         if (!isTokenUsable(sessionHolder) ) {
             GlobalLogger.shared.info(null,"Token is not usable")
@@ -61,11 +57,9 @@ class AuthRequests(
             GlobalLogger.shared.info(null,"Token is usable or isWorking")
             request(herowAPI)
         }
-
-
     }
-    suspend fun userInfoWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
-        GlobalLogger.shared.info(null," flow :userInfoWorkFlow")
+    private suspend fun userInfoWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
+        GlobalLogger.shared.info(null,"flow :userInfoWorkFlow")
         if (sessionHolder.hasNoUserInfoSaved() || !isUserInfoUpToDate()) {
             GlobalLogger.shared.info(null,"Launching userInfoRequest method")
             withContext(Dispatchers.IO) {
@@ -76,7 +70,7 @@ class AuthRequests(
         }
 
     }
-    suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit) {
+    suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit = {}) {
         authenticationWorkFlow {
             userInfoWorkFlow {
                 request(herowAPI)
@@ -184,7 +178,7 @@ class AuthRequests(
 
     private fun isUserInfoUpToDate(): Boolean = getCurrentUserInfo() == getSavedUserInfo()
 
-    suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI,   request: suspend (herowAPI: HerowAPI) -> Unit) {
+    suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI, request: suspend (herowAPI: HerowAPI) -> Unit = {}) {
         val userInfo = getCurrentUserInfo()
         val jsonString = GsonProvider.toJson(userInfo, UserInfo::class.java)
         sessionHolder.saveStringUserInfo(jsonString)

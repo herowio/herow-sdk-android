@@ -11,7 +11,6 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.database.HerowDatabaseHelper
-import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.R
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceListener
@@ -95,14 +94,16 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
     private fun fetchCampaignInDatabase(zone: Zone): List<Campaign> {
         val campaigns: MutableList<Campaign> = mutableListOf()
-        val zoneCampaigns = zoneRepository.getZoneByHash(zone.hash)!!.campaigns
-        if (zoneCampaigns != null) {
-            for (id in zoneCampaigns) {
-                campaignRepository.getCampaignByID(id)?.let {
-                    campaigns.add(it)
+        val zoneCampaigns: List<String>? = zoneRepository.getZoneByHash(zone.hash)?.campaigns
+
+        zoneCampaigns?.run {
+            for (id in this) {
+                campaignRepository.getCampaignByID(id)?.run {
+                    campaigns.add(this)
                 }
             }
         }
+
         return campaigns
     }
 

@@ -102,7 +102,11 @@ class CacheManager(val context: Context): LocationListener {
     private fun shouldGetCache(sessionHolder: SessionHolder, location: Location): Boolean {
         val differentHash = isGeoHashUnknownOrDifferent(sessionHolder, location)
         val lastFetchDate = sessionHolder.getLastTimeCacheWasLaunched()
-        val lastCacheModifiedDate = DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
+        val lastCacheModifiedDate: Long = if (sessionHolder.getLastSavedModifiedDateTimeCache().isEmpty()) {
+            0L
+        } else {
+            DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
+        }
 
         GlobalLogger.shared.info(context, "Cache already launched: ${sessionHolder.didSaveLastLaunchCache()}")
 

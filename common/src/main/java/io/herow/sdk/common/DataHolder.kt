@@ -65,4 +65,6 @@ class DataHolder(context: Context, prefsName: String = DEFAULT_SHARED_PREFS_NAME
             preferences.edit().remove(key).apply()
         }
     }
+
+    fun removeAll() = preferences.edit().clear().apply()
 }
