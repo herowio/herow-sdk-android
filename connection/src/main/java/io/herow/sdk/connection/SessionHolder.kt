@@ -40,6 +40,8 @@ class SessionHolder(private val dataHolder: DataHolder) {
             "detection.previous_zones_for_notification"
     }
 
+    fun getAll(): Int = dataHolder.getAll()
+
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
 
     fun saveDeviceId(deviceId: String) {

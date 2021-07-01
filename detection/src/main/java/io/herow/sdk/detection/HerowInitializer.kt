@@ -2,6 +2,7 @@ package io.herow.sdk.detection
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
@@ -148,6 +149,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
     }
 
     fun synchronize() {
+        Log.i("XXX", "Has been filled: ${sdkSession.hasBeenFilled()}")
         if (sdkSession.hasBeenFilled()) {
             launchConfigRequest()
         } else {
@@ -303,10 +305,11 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
     }
 
     private fun configureAfterReset(sdkId: String, sdkKey: String) {
+        loadIdentifiers(context)
         this.configPlatform(HerowPlatform.PRE_PROD)
         this.configApp(sdkId, sdkKey)
         this.setCustomId("Kaamelott")
-        this.synchronize()
         this.acceptOptin()
+        this.synchronize()
     }
 }

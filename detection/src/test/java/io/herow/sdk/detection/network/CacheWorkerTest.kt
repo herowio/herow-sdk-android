@@ -87,13 +87,10 @@ class CacheWorkerTest {
 
         result = worker.doWork()
         assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-    }
 
-    @Test
-    fun testWorkerIsNotCalledIfOptinIsFalse() = runBlocking {
         sessionHolder.saveOptinValue(false)
 
-        val result = worker.doWork()
+        result = worker.doWork()
         assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
     }
 }
