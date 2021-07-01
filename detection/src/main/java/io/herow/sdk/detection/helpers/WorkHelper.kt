@@ -34,7 +34,7 @@ object WorkHelper {
     }
 
     fun getWorkOfData(sessionHolder: SessionHolder): HashMap<String, String> {
-        val sdkID: String = sessionHolder.getHerowId()
+        val sdkID: String = sessionHolder.getSDKID()
         val sdkKey: String = sessionHolder.getSdkKey()
         val customID: String = sessionHolder.getCustomID()
 

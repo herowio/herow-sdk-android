@@ -76,7 +76,7 @@ class AuthRequests(
         }
 
     }
-    suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit) {
+    suspend fun execute(request:  suspend (herowAPI: HerowAPI) -> Unit = {} ) {
         authenticationWorkFlow {
             userInfoWorkFlow {
                 request(herowAPI)

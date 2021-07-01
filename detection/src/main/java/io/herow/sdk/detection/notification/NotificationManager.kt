@@ -57,11 +57,15 @@ class NotificationManager(private val context: Context, private val sessionHolde
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
-        val trigger: GeofenceType = if (notificationOnExactEntry) {
+
+        //TODO remove this
+        notificationOnExactEntry = true
+        val trigger = if (notificationOnExactEntry) {
             GeofenceType.ENTER
         } else {
             GeofenceType.GEOFENCE_NOTIFICATION_ENTER
         }
+        GlobalLogger.shared.info(context, "GeofenceEvents trigger is: $trigger")
         GlobalLogger.shared.info(context, "GeofenceEvents received: $geofenceEvents")
         if (geofenceEvents.isNotEmpty()) {
             for (event in geofenceEvents) {
@@ -90,6 +94,8 @@ class NotificationManager(private val context: Context, private val sessionHolde
                     }
                 }
             }
+        } else {
+            GlobalLogger.shared.info(context, "no Campaign")
         }
     }
 

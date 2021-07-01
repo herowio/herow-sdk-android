@@ -154,10 +154,10 @@ class ZoneManager(
                     detectedZones.add(zone)
                 }
 
-               /* if (distanceToCenterOfZone - zone.radius!! * 3 <= 0) {
+                if (distanceToCenterOfZone - zone.radius!! * 3 <= 0) {
                     GlobalLogger.shared.info(context, "Adding zone for radius x3: $zone")
                     detectedZoneForNotification.add(zone)
-                }*/
+                }
             }
         }
 
