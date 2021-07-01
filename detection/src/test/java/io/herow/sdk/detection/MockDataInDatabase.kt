@@ -1,21 +1,23 @@
 package io.herow.sdk.detection
 
 import android.content.Context
+import androidx.room.Room
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Capping
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.connection.database.HerowDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 class MockDataInDatabase(context: Context) {
-    private val zoneRepository: ZoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-    private val campaignRepository: CampaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
+    private val database: HerowDatabase = Room.databaseBuilder(context, HerowDatabase::class.java, "test").build()
+    private val zoneRepository: ZoneRepository = ZoneRepository(database.zoneDAO())
+    private val campaignRepository: CampaignRepository = CampaignRepository(database.campaignDAO())
 
     suspend fun createAndInsertZoneOne(): Zone {
         val zone = Zone(

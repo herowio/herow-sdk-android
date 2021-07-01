@@ -23,7 +23,9 @@ import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.location.LocationListener
 import io.herow.sdk.detection.notification.NotificationDispatcher
 import io.herow.sdk.detection.notification.NotificationListener
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 /**
  * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT, VISIT or GEOFENCE_ZONE_NOTIFICATION) by listening to different
@@ -38,7 +40,6 @@ class LogGeneratorEvent(
 
     companion object {
         private const val DISTANCE_POI_MAX = 20_000
-        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     init {
@@ -198,31 +199,23 @@ class LogGeneratorEvent(
 
         val logs = ArrayList<Log>()
         if (listOfLogsEnterOrExit.isNotEmpty()) {
-            GlobalLogger.shared.debug(context,"list of logEvents is: $listOfLogsEnterOrExit")
+            GlobalLogger.shared.debug(context, "list of logEvents is: $listOfLogsEnterOrExit")
             logs.addAll(listOfLogsEnterOrExit)
         }
         if (listOfLogsVisit.isNotEmpty()) {
             logs.addAll(listOfLogsVisit)
-            GlobalLogger.shared.debug(context,"list of logVisits is: $listOfLogsVisit")
+            GlobalLogger.shared.debug(context, "list of logVisits is: $listOfLogsVisit")
         }
 
         LogsDispatcher.dispatchLogsResult(logs)
     }
 
-    private suspend fun retrievePois(): ArrayList<Poi> {
-        val poisInDB = scope.async(ioDispatcher) {
-            poiRepository.getAllPois() as ArrayList<Poi>
-        }
-
-        return poisInDB.await()
+    private suspend fun retrievePois(): ArrayList<Poi> = withContext(ioDispatcher) {
+        poiRepository.getAllPois() as ArrayList<Poi>
     }
 
-    private suspend fun retrieveZones(): ArrayList<Zone> {
-        val zonesInDb = scope.async(ioDispatcher) {
-            zoneRepository.getAllZones() as ArrayList<Zone>
-        }
-
-        return zonesInDb.await()
+    private suspend fun retrieveZones(): ArrayList<Zone> = withContext(ioDispatcher) {
+        zoneRepository.getAllZones() as ArrayList<Zone>
     }
 
     override fun onNotificationSent(geofenceEvent: GeofenceEvent, campaign: Campaign) {

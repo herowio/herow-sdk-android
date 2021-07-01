@@ -31,9 +31,11 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
 
     private fun defineGeofenceEventType(zones: List<Zone>, location: Location, type: GeofenceType?, previousZonesDetected: ArrayList<Zone>) {
         val liveEvents = ArrayList<GeofenceEvent>()
+        println("Zones received are: $zones")
         GlobalLogger.shared.info(null,"Zones at start are: $zones")
         GlobalLogger.shared.info(null,"Previous zones are: $previousZonesDetected")
 
+        println("Previous zones detected are: $previousZonesDetected")
         if (previousZonesDetected.isEmpty()) {
             GlobalLogger.shared.info(null,"Previous detected zone is empty")
             for (zone in zones) {
@@ -50,6 +52,7 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                 }
             }
         } else {
+            println("Type is: $type")
             if (type == null) {
                 for (previousZone in previousZonesDetected) {
                     GlobalLogger.shared.info(null, "Previous detected zone: $previousDetectedZones")
@@ -60,8 +63,9 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                     GlobalLogger.shared.info(null, "Zones are: $zones")
                     GlobalLogger.shared.info(null, "PreviousZone is: $previousZone")
 
-
+                    //TODO Check here
                     val exit = zones.none { it.hash == previousZone.hash }
+                    println("Exit value is: $exit")
                     if (exit) {
                         GlobalLogger.shared.info(null, "Adding zone - Type EXIT")
                         val geofenceEvent = GeofenceEvent(
@@ -74,6 +78,8 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                             geofenceEvent.computeExitConfidence(location, previousZone)
                         liveEvents.add(geofenceEvent)
                     }
+
+                    println("Live events are: $liveEvents")
                 }
             }
 
@@ -93,6 +99,8 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                     val isNew =  previousDetectedZones.none{
                         it.hash == newPlace.hash
                     }
+
+                    println("Is it new?: $isNew")
                     if (isNew) {
                         GlobalLogger.shared.info(null, "Adding zone - Type ENTER")
                         liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.ENTER, confidenceToUpdate))

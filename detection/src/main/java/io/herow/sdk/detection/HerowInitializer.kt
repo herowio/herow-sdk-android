@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutionException
 
 
-class HerowInitializer private constructor(val context: Context): LocationListener {
+class HerowInitializer private constructor(val context: Context) : LocationListener {
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
@@ -162,7 +162,7 @@ class HerowInitializer private constructor(val context: Context): LocationListen
     private fun shouldLaunchConfigRequest(): Boolean {
         var result = false
         if (sessionHolder.firstTimeLaunchingConfig()) {
-            GlobalLogger.shared.debug(context,"Launch Config du to first launch")
+            GlobalLogger.shared.debug(context, "Launch Config du to first launch")
             return true
         }
 
@@ -171,7 +171,10 @@ class HerowInitializer private constructor(val context: Context): LocationListen
         val currentTime = TimeHelper.getCurrentTime()
 
         if (currentTime > nextTimeToLaunch) {
-            GlobalLogger.shared.debug(context,"Launch Config du config repeatInterval is done: currentTime = $currentTime, timeToRelaunch = $nextTimeToLaunch")
+            GlobalLogger.shared.debug(
+                context,
+                "Launch Config du config repeatInterval is done: currentTime = $currentTime, timeToRelaunch = $nextTimeToLaunch"
+            )
             return true
         }
 
@@ -184,16 +187,16 @@ class HerowInitializer private constructor(val context: Context): LocationListen
      * Interval is by default 15 minutes
      */
     private fun launchConfigRequest() {
-
         if (shouldLaunchConfigRequest() && WorkHelper.isWorkNotScheduled(
                 workManager,
                 NetworkWorkerTags.CONFIG
-            ) ) {
-            GlobalLogger.shared.debug(context,"launch ConfigRequest")
+            )
+        ) {
+            GlobalLogger.shared.debug(context, "launch ConfigRequest")
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
-            val datas =   workDataOf(
+            val datas = workDataOf(
                 AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
                 AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
                 AuthRequests.KEY_CUSTOM_ID to customID,
@@ -213,6 +216,7 @@ class HerowInitializer private constructor(val context: Context): LocationListen
             ConfigDispatcher.dispatchConfigResult(lastConfig)
         }
     }
+
     private fun isWorkScheduled(tag: String): Boolean {
         val instance = WorkManager.getInstance()
         val statuses: ListenableFuture<List<WorkInfo>> = instance.getWorkInfosByTag(tag)
@@ -284,10 +288,25 @@ class HerowInitializer private constructor(val context: Context): LocationListen
     }
 
     override fun onLocationUpdate(location: Location) {
-       launchConfigRequest()
+        launchConfigRequest()
     }
 
     fun notificationsOnExactZoneEntry(value: Boolean) {
         notificationManager.notificationsOnExactZoneEntry(value)
+    }
+
+    fun reset(sdkId: String, sdkKey: String) {
+        sessionHolder.reset()
+        HerowDatabaseHelper.deleteDatabase(context)
+
+        configureAfterReset(sdkId, sdkKey)
+    }
+
+    private fun configureAfterReset(sdkId: String, sdkKey: String) {
+        this.configPlatform(HerowPlatform.PRE_PROD)
+        this.configApp(sdkId, sdkKey)
+        this.setCustomId("Kaamelott")
+        this.synchronize()
+        this.acceptOptin()
     }
 }

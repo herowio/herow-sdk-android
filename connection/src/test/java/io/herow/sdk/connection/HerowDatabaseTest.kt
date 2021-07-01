@@ -82,7 +82,7 @@ class HerowDatabaseTest {
         campaign = Campaign(
             id = "campaignID1",
             name = "testCampaign1",
-            begin = TimeHelper.convertDateToMilliSeconds(
+            begin = TimeHelper.convertLocalDateTimeToTimestamp(
                 java.time.LocalDateTime.of(
                     2021,
                     1,

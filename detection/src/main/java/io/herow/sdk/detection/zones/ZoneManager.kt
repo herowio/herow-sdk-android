@@ -67,6 +67,7 @@ class ZoneManager(
         GlobalLogger.shared.info(context, "Zones from BDD are: $zones")
         updateGeofencesMonitoring()
     }
+
     override fun onCacheReception() {
         loadZones()
     }

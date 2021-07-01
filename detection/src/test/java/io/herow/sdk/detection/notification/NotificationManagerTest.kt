@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.notification
 
 import android.content.Context
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
@@ -50,14 +51,12 @@ class NotificationManagerTest {
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
         sessionHolder = SessionHolder(DataHolder(context))
-        db = HerowDatabase.getDatabase(context)
+        db = Room.databaseBuilder(context, HerowDatabase::class.java, "test").build()
         notificationManager = NotificationManager(context, sessionHolder)
-        val campaignDAO = db.campaignDAO()
-        val zoneDAO = db.zoneDAO()
         GeofenceDispatcher.addGeofenceListener(listener)
 
-        campaignRepository = CampaignRepository(campaignDAO)
-        zoneRepository = ZoneRepository(zoneDAO)
+        campaignRepository = CampaignRepository(db.campaignDAO())
+        zoneRepository = ZoneRepository(db.zoneDAO())
     }
 
     @Test

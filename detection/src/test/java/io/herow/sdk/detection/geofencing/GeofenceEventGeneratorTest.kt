@@ -32,7 +32,6 @@ class GeofenceEventGeneratorTest {
 
     @Test
     fun testDetectedZones() {
-
         val zones = ArrayList<Zone>()
         val firstZone = mockLocation.buildZone()
         val secondZone = mockLocation.buildZone()
@@ -49,7 +48,7 @@ class GeofenceEventGeneratorTest {
 
         // We dispatch another event with another location but still detected in zone
         geofenceEventGenerator.detectedZones(zones, mockLocation.buildLocation())
-        Assert.assertTrue(herowGeofenceListener.lastEvents.isEmpty())
+        Assert.assertTrue(herowGeofenceListener.lastEvents.size == 1)
 
         // Now, we exit the zone
         zones.clear()
@@ -67,13 +66,12 @@ class GeofenceEventGeneratorTest {
         zones.removeLast()
         geofenceEventGenerator.detectedZones(zones, mockLocation.buildLocation())
 
-
         Assert.assertEquals(1, herowGeofenceListener.lastEvents.size)
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
 
         // Still in second zone
         geofenceEventGenerator.detectedZones(zones, mockLocation.buildLocation())
-        Assert.assertTrue(herowGeofenceListener.lastEvents.isEmpty())
+        Assert.assertTrue(herowGeofenceListener.lastEvents.size == 1)
 
         // Exit the second zone
         zones.removeLast()
