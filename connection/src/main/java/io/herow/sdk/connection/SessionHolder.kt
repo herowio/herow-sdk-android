@@ -53,8 +53,12 @@ class SessionHolder(private val dataHolder: DataHolder) {
         dataHolder[KEY_HEROW_CONFIG] = configToString
     }
 
-    fun getConfig(): ConfigResult {
-        return GsonProvider.fromJson(dataHolder[KEY_HEROW_CONFIG], ConfigResult::class.java)
+    fun getConfig(): ConfigResult? {
+        val string: String = dataHolder[KEY_HEROW_CONFIG]
+        if (string.isNotEmpty()) {
+            return GsonProvider.fromJson(string, ConfigResult::class.java)
+        }
+        return null
     }
 
     fun getAdvertiserId(): String? {

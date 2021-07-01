@@ -213,7 +213,10 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
             GlobalLogger.shared.info(context, "Config request is enqueued")
         } else {
             val lastConfig = sessionHolder.getConfig()
-            ConfigDispatcher.dispatchConfigResult(lastConfig)
+            if (lastConfig != null) {
+                ConfigDispatcher.dispatchConfigResult(lastConfig)
+            }
+
         }
     }
 
@@ -303,10 +306,12 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
     }
 
     private fun configureAfterReset(sdkId: String, sdkKey: String) {
+        this.loadIdentifiers(context)
         this.configPlatform(HerowPlatform.PRE_PROD)
         this.configApp(sdkId, sdkKey)
         this.setCustomId("Kaamelott")
-        this.synchronize()
         this.acceptOptin()
+        this.synchronize()
+
     }
 }
