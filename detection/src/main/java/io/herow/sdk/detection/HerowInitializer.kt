@@ -301,18 +301,19 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         notificationManager.notificationsOnExactZoneEntry(value)
     }
 
-    fun reset(sdkId: String, sdkKey: String) {
+    fun reset(sdkId: String, sdkKey: String, customID: String) {
         sessionHolder.reset()
         HerowDatabaseHelper.deleteDatabase(context)
 
-        configureAfterReset(sdkId, sdkKey)
+        configureAfterReset(sdkId, sdkKey, customID)
     }
 
-    private fun configureAfterReset(sdkId: String, sdkKey: String) {
+    private fun configureAfterReset(sdkId: String, sdkKey: String, customID: String) {
         this.loadIdentifiers(context)
         this.configPlatform(HerowPlatform.PRE_PROD)
         this.configApp(sdkId, sdkKey)
-        this.setCustomId("Kaamelott")
+        this.setCustomId(customID)
+        Log.i("XXX-SDK", "CustomID is: $customID")
         this.acceptOptin()
         this.synchronize()
     }
