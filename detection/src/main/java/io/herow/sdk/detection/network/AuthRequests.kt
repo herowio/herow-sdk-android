@@ -60,6 +60,16 @@ class AuthRequests(
     }
     private suspend fun userInfoWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
         GlobalLogger.shared.info(null,"flow :userInfoWorkFlow")
+
+        if (sessionHolder.userInfoWasLaunched()) {
+            val lastUserInfoLaunch = sessionHolder.lastTimeUserInfoWasLaunched()
+
+            if (lastUserInfoLaunch + 86400 < TimeHelper.getCurrentTime()) {
+                launchUserInfoRequest(sessionHolder, herowAPI, request)
+                return
+            }
+        }
+
         if (sessionHolder.hasNoUserInfoSaved() || !isUserInfoUpToDate()) {
             GlobalLogger.shared.info(null,"Launching userInfoRequest method")
             withContext(Dispatchers.IO) {
@@ -68,7 +78,6 @@ class AuthRequests(
         } else {
             request(herowAPI)
         }
-
     }
     
     suspend fun execute(request:  suspend (herowAPI: HerowAPI) -> Unit = {} ) {
@@ -123,7 +132,6 @@ class AuthRequests(
         recordedTime > TimeHelper.getCurrentTime()
 
     private suspend fun launchTokenRequest(
-
         sessionHolder: SessionHolder,
         platform: HerowPlatform,
         herowAPI: HerowAPI,
@@ -189,6 +197,7 @@ class AuthRequests(
         GlobalLogger.shared.info(null,"UserInfoResponse is $userInfoResponse")
 
         if (userInfoResponse.isSuccessful) {
+            sessionHolder.saveLastTimeUserInfoLaunch(TimeHelper.getCurrentTime())
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
                 sessionHolder.saveHerowId(userInfoResult.herowId)
                 GlobalLogger.shared.info(null,"UserInfoResponse is successful")

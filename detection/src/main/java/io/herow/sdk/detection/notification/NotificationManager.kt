@@ -56,9 +56,6 @@ class NotificationManager(private val context: Context, private val sessionHolde
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
-
-        //TODO remove this
-        notificationOnExactEntry = true
         val trigger = if (notificationOnExactEntry) {
             GeofenceType.ENTER
         } else {

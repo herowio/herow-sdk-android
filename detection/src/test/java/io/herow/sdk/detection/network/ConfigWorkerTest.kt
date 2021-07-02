@@ -135,6 +135,11 @@ class ConfigWorkerTest {
             verify(authRequest, never()).launchUserInfoRequest(sessionHolder, herowAPI)
         }
     }
+
+    @Test
+    fun userInfoShouldBeNotCalledIfCurrentTimeIsInferior() {
+        val authRequest: AuthRequests = mock(AuthRequests::class.java)
+    }
 }
 
 class ConfigWorkerListener(var configResult: ConfigResult? = null) : ConfigListener {

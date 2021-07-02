@@ -23,6 +23,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_ADVERTISER_ID = "detection.ad_id"
         private const val KEY_TOKEN_TIMEOUT = "common.timeout_token"
         private const val KEY_USER_INFO = "common.user_info"
+        private const val KEY_LAST_USER_INFO_LAUNCH = "common.last_user_info_launch"
         private const val KEY_CACHE_TIMEOUT = "common.timeout_cache"
         private const val KEY_UPDATE_CACHE = "common_update_cache"
         private const val KEY_LAST_LAUNCH_CACHE = "common_last_cache_request"
@@ -133,6 +134,14 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun saveStringUserInfo(userInfo: String) {
         dataHolder[KEY_USER_INFO] = userInfo
     }
+
+    fun userInfoWasLaunched(): Boolean = dataHolder.containsKey(KEY_LAST_USER_INFO_LAUNCH)
+
+    fun saveLastTimeUserInfoLaunch(timestamp: Long) {
+        dataHolder[KEY_LAST_USER_INFO_LAUNCH] = timestamp
+    }
+
+    fun lastTimeUserInfoWasLaunched(): Long = dataHolder[KEY_LAST_USER_INFO_LAUNCH]
 
     fun loadSaveStringToUserInfo(): UserInfo {
         val savedUserInfo = dataHolder.get<String>(KEY_USER_INFO)

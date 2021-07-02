@@ -297,6 +297,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
     }
 
     fun notificationsOnExactZoneEntry(value: Boolean) {
+        Log.i("XXX", "Exact entry: $value")
         notificationManager.notificationsOnExactZoneEntry(value)
     }
 
