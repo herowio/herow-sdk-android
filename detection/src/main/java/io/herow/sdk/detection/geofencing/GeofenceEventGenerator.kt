@@ -48,7 +48,7 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                 } else {
                     val geofenceEvent = GeofenceEvent(zone, location, GeofenceType.ENTER, confidenceToUpdate)
                     geofenceEvent.confidence = geofenceEvent.computeEnterConfidence(location, zone)
-                    liveEvents.add(GeofenceEvent(zone, location, GeofenceType.ENTER, confidenceToUpdate))
+                    liveEvents.add(geofenceEvent)
                 }
             }
         } else {
@@ -74,8 +74,8 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                             GeofenceType.EXIT,
                             confidenceToUpdate
                         )
-                        geofenceEvent.confidence =
-                            geofenceEvent.computeExitConfidence(location, previousZone)
+
+                        geofenceEvent.confidence = geofenceEvent.computeExitConfidence(location, previousZone)
                         liveEvents.add(geofenceEvent)
                     }
 
@@ -96,11 +96,10 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                         liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER, confidenceToUpdate))
                     }
                 } else {
-                    val isNew =  previousDetectedZones.none{
+                    val isNew = previousDetectedZones.none{
                         it.hash == newPlace.hash
                     }
 
-                    println("Is it new?: $isNew")
                     if (isNew) {
                         GlobalLogger.shared.info(null, "Adding zone - Type ENTER")
                         liveEvents.add(GeofenceEvent(newPlace, location, GeofenceType.ENTER, confidenceToUpdate))
@@ -123,6 +122,7 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
             sessionHolder.savePreviousZones(zones)
         }
 
+        GlobalLogger.shared.info(context = null, "LiveEvents are: $liveEvents")
         GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
     }
 }

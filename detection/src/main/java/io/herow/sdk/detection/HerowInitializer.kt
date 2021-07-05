@@ -313,7 +313,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         this.configPlatform(HerowPlatform.PRE_PROD)
         this.configApp(sdkId, sdkKey)
         this.setCustomId(customID)
-        Log.i("XXX-SDK", "CustomID is: $customID")
         this.acceptOptin()
         this.synchronize()
     }

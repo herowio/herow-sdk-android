@@ -14,7 +14,7 @@ import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
 import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.model.HerowLogContext
-import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExitorNotification
+import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExit
 import io.herow.sdk.detection.analytics.model.HerowLogNotification
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.geofencing.GeofenceEvent
@@ -162,7 +162,7 @@ class LogGeneratorEvent(
                 return
             }
 
-            val herowLogEnterOrExit = HerowLogEnterOrExitorNotification(appState, geofenceEvent)
+            val herowLogEnterOrExit = HerowLogEnterOrExit(appState, geofenceEvent)
             herowLogEnterOrExit.enrich(applicationData, sessionHolder)
             listOfLogsEnterOrExit.add(Log(herowLogEnterOrExit))
 

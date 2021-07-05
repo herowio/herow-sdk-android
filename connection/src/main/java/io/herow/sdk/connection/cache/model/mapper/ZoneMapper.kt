@@ -5,5 +5,6 @@ data class ZoneMapper(
     var lat: Double? = 0.0,
     var place_id: String = "",
     var distance: Double = 0.0,
-    var radius: Double? = 0.0
+    var radius: Double? = 0.0,
+    var confidence: Double? = 0.0
 )
