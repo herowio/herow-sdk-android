@@ -13,6 +13,7 @@ class HerowLogNotification (
     companion object {
         const val LOCATION = "lastLocation"
         const val PLACE = "place"
+        const val TECHNO_HASH = "techno_hash"
     }
 
     init {
@@ -38,5 +39,7 @@ class HerowLogNotification (
             val CAMPAIGN_ID = "campaign_id"
             this[CAMPAIGN_ID] = campaign.let { campaign?.id } ?: ""
         }
+
+        this[TECHNO_HASH] = geofenceEvent.zone.hash
     }
 }
