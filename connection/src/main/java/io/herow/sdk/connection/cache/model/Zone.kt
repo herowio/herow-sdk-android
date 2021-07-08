@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
+import io.herow.sdk.common.logger.GlobalLogger
 
 @Entity(
     tableName = "Zone"
@@ -30,17 +31,18 @@ data class Zone(
     @Expose(deserialize = false)
     var distance: Double = 0.0
 
-    fun toLocation(): Location {
-        val location = Location(hash)
-        location.latitude = lat!!
-        location.longitude = lng!!
-        return location
-    }
-
-    fun updateDistance(userLocation: Location) {
+    fun updateDistance(userLocation: Location): Double {
         val zoneLocation = toLocation()
-        distance = zoneLocation.distanceTo(userLocation).toDouble()
+        GlobalLogger.shared.info(null, "ZoneLocation is: $zoneLocation")
+        GlobalLogger.shared.info(null, "UserLocation is: $userLocation")
+
+        return zoneLocation.distanceTo(userLocation).toDouble()
     }
 
-
+    fun toLocation(): Location {
+        return Location(hash).apply {
+            latitude = lat!!
+            longitude = lng!!
+        }
+    }
 }

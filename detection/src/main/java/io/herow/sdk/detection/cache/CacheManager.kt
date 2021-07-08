@@ -34,6 +34,7 @@ class CacheManager(val context: Context): LocationListener {
      */
     override fun onLocationUpdate(location: Location) {
         GlobalLogger.shared.info(context, "Into onLocationUpdate from CacheManager")
+        GlobalLogger.shared.info(context, "Should get cache: ${shouldGetCache(sessionHolder, location)}")
         if (shouldGetCache(sessionHolder, location)) {
             LocationManager.scope.launch { CacheManager(context).launchCacheRequest(location) }
         }

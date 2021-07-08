@@ -39,7 +39,7 @@ class LogGeneratorEvent(
     IAppStateListener, CacheListener, LocationListener, GeofenceListener, NotificationListener {
 
     companion object {
-        private const val DISTANCE_POI_MAX = 20_000
+        private const val DISTANCE_MAX = 20_000
     }
 
     init {
@@ -91,9 +91,15 @@ class LogGeneratorEvent(
 
     private fun computeNearbyPois(location: Location): List<PoiMapper> {
         val closestPois: MutableList<PoiMapper> = ArrayList()
+        GlobalLogger.shared.info(context, "CachePois are: $cachePois")
+
         for (cachePoi in cachePois) {
-            cachePoi.updateDistance(location)
-            if (cachePoi.distance <= DISTANCE_POI_MAX) {
+            cachePoi.distance = cachePoi.updateDistance(location)
+
+            GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
+            GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
+
+            if (cachePoi.distance <= DISTANCE_MAX) {
                 closestPois.add(
                     PoiMapper(
                         cachePoi.id,
@@ -114,9 +120,13 @@ class LogGeneratorEvent(
     private fun computeNearbyPlaces(location: Location): List<ZoneMapper> {
         val closestZones: MutableList<ZoneMapper> = ArrayList()
 
+        GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
+
         for (cacheZone in cacheZones) {
-            cacheZone.updateDistance(location)
-            if (cacheZone.distance <= DISTANCE_POI_MAX) {
+            cacheZone.distance = cacheZone.updateDistance(location)
+            GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
+
+            if (cacheZone.distance <= DISTANCE_MAX) {
                 closestZones.add(
                     ZoneMapper(
                         cacheZone.lng,
@@ -158,12 +168,14 @@ class LogGeneratorEvent(
         val listOfLogsVisit = ArrayList<Log>()
 
         for (geofenceEvent in geofenceEvents) {
+            geofenceEvent.zone.distance = geofenceEvent.zone.updateDistance(geofenceEvent.location)
             if (geofenceEvent.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
                 return
             }
 
             val herowLogEnterOrExit = HerowLogEnterOrExit(appState, geofenceEvent)
             herowLogEnterOrExit.enrich(applicationData, sessionHolder)
+
             listOfLogsEnterOrExit.add(Log(herowLogEnterOrExit))
 
             if (geofenceEvent.type == GeofenceType.ENTER) {

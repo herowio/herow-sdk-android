@@ -1,17 +1,13 @@
 package io.herow.sdk.detection.location
 
 import android.annotation.SuppressLint
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.location.Location
 import android.os.Looper
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.tasks.Task
-import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.IAppStateListener
@@ -45,7 +41,7 @@ class LocationManager(
         LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
     private val geofenceEventGenerator = GeofenceEventGenerator(sessionHolder)
-    private lateinit var locationCallback: LocationCallback
+    private var locationCallback: LocationCallback
     private var zones: List<Zone>? = null
 
 
