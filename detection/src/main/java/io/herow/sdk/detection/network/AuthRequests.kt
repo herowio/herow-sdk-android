@@ -58,26 +58,39 @@ class AuthRequests(
             request(herowAPI)
         }
     }
+
+    // TODO Nullable request?
     private suspend fun userInfoWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
         GlobalLogger.shared.info(null,"flow :userInfoWorkFlow")
+
+        if (needUserInfo(sessionHolder)) {
+            launchUserInfoRequest(sessionHolder, herowAPI, request)
+        } else {
+            request(herowAPI)
+        }
+    }
+
+    private fun needUserInfo(sessionHolder: SessionHolder): Boolean {
+        if (sessionHolder.hasNoUserInfoSaved()) {
+            GlobalLogger.shared.info(null,"User info has not been saved yet")
+            return true
+        }
+
+        if (!isUserInfoUpToDate()) {
+            GlobalLogger.shared.info(null,"User info is not up to date")
+            return true
+        }
 
         if (sessionHolder.userInfoWasLaunched()) {
             val lastUserInfoLaunch = sessionHolder.lastTimeUserInfoWasLaunched()
 
             if (lastUserInfoLaunch + 86400 < TimeHelper.getCurrentTime()) {
-                launchUserInfoRequest(sessionHolder, herowAPI, request)
-                return
+                GlobalLogger.shared.info(null,"User info has not been updated in 24 hours")
+                return true
             }
         }
 
-        if (sessionHolder.hasNoUserInfoSaved() || !isUserInfoUpToDate()) {
-            GlobalLogger.shared.info(null,"Launching userInfoRequest method")
-            withContext(Dispatchers.IO) {
-                launchUserInfoRequest(sessionHolder, herowAPI, request)
-            }
-        } else {
-            request(herowAPI)
-        }
+        return false
     }
     
     suspend fun execute(request:  suspend (herowAPI: HerowAPI) -> Unit = {} ) {

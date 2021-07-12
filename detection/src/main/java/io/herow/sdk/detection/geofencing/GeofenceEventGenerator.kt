@@ -19,9 +19,10 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
         ArrayList()
     }
 
-    private val confidenceToUpdate = 0.0
+    private val confidenceToUpdate = 15.0
 
     override fun detectedZones(zones: List<Zone>, location: Location) {
+        GlobalLogger.shared.info(null, "Into detectedZones method")
         defineGeofenceEventType(zones, location, null, previousDetectedZones)
     }
 
@@ -46,8 +47,11 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                     geofenceEvent.confidence = geofenceEvent.computeNotificationConfidence(location, zone)
                     liveEvents.add(geofenceEvent)
                 } else {
+                    GlobalLogger.shared.info(null, "Into defineGeofenceEvent method")
                     val geofenceEvent = GeofenceEvent(zone, location, GeofenceType.ENTER, confidenceToUpdate)
                     geofenceEvent.confidence = geofenceEvent.computeEnterConfidence(location, zone)
+
+                    GlobalLogger.shared.info(null, "GeofenceEvent for Enter is: $geofenceEvent")
                     liveEvents.add(geofenceEvent)
                 }
             }
@@ -63,7 +67,6 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                     GlobalLogger.shared.info(null, "Zones are: $zones")
                     GlobalLogger.shared.info(null, "PreviousZone is: $previousZone")
 
-                    //TODO Check here
                     val exit = zones.none { it.hash == previousZone.hash }
                     println("Exit value is: $exit")
                     if (exit) {

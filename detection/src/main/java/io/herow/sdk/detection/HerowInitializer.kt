@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import com.google.common.util.concurrent.ListenableFuture
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
@@ -39,7 +38,6 @@ import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.concurrent.ExecutionException
 
 
 class HerowInitializer private constructor(val context: Context) : LocationListener {
@@ -162,7 +160,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
     }
 
     private fun shouldLaunchConfigRequest(): Boolean {
-        var result = false
         if (sessionHolder.firstTimeLaunchingConfig()) {
             GlobalLogger.shared.debug(context, "Launch Config du to first launch")
             return true
@@ -181,7 +178,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         }
 
         return false
-
     }
 
     /**
@@ -219,26 +215,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
                 ConfigDispatcher.dispatchConfigResult(lastConfig)
             }
 
-        }
-    }
-
-    private fun isWorkScheduled(tag: String): Boolean {
-        val instance = WorkManager.getInstance()
-        val statuses: ListenableFuture<List<WorkInfo>> = instance.getWorkInfosByTag(tag)
-        return try {
-            var running = false
-            val workInfoList: List<WorkInfo> = statuses.get()
-            for (workInfo in workInfoList) {
-                val state = workInfo.state
-                running = state == WorkInfo.State.RUNNING || state == WorkInfo.State.ENQUEUED
-            }
-            running
-        } catch (e: ExecutionException) {
-            e.printStackTrace()
-            false
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-            false
         }
     }
 
@@ -283,8 +259,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         return zoneRepository.getAllZones()
     }
 
-    fun getSDKID(): String = sessionHolder.getSDKID()
-
     /**
      * Save user choice optin value
      */
@@ -297,7 +271,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
     }
 
     fun notificationsOnExactZoneEntry(value: Boolean) {
-        Log.i("XXX", "Exact entry: $value")
         notificationManager.notificationsOnExactZoneEntry(value)
     }
 

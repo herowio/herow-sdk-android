@@ -30,7 +30,6 @@ class LocationManager(
 ) : ConfigListener, IAppStateListener, LocationPriorityListener {
 
     companion object {
-        private const val LOCATION_REQUEST_CODE = 1515
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
@@ -160,6 +159,4 @@ class LocationManager(
             updateMonitoring()
         }
     }
-
-
 }

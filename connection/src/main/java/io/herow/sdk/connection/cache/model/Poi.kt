@@ -19,12 +19,12 @@ data class Poi(
 ) {
 
     @Expose(deserialize = false)
-    var distance: Float = 0f
+    var distance: Double = 0.0
 
-    fun updateDistance(userLocation: Location): Float {
+    fun updateDistance(userLocation: Location): Double {
         val poiLocation = Location(id)
         poiLocation.latitude = lat!!
         poiLocation.longitude = lng!!
-        return poiLocation.distanceTo(userLocation)
+        return poiLocation.distanceTo(userLocation).toDouble()
     }
 }

@@ -3,6 +3,7 @@ package io.herow.sdk.detection.geofencing
 import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.detection.geofencing.model.LocationMapper
 import kotlin.math.*
 
 data class GeofenceEvent(
@@ -25,7 +26,10 @@ data class GeofenceEvent(
         zone.radius = 3.times(zone.radius ?: 0.0)
         val confidence = computeConfidence(location, zone)
         GlobalLogger.shared.debug(null, "ComputeNotification: $location & $zone")
-        GlobalLogger.shared.debug(null, "GeofenceEvent enter notification zone confidence: $confidence")
+        GlobalLogger.shared.debug(
+            null,
+            "GeofenceEvent enter notification zone confidence: $confidence"
+        )
 
         return confidence
     }
@@ -40,6 +44,11 @@ data class GeofenceEvent(
 
     private fun computeConfidence(location: Location, zone: Zone): Double {
         GlobalLogger.shared.info(null, "GeofenceEvent - Parameters are: $location and $zone")
+
+        if (location.accuracy.compareTo(0.0) == 0) {
+            return 0.0
+        }
+
         val center = Location("").apply {
             latitude = zone.lat!!
             longitude = zone.lng!!
@@ -48,11 +57,22 @@ data class GeofenceEvent(
         val distance: Double = center.distanceTo(location).toDouble()
         val accuracyRadius = location.accuracy.toDouble()
 
+        GlobalLogger.shared.info(
+            null,
+            "Value of distance is: $distance and value of accuracyRadius is: $accuracyRadius"
+        )
+
+        /*if (accuracyRadius.compareTo(0.0) == 0) {
+            return 0.0
+        }*/
+
         val radius1 = max(zone.radius!!, accuracyRadius)
         val radius2 = min(zone.radius!!, accuracyRadius)
         val squareR1 = radius1 * radius1
         val squareR2 = radius2 * radius2
         val squareDistance = distance * distance
+
+        GlobalLogger.shared.info(null, "SquareDistance is: $squareDistance")
 
         val intersectArea = if ((radius1 + radius2) <= distance) {
             0.0
@@ -76,10 +96,12 @@ data class GeofenceEvent(
             }
         }
 
+        GlobalLogger.shared.info(null, "IntersectArea value is: $intersectArea")
+
         val result = min(1.0, intersectArea.div(PI * accuracyRadius * accuracyRadius))
         GlobalLogger.shared.debug(
             null,
-            "Confidence: $result for zone ${zone.hash}, radius: ${zone.radius}, accuracy: $accuracyRadius, location: $location"
+            "Inside computeConfidence: $result for zone ${zone.hash}, radius: ${zone.radius}, accuracy: $accuracyRadius, location: $location"
         )
 
         return result

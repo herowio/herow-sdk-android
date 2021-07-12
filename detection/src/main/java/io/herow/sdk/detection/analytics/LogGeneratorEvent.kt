@@ -169,6 +169,7 @@ class LogGeneratorEvent(
 
         for (geofenceEvent in geofenceEvents) {
             geofenceEvent.zone.distance = geofenceEvent.zone.updateDistance(geofenceEvent.location)
+
             if (geofenceEvent.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
                 return
             }
