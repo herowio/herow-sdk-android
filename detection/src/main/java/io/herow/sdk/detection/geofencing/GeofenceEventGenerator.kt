@@ -35,27 +35,7 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
         println("Zones received are: $zones")
         GlobalLogger.shared.info(null,"Zones at start are: $zones")
         GlobalLogger.shared.info(null,"Previous zones are: $previousZonesDetected")
-
         println("Previous zones detected are: $previousZonesDetected")
-        if (previousZonesDetected.isEmpty()) {
-            GlobalLogger.shared.info(null,"Previous detected zone is empty")
-            for (zone in zones) {
-                GlobalLogger.shared.info(null,"Zone is: $zone")
-
-                if (type != null) {
-                    val geofenceEvent = GeofenceEvent(zone, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER, confidenceToUpdate)
-                    geofenceEvent.confidence = geofenceEvent.computeNotificationConfidence(location, zone)
-                    liveEvents.add(geofenceEvent)
-                } else {
-                    GlobalLogger.shared.info(null, "Into defineGeofenceEvent method")
-                    val geofenceEvent = GeofenceEvent(zone, location, GeofenceType.ENTER, confidenceToUpdate)
-                    geofenceEvent.confidence = geofenceEvent.computeEnterConfidence(location, zone)
-
-                    GlobalLogger.shared.info(null, "GeofenceEvent for Enter is: $geofenceEvent")
-                    liveEvents.add(geofenceEvent)
-                }
-            }
-        } else {
             println("Type is: $type")
             if (type == null) {
                 for (previousZone in previousZonesDetected) {
@@ -83,7 +63,6 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                     }
 
                     println("Live events are: $liveEvents")
-                }
             }
 
             for (newPlace in zones) {

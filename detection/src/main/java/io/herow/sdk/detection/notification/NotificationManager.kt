@@ -173,5 +173,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
     fun notificationsOnExactZoneEntry(value: Boolean) {
         notificationOnExactEntry = value
+        GlobalLogger.shared.info(context, "NotificationManager  exact entry: $notificationOnExactEntry")
+
     }
 }
