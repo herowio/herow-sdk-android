@@ -58,18 +58,21 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                             confidenceToUpdate
                         )
 
-                        geofenceEvent.confidence = geofenceEvent.computeExitConfidence(location, previousZone)
+                        geofenceEvent.confidence =
+                            geofenceEvent.computeExitConfidence(location, previousZone)
                         liveEvents.add(geofenceEvent)
                     }
 
                     println("Live events are: $liveEvents")
+                }
             }
 
             for (newPlace in zones) {
                 GlobalLogger.shared.info(null, "Zones are: $zones")
                 GlobalLogger.shared.info(null,  "NewPlace is: $newPlace")
-
+                GlobalLogger.shared.info(null, "considering type - $type")
                 if (type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
+
                     val isNew =  previousDetectedZonesForNotification.none{
                         it.hash == newPlace.hash
                     }
@@ -92,7 +95,7 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
                     }
                 }
             }
-        }
+
 
         if (type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
             previousDetectedZonesForNotification.clear()

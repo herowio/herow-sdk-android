@@ -61,11 +61,12 @@ class NotificationManager(private val context: Context, private val sessionHolde
         } else {
             GeofenceType.GEOFENCE_NOTIFICATION_ENTER
         }
-        GlobalLogger.shared.info(context, "GeofenceEvents trigger is: $trigger")
+
         GlobalLogger.shared.info(context, "GeofenceEvents received: $geofenceEvents")
         if (geofenceEvents.isNotEmpty()) {
             for (event in geofenceEvents) {
                 GlobalLogger.shared.info(context, "Geofence type is: ${event.type}")
+                GlobalLogger.shared.info(context, "GeofenceEvents trigger is: $trigger")
                 if (event.type == trigger) {
                     runBlocking {
                         withContext(Dispatchers.IO) {
