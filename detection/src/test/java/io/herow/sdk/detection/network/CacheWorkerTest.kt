@@ -1,37 +1,11 @@
 package io.herow.sdk.detection.network
 
-import android.content.Context
-import android.location.Location
-import androidx.test.core.app.ApplicationProvider
-import androidx.work.ListenableWorker
-import androidx.work.testing.TestListenableWorkerBuilder
-import androidx.work.workDataOf
-import com.google.gson.Gson
-import io.herow.sdk.common.helpers.Constants
-import io.herow.sdk.connection.HerowPlatform
-import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.MockLocation
-import io.herow.sdk.detection.geofencing.model.LocationMapper
-import io.herow.sdk.detection.geofencing.model.toLocationMapper
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.Is
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import java.util.*
-
-@OptIn(ExperimentalCoroutinesApi::class)
+/* @OptIn(ExperimentalCoroutinesApi::class)
 @Config(sdk = [28])
-@RunWith(RobolectricTestRunner::class)
+@RunWith(RobolectricTestRunner::class) */
 class CacheWorkerTest {
 
-    @get:Rule
+    /* @get:Rule
     var coroutineTestRule = CoroutineTestRule()
 
     private lateinit var context: Context
@@ -92,6 +66,6 @@ class CacheWorkerTest {
 
         result = worker.doWork()
         assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
-    }
+    } */
 }
 

@@ -1,32 +1,9 @@
 package io.herow.sdk.detection.analytics
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
-import io.herow.sdk.common.DataHolder
-import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.connection.cache.model.Access
-import io.herow.sdk.connection.cache.model.Poi
-import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.logs.Log
-import io.herow.sdk.detection.MockLocation
-import io.herow.sdk.detection.analytics.model.HerowLogVisit
-import io.herow.sdk.detection.geofencing.GeofenceEvent
-import io.herow.sdk.detection.geofencing.GeofenceType
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.greaterThan
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-
-@Config(sdk = [28])
-@RunWith(RobolectricTestRunner::class)
+//@Config(sdk = [28])
+//@RunWith(RobolectricTestRunner::class)
 class LogGeneratorEventTest {
-    private val herowLogsListener = HerowLogsListener()
+    /* private val herowLogsListener = HerowLogsListener()
     private lateinit var logGeneratorEvent: LogGeneratorEvent
 
     private lateinit var context: Context
@@ -124,10 +101,10 @@ class LogGeneratorEventTest {
         (otherLogVisit[HerowLogVisit.DURATION] as? Long)?.let { visitDuration: Long ->
             assertThat("Log visit duration in zone", visitDuration, greaterThan(500L))
         }
-    }
+    } */
 
 
-    class HerowLogsListener : LogsListener {
+    /* class HerowLogsListener : LogsListener {
         val herowLogsVisit = ArrayList<HerowLogVisit>()
 
         override fun onLogsToSend(listOfLogs: List<Log>) {
@@ -142,5 +119,5 @@ class LogGeneratorEventTest {
                 }
             }
         }
-    }
+    } */
 }
