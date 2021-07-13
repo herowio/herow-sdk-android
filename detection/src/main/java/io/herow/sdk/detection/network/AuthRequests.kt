@@ -15,8 +15,7 @@ import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
 import io.herow.sdk.detection.network.model.RetrofitConnectionObject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 /**
  * Token and UserInfo workflow
@@ -92,6 +91,16 @@ class AuthRequests(
 
         return false
     }
+
+
+     fun getUserInfoIfNeeded() {
+         GlobalScope.launch(Dispatchers.IO) {
+             authenticationWorkFlow {
+                 userInfoWorkFlow {}
+             }
+         }
+     }
+
     
     suspend fun execute(request:  suspend (herowAPI: HerowAPI) -> Unit = {} ) {
         authenticationWorkFlow {

@@ -264,6 +264,13 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
      */
     private fun saveOptinValue(optinAccepted: Boolean?) {
         sessionHolder.saveOptinValue(optinAccepted)
+        val datas = workDataOf(
+            AuthRequests.KEY_SDK_ID to sdkSession.sdkId,
+            AuthRequests.KEY_SDK_KEY to sdkSession.sdkKey,
+            AuthRequests.KEY_CUSTOM_ID to customID,
+            AuthRequests.KEY_PLATFORM to platform.name
+        )
+        AuthRequests(sessionHolder, datas).getUserInfoIfNeeded()
     }
 
     override fun onLocationUpdate(location: Location) {
