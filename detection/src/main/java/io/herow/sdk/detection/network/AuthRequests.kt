@@ -93,13 +93,14 @@ class AuthRequests(
     }
 
 
-     fun getUserInfoIfNeeded() {
+    fun getUserInfoIfNeeded() {/*
+
          GlobalScope.launch(Dispatchers.IO) {
              authenticationWorkFlow {
                  userInfoWorkFlow {}
              }
          }
-     }
+    */ }
 
     
     suspend fun execute(request:  suspend (herowAPI: HerowAPI) -> Unit = {} ) {

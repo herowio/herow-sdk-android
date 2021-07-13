@@ -10,7 +10,7 @@ data class GeofenceEvent(
     val zone: Zone,
     val location: Location,
     val type: GeofenceType,
-    var confidence: Double = 12.0
+    var confidence: Double = -1.0
 ) {
 
     fun computeEnterConfidence(location: Location, zone: Zone): Double {
@@ -43,28 +43,24 @@ data class GeofenceEvent(
     }
 
     private fun computeConfidence(location: Location, zone: Zone): Double {
-        GlobalLogger.shared.info(null, "GeofenceEvent - Parameters are: $location and $zone")
+        GlobalLogger.shared.info(null, "GeofenceEvent -  computeConfidence Parameters are: $location and $zone")
 
-        if (location.accuracy.compareTo(0.0) == 0) {
-            return 0.0
-        }
 
         val center = Location("").apply {
             latitude = zone.lat!!
             longitude = zone.lng!!
         }
-
         val distance: Double = center.distanceTo(location).toDouble()
         val accuracyRadius = location.accuracy.toDouble()
-
+        val accuracyArea = PI * accuracyRadius * accuracyRadius
+        if (accuracyRadius == 0.0) {
+            GlobalLogger.shared.info(null, "GeofenceEvent -  computeConfidence Accuracy null")
+            return -1.0
+        }
         GlobalLogger.shared.info(
             null,
-            "Value of distance is: $distance and value of accuracyRadius is: $accuracyRadius"
+            " computeConfidence Value of distance is: $distance and value of accuracyRadius is: $accuracyRadius"
         )
-
-        /*if (accuracyRadius.compareTo(0.0) == 0) {
-            return 0.0
-        }*/
 
         val radius1 = max(zone.radius!!, accuracyRadius)
         val radius2 = min(zone.radius!!, accuracyRadius)
@@ -72,20 +68,20 @@ data class GeofenceEvent(
         val squareR2 = radius2 * radius2
         val squareDistance = distance * distance
 
-        GlobalLogger.shared.info(null, "SquareDistance is: $squareDistance")
+        GlobalLogger.shared.info(null, " computeConfidence SquareDistance is: $squareDistance")
 
         val intersectArea = if ((radius1 + radius2) <= distance) {
             0.0
         } else {
             if ((radius1 - radius2) >= distance) {
-                GlobalLogger.shared.debug(null, "Full inclusion: distance is $distance")
+                GlobalLogger.shared.debug(null, "computeConfidence Full inclusion: distance is $distance")
                 PI * squareR2
             } else {
-                val diameter1 = ((squareR1 - squareR2) + squareDistance).div(2 * distance)
-                val diameter2 = ((squareR2 - squareR1) + squareDistance).div(2 * distance)
+                val diameter1 = ((squareR1 - squareR2) + squareDistance) / (2 * distance)
+                val diameter2 = ((squareR2 - squareR1) + squareDistance) / (2 * distance)
 
-                val cosinus1 = max(min(diameter1.div(radius1), 1.0), -1.0)
-                val cosinus2 = max(min(diameter2.div(radius2), 1.0), -1.0)
+                val cosinus1 = max(min(diameter1 / radius1, 1.0), -1.0)
+                val cosinus2 = max(min(diameter2 / radius2, 1.0), -1.0)
 
                 val aera1 =
                     squareR1 * acos(cosinus1) - diameter1 * sqrt(abs(squareR1 - diameter1 * diameter1))
@@ -96,9 +92,13 @@ data class GeofenceEvent(
             }
         }
 
-        GlobalLogger.shared.info(null, "IntersectArea value is: $intersectArea")
+        GlobalLogger.shared.info(null, "computeConfidence result  IntersectArea value is: $intersectArea")
+        GlobalLogger.shared.info(null, "computeConfidence result AccuracyArera value is: $accuracyArea")
+        val ratio: Double = intersectArea / accuracyArea
+        GlobalLogger.shared.info(null, "computeConfidence result ratio value is: $ratio")
 
-        val result = min(1.0, intersectArea.div(PI * accuracyRadius * accuracyRadius))
+
+        val result = min(1.0, ratio)
         GlobalLogger.shared.debug(
             null,
             "Inside computeConfidence: $result for zone ${zone.hash}, radius: ${zone.radius}, accuracy: $accuracyRadius, location: $location"
