@@ -3,7 +3,6 @@ package io.herow.sdk.detection.geofencing
 import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.detection.geofencing.model.LocationMapper
 import kotlin.math.*
 
 data class GeofenceEvent(
@@ -19,7 +18,7 @@ data class GeofenceEvent(
         GlobalLogger.shared.debug(null, "ComputeEnter: $location & $zone")
         GlobalLogger.shared.debug(null, "GeofenceEvent enter zone confidence: $confidence")
 
-        return confidence
+        return roundTo(confidence)
     }
 
     fun computeNotificationConfidence(location: Location, zone: Zone): Double {
@@ -31,7 +30,7 @@ data class GeofenceEvent(
             "GeofenceEvent enter notification zone confidence: $confidence"
         )
 
-        return confidence
+        return roundTo(confidence)
     }
 
     fun computeExitConfidence(location: Location, zone: Zone): Double {
@@ -39,20 +38,21 @@ data class GeofenceEvent(
         val confidence = 1 - computeConfidence(location, zone)
         GlobalLogger.shared.debug(null, "GeofenceEvent exit zone confidence: $confidence")
 
-        return confidence
+        return roundTo(confidence)
     }
 
     private fun computeConfidence(location: Location, zone: Zone): Double {
         GlobalLogger.shared.info(null, "GeofenceEvent -  computeConfidence Parameters are: $location and $zone")
 
-
         val center = Location("").apply {
             latitude = zone.lat!!
             longitude = zone.lng!!
         }
+
         val distance: Double = center.distanceTo(location).toDouble()
         val accuracyRadius = location.accuracy.toDouble()
         val accuracyArea = PI * accuracyRadius * accuracyRadius
+
         if (accuracyRadius == 0.0) {
             GlobalLogger.shared.info(null, "GeofenceEvent -  computeConfidence Accuracy null")
             return -1.0
@@ -94,9 +94,9 @@ data class GeofenceEvent(
 
         GlobalLogger.shared.info(null, "computeConfidence result  IntersectArea value is: $intersectArea")
         GlobalLogger.shared.info(null, "computeConfidence result AccuracyArera value is: $accuracyArea")
+
         val ratio: Double = intersectArea / accuracyArea
         GlobalLogger.shared.info(null, "computeConfidence result ratio value is: $ratio")
-
 
         val result = min(1.0, ratio)
         GlobalLogger.shared.debug(
@@ -105,5 +105,11 @@ data class GeofenceEvent(
         )
 
         return result
+    }
+
+    private fun roundTo(data: Double): Double {
+        val factor = 100.0.pow(data)
+
+        return (data * factor).roundToInt() / factor
     }
 }

@@ -60,7 +60,6 @@ class AuthRequests(
         }
     }
 
-    // TODO Nullable request?
     private suspend fun userInfoWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
         GlobalLogger.shared.info(null,"flow :userInfoWorkFlow")
 
@@ -85,7 +84,9 @@ class AuthRequests(
         if (sessionHolder.userInfoWasLaunched()) {
             val lastUserInfoLaunch = sessionHolder.lastTimeUserInfoWasLaunched()
 
-            if (lastUserInfoLaunch + 86400 < TimeHelper.getCurrentTime()) {
+            GlobalLogger.shared.info(null, "User Info last launch is: $lastUserInfoLaunch")
+
+            if (lastUserInfoLaunch + 86400000 < TimeHelper.getCurrentTime()) {
                 GlobalLogger.shared.info(null,"User info has not been updated in 24 hours")
                 return true
             }

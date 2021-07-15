@@ -35,8 +35,8 @@ import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 
@@ -95,20 +95,22 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
      * to be able to use it only if the developer has already the library include in his project.
      */
     private fun loadIdentifiers(context: Context) {
-        GlobalScope.launch(Dispatchers.IO) {
-            val deviceId = DeviceHelper.getDeviceId(context)
-            sessionHolder.saveDeviceId(deviceId)
-            try {
-                val advertiserInfo: AdvertisingIdClient.Info =
-                    AdvertisingIdClient.getAdvertisingIdInfo(
-                        context
-                    )
-                if (!advertiserInfo.isLimitAdTrackingEnabled) {
-                    sessionHolder.saveAdvertiserId(advertiserInfo.id)
+        CoroutineScope(Dispatchers.IO).launch {
+            kotlin.runCatching {
+                val deviceId = DeviceHelper.getDeviceId(context)
+                sessionHolder.saveDeviceId(deviceId)
+                try {
+                    val advertiserInfo: AdvertisingIdClient.Info =
+                        AdvertisingIdClient.getAdvertisingIdInfo(
+                            context
+                        )
+                    if (!advertiserInfo.isLimitAdTrackingEnabled) {
+                        sessionHolder.saveAdvertiserId(advertiserInfo.id)
+                    }
+                } catch (e: NoClassDefFoundError) {
+                    GlobalLogger.shared.error(context, "Exception catched: $e - ${e.message}")
+                    println("Your application does not implement the play-services-ads library")
                 }
-            } catch (e: NoClassDefFoundError) {
-                GlobalLogger.shared.error(context, "Exception catched: $e - ${e.message}")
-                println("Your application does not implement the play-services-ads library")
             }
         }
     }
