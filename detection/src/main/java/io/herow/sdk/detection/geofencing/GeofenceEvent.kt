@@ -17,7 +17,7 @@ data class GeofenceEvent(
         GlobalLogger.shared.debug(null, "ComputeEnter: $location & $zone")
         GlobalLogger.shared.debug(null, "GeofenceEvent enter zone confidence: $confidence")
 
-        return roundTo(confidence)
+        return confidence
     }
 
     fun computeNotificationConfidence(location: Location, zone: Zone): Double {
@@ -29,18 +29,21 @@ data class GeofenceEvent(
             "GeofenceEvent enter notification zone confidence: $confidence"
         )
 
-        return roundTo(confidence)
+        return confidence
     }
 
     fun computeExitConfidence(location: Location, zone: Zone): Double {
         val confidence = 1 - computeConfidence(location, zone)
         GlobalLogger.shared.debug(null, "GeofenceEvent exit zone confidence: $confidence")
 
-        return roundTo(confidence)
+        return confidence
     }
 
-    private fun computeConfidence(location: Location, zone: Zone , scale: Double = 1.0): Double {
-        GlobalLogger.shared.info(null, "GeofenceEvent -  computeConfidence Parameters are: $location and $zone")
+    private fun computeConfidence(location: Location, zone: Zone, scale: Double = 1.0): Double {
+        GlobalLogger.shared.info(
+            null,
+            "GeofenceEvent -  computeConfidence Parameters are: $location and $zone"
+        )
 
         val center = Location("").apply {
             latitude = zone.lat!!
@@ -72,7 +75,10 @@ data class GeofenceEvent(
             0.0
         } else {
             if ((radius1 - radius2) >= distance) {
-                GlobalLogger.shared.debug(null, "computeConfidence Full inclusion: distance is $distance")
+                GlobalLogger.shared.debug(
+                    null,
+                    "computeConfidence Full inclusion: distance is $distance"
+                )
                 PI * squareR2
             } else {
                 val diameter1 = ((squareR1 - squareR2) + squareDistance) / (2 * distance)
@@ -90,8 +96,14 @@ data class GeofenceEvent(
             }
         }
 
-        GlobalLogger.shared.info(null, "computeConfidence result  IntersectArea value is: $intersectArea")
-        GlobalLogger.shared.info(null, "computeConfidence result AccuracyArera value is: $accuracyArea")
+        GlobalLogger.shared.info(
+            null,
+            "computeConfidence result  IntersectArea value is: $intersectArea"
+        )
+        GlobalLogger.shared.info(
+            null,
+            "computeConfidence result AccuracyArera value is: $accuracyArea"
+        )
 
         val ratio: Double = intersectArea / accuracyArea
         GlobalLogger.shared.info(null, "computeConfidence result ratio value is: $ratio")
@@ -102,12 +114,7 @@ data class GeofenceEvent(
             "Inside computeConfidence: $result for zone ${zone.hash}, radius: ${zone.radius}, accuracy: $accuracyRadius, location: $location"
         )
 
-        return result
+        return Math.round(result * 100.0) / 100.0
     }
 
-    private fun roundTo(data: Double): Double {
-        val factor = 100.0.pow(data)
-
-        return (data * factor).roundToInt() / factor
-    }
 }
