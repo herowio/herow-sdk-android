@@ -13,7 +13,6 @@ data class GeofenceEvent(
 ) {
 
     fun computeEnterConfidence(location: Location, zone: Zone): Double {
-        zone.radius = zone.radius ?: 0.0
         val confidence = computeConfidence(location, zone)
         GlobalLogger.shared.debug(null, "ComputeEnter: $location & $zone")
         GlobalLogger.shared.debug(null, "GeofenceEvent enter zone confidence: $confidence")
@@ -22,8 +21,8 @@ data class GeofenceEvent(
     }
 
     fun computeNotificationConfidence(location: Location, zone: Zone): Double {
-        zone.radius = 3.times(zone.radius ?: 0.0)
-        val confidence = computeConfidence(location, zone)
+
+        val confidence = computeConfidence(location, zone, 3.0)
         GlobalLogger.shared.debug(null, "ComputeNotification: $location & $zone")
         GlobalLogger.shared.debug(
             null,
@@ -34,14 +33,13 @@ data class GeofenceEvent(
     }
 
     fun computeExitConfidence(location: Location, zone: Zone): Double {
-        zone.radius = zone.radius ?: 0.0
         val confidence = 1 - computeConfidence(location, zone)
         GlobalLogger.shared.debug(null, "GeofenceEvent exit zone confidence: $confidence")
 
         return roundTo(confidence)
     }
 
-    private fun computeConfidence(location: Location, zone: Zone): Double {
+    private fun computeConfidence(location: Location, zone: Zone , scale: Double = 1.0): Double {
         GlobalLogger.shared.info(null, "GeofenceEvent -  computeConfidence Parameters are: $location and $zone")
 
         val center = Location("").apply {
@@ -62,8 +60,8 @@ data class GeofenceEvent(
             " computeConfidence Value of distance is: $distance and value of accuracyRadius is: $accuracyRadius"
         )
 
-        val radius1 = max(zone.radius!!, accuracyRadius)
-        val radius2 = min(zone.radius!!, accuracyRadius)
+        val radius1 = max(zone.radius!! * scale, accuracyRadius)
+        val radius2 = min(zone.radius!! * scale, accuracyRadius)
         val squareR1 = radius1 * radius1
         val squareR2 = radius2 * radius2
         val squareDistance = distance * distance

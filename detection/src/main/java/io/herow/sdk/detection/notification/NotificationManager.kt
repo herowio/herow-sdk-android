@@ -68,9 +68,14 @@ class NotificationManager(private val context: Context, private val sessionHolde
                 GlobalLogger.shared.info(context, "Geofence type is: ${event.type}")
                 GlobalLogger.shared.info(context, "GeofenceEvents trigger is: $trigger")
                 if (event.type == trigger) {
+                    GlobalLogger.shared.info(context, "GeofenceEvents selected trigger is: $trigger")
                     runBlocking {
                         withContext(Dispatchers.IO) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
+                            val zoneName = if ( event.zone.access?.name != null)  event.zone.access?.name else "non name"
+                            val campaignNames = campaigns.map { it.notification?.title }
+                            GlobalLogger.shared.info(context, "zone name: $zoneName campagnsName: $campaignNames")
+
 
                             if (campaigns.isNotEmpty()) {
                                 for (campaign in campaigns) {
