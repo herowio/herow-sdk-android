@@ -117,6 +117,10 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return ""
     }
 
+    fun removeCustomID()  {
+        dataHolder[KEY_CUSTOM_ID] = ""
+    }
+
     fun saveCustomID(customID: String) {
         if (customID.isNotEmpty()) {
             dataHolder[KEY_CUSTOM_ID] = customID
