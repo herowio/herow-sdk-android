@@ -34,7 +34,6 @@ class ZoneManager(
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
     private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)
         val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
@@ -142,35 +141,21 @@ class ZoneManager(
 
     fun dispatchZonesAndNotification(location: Location) {
         GlobalLogger.shared.info(context, "Inside dispatchZonesAndNotification() method")
-        val detectedZones = ArrayList<Zone>()
-        val detectedZoneForNotification = ArrayList<Zone>()
-
+        var detectedZones = ArrayList<Zone>()
+        var detectedZoneForNotification = ArrayList<Zone>()
+        val zonesToCompute = ArrayList(zones)
         synchronized(zones) {
-            GlobalLogger.shared.info(context, "Zones synchronization: $zones")
-            for (zone in ArrayList(zones)) {
-                val zoneLocation = zone.toLocation()
-                val distanceToCenterOfZone = location.distanceTo(zoneLocation)
-                if (distanceToCenterOfZone - zone.radius!! <= 0) {
-                    GlobalLogger.shared.info(context, "Adding zone: $zone")
-                    detectedZones.add(zone)
-                }
+            detectedZones = ArrayList(zonesToCompute.filter { it.isIn(location) })
+            detectedZoneForNotification = ArrayList(zonesToCompute.filter { it.isIn(location, 3.0) })
 
-                if (distanceToCenterOfZone - zone.radius!! * 3 <= 0) {
-                    GlobalLogger.shared.info(context, "Adding zone for radius x3: $zone")
-                    detectedZoneForNotification.add(zone)
-                }
-            }
         }
-
+        val names = detectedZones.map{it.access?.name}
+        GlobalLogger.shared.info(null,"Zones at start are: $names")
+        val notificationsnames = detectedZoneForNotification.map{it.access?.name}
+        GlobalLogger.shared.info(null,"NotificationsZones at start are: $notificationsnames")
         ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
         ZoneDispatcher.dispatchDetectedZonesForNotification(detectedZoneForNotification, location)
-        GlobalLogger.shared.info(
-            context,
-            "Zones dispatched: $detectedZones and location: $location"
-        )
-        GlobalLogger.shared.info(
-            context,
-            "Zones dispatched for notification: $detectedZoneForNotification"
-        )
+        detectedZones.clear()
+        detectedZoneForNotification.clear()
     }
 }
