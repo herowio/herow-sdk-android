@@ -34,8 +34,9 @@ class CacheManager(val context: Context): LocationListener {
      */
     override fun onLocationUpdate(location: Location) {
         GlobalLogger.shared.info(context, "Into onLocationUpdate from CacheManager")
-        GlobalLogger.shared.info(context, "Should get cache: ${shouldGetCache(sessionHolder, location)}")
-        if (shouldGetCache(sessionHolder, location)) {
+        val shouldGetCache =  shouldGetCache(sessionHolder, location)
+        GlobalLogger.shared.info(context, "Should get cache: ${shouldGetCache}")
+        if (shouldGetCache) {
             LocationManager.scope.launch { CacheManager(context).launchCacheRequest(location) }
         }
     }
@@ -70,6 +71,8 @@ class CacheManager(val context: Context): LocationListener {
 
             workManager.enqueue(workerRequest)
             GlobalLogger.shared.info(context, "Cache request is enqueued")
+        } else {
+            GlobalLogger.shared.info(context, "Cache request is not enqueued")
         }
     }
 
