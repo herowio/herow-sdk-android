@@ -26,4 +26,4 @@ jobs:
             PLATFORM_SECRETS: ${{ secrets.PLATFORM_SECRETS }}
         run: echo $PLATFORM_SECRETS > platform-secrets.properties
       - name: unit tests
-        run: bash ./gradlew clean testDebugUnitTest jacocoTestReport
+        run: bash ./gradlew clean testDebugUnitTest 
