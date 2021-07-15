@@ -3,7 +3,7 @@ name: Build
 on:
   workflow_dispatch:
 jobs:
-  publish-release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
