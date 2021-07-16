@@ -28,6 +28,7 @@ A token is displayed. You will only see it once. You need to save it somewhere b
 
 ```
 maven {
+    google()
     name = "GitHubPackages"
     url = uri("https://maven.pkg.github.com/herowio/herow-sdk-android")
     credentials {
@@ -60,25 +61,6 @@ import android.app.Application
 class MainApplication: Application() { }
 
 ```
-
-- The SDK uses a WorkManager to make some call to our platform. In order for your application to avoid a "WorkManager is not initialized properly" error, your MainApplication class needs to implement Configuration.Provider as followed:
-
-```
-import androidx.work.Configuration
-
-class MainApplication: Application(), Configuration.Provider { }
-
-```
-
-- It will ask you to override the getWorkManagerConfiguration() method. Use the following code:
-
-```
-override fun getWorkManagerConfiguration(): Configuration =
-        Configuration.Builder()
-            .setMinimumLoggingLevel(android.util.Log.INFO)
-            .build()
-```
-
 
 - You will need your SDK credentials and your platform. Override onCreate() method and configure your initialization as followed:
 
