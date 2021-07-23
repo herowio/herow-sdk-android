@@ -19,7 +19,7 @@ import io.herow.sdk.connection.cache.utils.Converters
     exportSchema = false
 )
 @TypeConverters(Converters::class)
-abstract class HerowDatabase: RoomDatabase() {
+abstract class HerowDatabase : RoomDatabase() {
 
     abstract fun campaignDAO(): CampaignDAO
     abstract fun zoneDAO(): ZoneDAO

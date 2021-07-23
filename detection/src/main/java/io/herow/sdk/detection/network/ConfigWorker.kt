@@ -6,15 +6,15 @@ import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
-import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
+import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.detection.helpers.DateHelper
 
 /**
- * @see HerowAPI#config()
+ * @see IHerowAPI#config()
  */
 class ConfigWorker(
     context: Context,
@@ -34,7 +34,7 @@ class ConfigWorker(
         return Result.success()
     }
 
-    private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
+    private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: IHerowAPI) {
         GlobalLogger.shared.info(
             applicationContext,
             "Should launch: ${shouldLaunchConfigRequest(sessionHolder)}"
@@ -100,9 +100,13 @@ class ConfigWorker(
     ): Boolean {
         val savedTimeStamp =
             DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
-        val remoteCachedTimeToLong = DateHelper.convertStringToTimeStampInMilliSeconds(remoteCachedTime)
+        val remoteCachedTimeToLong =
+            DateHelper.convertStringToTimeStampInMilliSeconds(remoteCachedTime)
 
-        GlobalLogger.shared.info(null, "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp")
+        GlobalLogger.shared.info(
+            null,
+            "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp"
+        )
 
         return remoteCachedTimeToLong > savedTimeStamp
     }

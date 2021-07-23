@@ -9,8 +9,8 @@ import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
-import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
+import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -93,7 +93,7 @@ class ClickAndCollectWorkerTest {
     }
 }
 
-class ClickAndCollectWorkerListener(var variableTest: String = "click") : ClickAndCollectListener {
+class ClickAndCollectWorkerListener(var variableTest: String = "click") : IClickAndCollectListener {
     override fun didStopClickAndConnect() {
         variableTest = "stop"
     }

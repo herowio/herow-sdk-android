@@ -5,7 +5,7 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.detection.helpers.DateHelper
 
-object DayRecurrencyFilter : NotificationFilter {
+object DayRecurrencyFilter : INotificationFilter {
 
     override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
         var result = false
@@ -37,7 +37,10 @@ object DayRecurrencyFilter : NotificationFilter {
             "DayRecurrencyFilter: ${campaign.name} $can create notification"
         )
 
-        GlobalLogger.shared.debug(null,"DayRecurrencyFilter will display: $result for campaign $campaign")
+        GlobalLogger.shared.debug(
+            null,
+            "DayRecurrencyFilter will display: $result for campaign $campaign"
+        )
 
         return result
     }

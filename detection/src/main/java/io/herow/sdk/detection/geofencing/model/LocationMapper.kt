@@ -8,9 +8,9 @@ data class LocationMapper(
     var lng: Double = 0.0,
     var lat: Double = 0.0,
     var timestamp: Long = 0L
-    )
+)
 
-fun LocationMapper.toLocationMapper(location: Location): LocationMapper = LocationMapper(
+fun toLocationMapper(location: Location): LocationMapper = LocationMapper(
     location.speed,
     location.accuracy,
     location.longitude,

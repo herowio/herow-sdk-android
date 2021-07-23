@@ -4,20 +4,21 @@ import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.detection.zones.ZoneListener
+import io.herow.sdk.detection.zones.IZoneListener
 
-class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
+class GeofenceEventGenerator(val sessionHolder: SessionHolder) : IZoneListener {
     private var previousDetectedZones: ArrayList<Zone> = if (sessionHolder.hasPreviousZones()) {
         sessionHolder.getSavedPreviousZones()
     } else {
         ArrayList()
     }
 
-    private var previousDetectedZonesForNotification: ArrayList<Zone> = if (sessionHolder.hasPreviousZonesForNotification()) {
-        sessionHolder.getSavedPreviousZonesForNotification()
-    } else {
-        ArrayList()
-    }
+    private var previousDetectedZonesForNotification: ArrayList<Zone> =
+        if (sessionHolder.hasPreviousZonesForNotification()) {
+            sessionHolder.getSavedPreviousZonesForNotification()
+        } else {
+            ArrayList()
+        }
 
     private val confidenceToUpdate = -1.0
 
@@ -28,14 +29,24 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
     }
 
     override fun detectedNotificationZones(zonesForNotification: List<Zone>, location: Location) {
-        defineGeofenceEventType(zonesForNotification, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER, previousDetectedZonesForNotification)
+        defineGeofenceEventType(
+            zonesForNotification,
+            location,
+            GeofenceType.GEOFENCE_NOTIFICATION_ENTER,
+            previousDetectedZonesForNotification
+        )
     }
 
-    private fun defineGeofenceEventType(zones: List<Zone>, location: Location, type: GeofenceType?, previousZonesDetected: ArrayList<Zone>) {
+    private fun defineGeofenceEventType(
+        zones: List<Zone>,
+        location: Location,
+        type: GeofenceType?,
+        previousZonesDetected: ArrayList<Zone>
+    ) {
         val liveEvents = ArrayList<GeofenceEvent>()
         println("Zones received are: $zones")
         //GlobalLogger.shared.info(null,"Zones at start are: $zones")
-        GlobalLogger.shared.info(null,"Previous zones are: $previousZonesDetected")
+        GlobalLogger.shared.info(null, "Previous zones are: $previousZonesDetected")
         println("Previous zones detected are: $previousZonesDetected")
         println("Type is: $type")
         if (type == null) {
@@ -70,28 +81,42 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
 
         for (newPlace in zones) {
             GlobalLogger.shared.info(null, "GeofenceEventGenerator - Zones are: $zones")
-            GlobalLogger.shared.info(null,  "GeofenceEventGenerator - NewPlace is: $newPlace")
+            GlobalLogger.shared.info(null, "GeofenceEventGenerator - NewPlace is: $newPlace")
             GlobalLogger.shared.info(null, "GeofenceEventGenerator - considering type - $type")
             if (type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
 
-                val isNew =  previousDetectedZonesForNotification.none{
+                val isNew = previousDetectedZonesForNotification.none {
                     it.hash == newPlace.hash
                 }
                 if (isNew) {
-                    GlobalLogger.shared.info(null, "GeofenceEventGenerator - Adding zone - Type NOTIFICATION_ENTER")
-                    val geofenceEvent = GeofenceEvent(newPlace, location, GeofenceType.GEOFENCE_NOTIFICATION_ENTER, confidenceToUpdate)
-                    geofenceEvent.confidence = geofenceEvent.computeNotificationConfidence(location, newPlace)
+                    GlobalLogger.shared.info(
+                        null,
+                        "GeofenceEventGenerator - Adding zone - Type NOTIFICATION_ENTER"
+                    )
+                    val geofenceEvent = GeofenceEvent(
+                        newPlace,
+                        location,
+                        GeofenceType.GEOFENCE_NOTIFICATION_ENTER,
+                        confidenceToUpdate
+                    )
+                    geofenceEvent.confidence =
+                        geofenceEvent.computeNotificationConfidence(location, newPlace)
                     liveEvents.add(geofenceEvent)
                 }
             } else {
-                val isNew = previousDetectedZones.none{
+                val isNew = previousDetectedZones.none {
                     it.hash == newPlace.hash
                 }
 
                 if (isNew) {
-                    GlobalLogger.shared.info(null, "GeofenceEventGenerator - Adding zone - Type ENTER")
-                    val geofenceEvent = GeofenceEvent(newPlace, location, GeofenceType.ENTER, confidenceToUpdate)
-                    geofenceEvent.confidence = geofenceEvent.computeEnterConfidence(location, newPlace)
+                    GlobalLogger.shared.info(
+                        null,
+                        "GeofenceEventGenerator - Adding zone - Type ENTER"
+                    )
+                    val geofenceEvent =
+                        GeofenceEvent(newPlace, location, GeofenceType.ENTER, confidenceToUpdate)
+                    geofenceEvent.confidence =
+                        geofenceEvent.computeEnterConfidence(location, newPlace)
                     liveEvents.add(geofenceEvent)
                 }
             }
@@ -112,7 +137,10 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder): ZoneListener {
             sessionHolder.savePreviousZones(zones)
         }
 
-        GlobalLogger.shared.info(context = null, "GeofenceEventGenerator - LiveEvents are: $liveEvents")
+        GlobalLogger.shared.info(
+            context = null,
+            "GeofenceEventGenerator - LiveEvents are: $liveEvents"
+        )
         GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
     }
 }

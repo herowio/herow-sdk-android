@@ -6,7 +6,7 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import java.time.LocalTime
 
-object TimeSlotFilter: NotificationFilter {
+object TimeSlotFilter : INotificationFilter {
 
     override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
         val now = TimeHelper.getCurrentLocalTime()
@@ -22,14 +22,23 @@ object TimeSlotFilter: NotificationFilter {
                 result = now > startHour && now < stopHour
 
                 if (result) {
-                    GlobalLogger.shared.info(null, "TimeSlotFilter: ${campaign.name} CAN create notification slot date: $now - start date: $startHour - stop date: $stopHour")
+                    GlobalLogger.shared.info(
+                        null,
+                        "TimeSlotFilter: ${campaign.name} CAN create notification slot date: $now - start date: $startHour - stop date: $stopHour"
+                    )
                 } else {
-                    GlobalLogger.shared.info(null, "TimeSlotFilter: ${campaign.name} CAN NOT create notification slot date: $now - start date: $startHour - stop date: $stopHour")
+                    GlobalLogger.shared.info(
+                        null,
+                        "TimeSlotFilter: ${campaign.name} CAN NOT create notification slot date: $now - start date: $startHour - stop date: $stopHour"
+                    )
                 }
             }
         }
 
-        GlobalLogger.shared.debug(null,"TimeSlotFilter will display: $result for campaign $campaign")
+        GlobalLogger.shared.debug(
+            null,
+            "TimeSlotFilter will display: $result for campaign $campaign"
+        )
         return result
     }
 }

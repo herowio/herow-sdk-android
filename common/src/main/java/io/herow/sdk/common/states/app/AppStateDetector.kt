@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  * @see: https://developer.android.com/reference/androidx/lifecycle/ProcessLifecycleOwner.html
  * @see: https://stackoverflow.com/questions/4414171/how-to-detect-when-an-android-app-goes-to-the-background-and-come-back-to-the-fo/44461605#44461605
  */
-class AppStateDetector: LifecycleObserver {
+class AppStateDetector : LifecycleObserver {
     companion object {
         fun addAppStateListener(appStateListener: IAppStateListener) {
             appStateListeners.add(appStateListener)

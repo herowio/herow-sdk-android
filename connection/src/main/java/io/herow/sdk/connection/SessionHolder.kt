@@ -117,7 +117,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return ""
     }
 
-    fun removeCustomID()  {
+    fun removeCustomID() {
         dataHolder[KEY_CUSTOM_ID] = ""
     }
 
@@ -239,13 +239,13 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun removeSavedHerowCapping() = dataHolder.removeKey(KEY_HEROW_CAPPING)
 
     fun saveHerowCapping(campaignId: String, herowCapping: String) {
-        var cappings = getHerowCappings()
+        val cappings = getHerowCappings()
         cappings[campaignId] = herowCapping
         val mapString = GsonProvider.toJson(cappings, HashMap::class.java)
         dataHolder[KEY_HEROW_CAPPINGS] = mapString
     }
 
-
+    @Suppress("UNCHECKED_CAST")
     private fun getHerowCappings(): HashMap<String, String> {
         if (!dataHolder.containsKey(KEY_HEROW_CAPPINGS)) {
             val emptyMap = emptyMap<String, String>()
@@ -264,6 +264,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun getHerowCapping(campaign: Campaign): HerowCapping {
         val string = getHerowCappings()[campaign.id] ?: ""
         val result = GsonProvider.fromJson(string, HerowCapping::class.java)
+
         GlobalLogger.shared.info(null, "All Cappings = $result")
         return result
     }

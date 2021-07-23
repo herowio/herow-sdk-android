@@ -5,7 +5,7 @@ import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 
-object ValidityFilter : NotificationFilter {
+object ValidityFilter : INotificationFilter {
 
     override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
         val now = TimeHelper.getCurrentTime()
@@ -24,7 +24,10 @@ object ValidityFilter : NotificationFilter {
             result = end > now
         }
 
-        GlobalLogger.shared.debug(null,"ValidityFilter will display: $result for campaign $campaign")
+        GlobalLogger.shared.debug(
+            null,
+            "ValidityFilter will display: $result for campaign $campaign"
+        )
 
         return result
     }

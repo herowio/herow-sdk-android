@@ -50,8 +50,12 @@ class CappingFilterTest {
         }
 
         herowCappingSaved.count = 7
-        herowCappingSaved.razDate = TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 7, 20, 0, 0, 0))
-        sessionHolder.saveHerowCapping((campaign as Campaign).id!!, GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java))
+        herowCappingSaved.razDate =
+            TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 7, 20, 0, 0, 0))
+        sessionHolder.saveHerowCapping(
+            (campaign as Campaign).id!!,
+            GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java)
+        )
 
         // We create a Campaign with a Capping - MaxNumberOfNotifications is 5
         // HerowCapping count is 7 - Saved razTime is superior to current time
@@ -61,8 +65,12 @@ class CappingFilterTest {
         println("HerowCappingSaved is: $herowCappingSaved")
         Assert.assertFalse(CappingFilter.createNotification(campaign!!, sessionHolder))
 
-        herowCappingSaved.razDate = TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 4, 3, 12, 0, 0))
-        sessionHolder.saveHerowCapping((campaign as Campaign).id!!, GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java))
+        herowCappingSaved.razDate =
+            TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 4, 3, 12, 0, 0))
+        sessionHolder.saveHerowCapping(
+            (campaign as Campaign).id!!,
+            GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java)
+        )
 
         // With the same campaign, the saved razTime is inferior to currentTime
         // We should have a notification

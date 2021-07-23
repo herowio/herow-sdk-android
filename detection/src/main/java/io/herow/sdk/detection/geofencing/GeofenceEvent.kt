@@ -114,7 +114,7 @@ data class GeofenceEvent(
             "Inside computeConfidence: $result for zone ${zone.hash}, radius: ${zone.radius}, accuracy: $accuracyRadius, location: $location"
         )
 
-        return Math.round(result * 100.0) / 100.0
+        return (result * 100.0).roundToInt() / 100.0
     }
 
 }

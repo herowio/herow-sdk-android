@@ -7,7 +7,7 @@ import io.herow.sdk.connection.cache.model.Zone
 
 class MockLocation {
 
-     fun buildZone(
+    fun buildZone(
         lat: Double = RandomGenerator.lat(),
         lng: Double = RandomGenerator.lng(),
         zoneId: Long = RandomGenerator.id(),

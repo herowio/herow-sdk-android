@@ -15,7 +15,6 @@ import java.util.*
 
 object NotificationHelper {
     private const val FOREGROUND_NOTIFICATION_ID = 15_951
-
     private const val CHANNEL_ID = "com.connecthings.connectplace.geodetection"
     private const val CHANNEL_NAME = "Herow"
     private const val CHANNEL_DESCRIPTION = "Here and now!"

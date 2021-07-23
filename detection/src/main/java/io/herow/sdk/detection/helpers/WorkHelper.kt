@@ -9,6 +9,7 @@ import io.herow.sdk.connection.SessionHolder
 import java.util.concurrent.ExecutionException
 
 object WorkHelper {
+
     private fun isWorkScheduled(workManager: WorkManager, tag: String): Boolean {
         val workersList: ListenableFuture<List<WorkInfo>> = workManager.getWorkInfosByTag(tag)
         return try {
@@ -45,5 +46,6 @@ object WorkHelper {
         )
     }
 
-    fun getPlatform(sessionHolder: SessionHolder): HashMap<String, HerowPlatform> = hashMapOf(Pair(Constants.PLATFORM, sessionHolder.getPlatformName()))
+    fun getPlatform(sessionHolder: SessionHolder): HashMap<String, HerowPlatform> =
+        hashMapOf(Pair(Constants.PLATFORM, sessionHolder.getPlatformName()))
 }

@@ -80,7 +80,7 @@ class GeofenceEventGeneratorTest {
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
     }
 
-    class HerowGeofenceListener : GeofenceListener {
+    class HerowGeofenceListener : IGeofenceListener {
         var lastEvents: List<GeofenceEvent> = ArrayList()
 
         override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {

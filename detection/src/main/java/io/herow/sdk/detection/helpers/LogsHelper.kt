@@ -16,6 +16,7 @@ import io.herow.sdk.detection.analytics.ApplicationData
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 
 class LogsHelper(val sessionHolder: SessionHolder) {
+
     fun createTestLogs(context: Context): String {
         val location = Location("tus")
         location.latitude = 48.875516

@@ -29,8 +29,10 @@ object RandomGenerator {
             .joinToString("")
     }
 
-    fun randomInt(min: Int = 100,
-                  max: Int = 10_000): Int {
+    fun randomInt(
+        min: Int = 100,
+        max: Int = 10_000
+    ): Int {
         return (min..max).random()
     }
 }

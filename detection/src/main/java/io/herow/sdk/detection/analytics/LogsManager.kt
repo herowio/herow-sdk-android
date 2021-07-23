@@ -18,7 +18,7 @@ import io.herow.sdk.detection.network.LogsWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import java.util.*
 
-class LogsManager(private val context: Context) : LogsListener {
+class LogsManager(private val context: Context) : ILogsListener {
     private val applicationData = ApplicationData(context)
     private val sessionHolder = SessionHolder(DataHolder(context))
     private val logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)

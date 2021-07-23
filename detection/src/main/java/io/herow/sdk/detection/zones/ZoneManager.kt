@@ -5,41 +5,43 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.location.Location
+import android.os.Build
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationServices
-import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
-import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.ICacheListener
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.detection.geofencing.GeofencingReceiver
 import io.herow.sdk.detection.helpers.GeofencingHelper
-import io.herow.sdk.detection.location.LocationListener
-import kotlinx.coroutines.Dispatchers
+import io.herow.sdk.detection.location.ILocationListener
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class ZoneManager(
     val context: Context,
-    private var zones: ArrayList<Zone>
-) : CacheListener, LocationListener {
+    private var zones: ArrayList<Zone>,
+    private val ioDispatcher: CoroutineDispatcher
+) : ICacheListener, ILocationListener, KoinComponent {
 
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919
     }
 
-    private val ioDispatcher = Dispatchers.IO
-
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
-    private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
+    private val zoneRepository: ZoneRepository by inject()
+
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)
-        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
-            PendingIntent.FLAG_CANCEL_CURRENT
-        } else {
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_CANCEL_CURRENT
         }
 
         return PendingIntent.getBroadcast(
@@ -146,13 +148,14 @@ class ZoneManager(
         val zonesToCompute = ArrayList(zones)
         synchronized(zones) {
             detectedZones = ArrayList(zonesToCompute.filter { it.isIn(location) })
-            detectedZoneForNotification = ArrayList(zonesToCompute.filter { it.isIn(location, 3.0) })
+            detectedZoneForNotification =
+                ArrayList(zonesToCompute.filter { it.isIn(location, 3.0) })
 
         }
-        val names = detectedZones.map{it.access?.name}
-        GlobalLogger.shared.info(null,"Zones at start are: $names")
-        val notificationsnames = detectedZoneForNotification.map{it.access?.name}
-        GlobalLogger.shared.info(null,"NotificationsZones at start are: $notificationsnames")
+        val names = detectedZones.map { it.access?.name }
+        GlobalLogger.shared.info(null, "Zones at start are: $names")
+        val notificationsnames = detectedZoneForNotification.map { it.access?.name }
+        GlobalLogger.shared.info(null, "NotificationsZones at start are: $notificationsnames")
         ZoneDispatcher.dispatchDetectedZones(detectedZones, location)
         ZoneDispatcher.dispatchDetectedZonesForNotification(detectedZoneForNotification, location)
         detectedZones.clear()

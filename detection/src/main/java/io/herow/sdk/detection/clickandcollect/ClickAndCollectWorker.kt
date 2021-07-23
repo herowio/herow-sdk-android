@@ -6,13 +6,13 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import io.herow.sdk.common.DataHolder
-import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
@@ -21,10 +21,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
+@SuppressLint("InlinedApi")
 class ClickAndCollectWorker(
     context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters), LocationPriorityListener {
+) : CoroutineWorker(context, workerParameters), ILocationPriorityListener {
+
     companion object {
         private const val LOCATION_REQUEST_CODE = 2021
         const val tag = "detection_ForegroundLocationWorker"
@@ -33,15 +35,15 @@ class ClickAndCollectWorker(
     init {
         LocationPriorityDispatcher.registerLocationPriorityListener(this)
     }
+
     private val pendingIntent = createPendingIntent(applicationContext)
 
-    @SuppressLint("InlinedApi")
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, LocationReceiver::class.java)
-        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
-            PendingIntent.FLAG_CANCEL_CURRENT
-        } else {
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_CANCEL_CURRENT
         }
 
         return PendingIntent.getBroadcast(
@@ -64,7 +66,7 @@ class ClickAndCollectWorker(
             }
 
             job.invokeOnCompletion { exception: Throwable? ->
-                if (exception != null ) {
+                if (exception != null) {
                     GlobalLogger.shared.error(null, "Click and Collect stops due to $exception")
                 } else {
                     GlobalLogger.shared.error(null, "Click and Collect normaly stops")
@@ -95,6 +97,7 @@ class ClickAndCollectWorker(
             stopLocationsUpdate()
         }
     }
+
 
     private fun hasLocationPermission(): Boolean {
         val accessFineLocation = Manifest.permission.ACCESS_FINE_LOCATION

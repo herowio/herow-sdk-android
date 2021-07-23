@@ -5,27 +5,30 @@ import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.IAppStateListener
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.ICacheListener
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.model.mapper.PoiMapper
 import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
-import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.connection.cache.repository.PoiRepository
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.analytics.model.HerowLogEnterOrExit
 import io.herow.sdk.detection.analytics.model.HerowLogNotification
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.geofencing.GeofenceEvent
-import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
-import io.herow.sdk.detection.location.LocationListener
+import io.herow.sdk.detection.geofencing.IGeofenceListener
+import io.herow.sdk.detection.location.ILocationListener
+import io.herow.sdk.detection.notification.INotificationListener
 import io.herow.sdk.detection.notification.NotificationDispatcher
-import io.herow.sdk.detection.notification.NotificationListener
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT, VISIT or GEOFENCE_ZONE_NOTIFICATION) by listening to different
@@ -36,7 +39,8 @@ class LogGeneratorEvent(
     private val sessionHolder: SessionHolder,
     val context: Context
 ) :
-    IAppStateListener, CacheListener, LocationListener, GeofenceListener, NotificationListener {
+    KoinComponent, IAppStateListener, ICacheListener, ILocationListener, IGeofenceListener,
+    INotificationListener {
 
     companion object {
         private const val DISTANCE_MAX = 20_000
@@ -46,17 +50,13 @@ class LogGeneratorEvent(
         NotificationDispatcher.addNotificationListener(this)
     }
 
-    private val ioDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher by inject()
     private var appState: String = "bg"
-    var cachePois = ArrayList<Poi>()
-    var cacheZones = ArrayList<Zone>()
+    private var cachePois = ArrayList<Poi>()
+    private var cacheZones = ArrayList<Zone>()
     private val listOfTemporaryLogsVisit = ArrayList<HerowLogVisit>()
-    private val zoneRepository by lazy {
-        HerowDatabaseHelper.getZoneRepository(context)
-    }
-    private val poiRepository by lazy {
-        HerowDatabaseHelper.getPoiRepository(context)
-    }
+    private val zoneRepository: ZoneRepository by inject()
+    private val poiRepository: PoiRepository by inject()
 
     override fun onAppInForeground() {
         appState = "fg"
@@ -93,22 +93,25 @@ class LogGeneratorEvent(
         val closestPois: MutableList<PoiMapper> = ArrayList()
         GlobalLogger.shared.info(context, "CachePois are: $cachePois")
 
-        for (cachePoi in cachePois) {
-            cachePoi.distance = cachePoi.updateDistance(location)
+        synchronized(cachePois) {
+            for (cachePoi in cachePois) {
+                cachePoi.distance = cachePoi.updateDistance(location)
 
-            GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
-            GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
+                GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
+                GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
 
-            if (cachePoi.distance <= DISTANCE_MAX) {
-                closestPois.add(
-                    PoiMapper(
-                        cachePoi.id,
-                        cachePoi.distance,
-                        cachePoi.tags
+                if (cachePoi.distance <= DISTANCE_MAX) {
+                    closestPois.add(
+                        PoiMapper(
+                            cachePoi.id,
+                            cachePoi.distance,
+                            cachePoi.tags
+                        )
                     )
-                )
+                }
             }
         }
+
         closestPois.sortBy {
             it.distance
         }
@@ -122,20 +125,22 @@ class LogGeneratorEvent(
 
         GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
 
-        for (cacheZone in cacheZones) {
-            cacheZone.distance = cacheZone.updateDistance(location)
-            GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
+        synchronized(cacheZones) {
+            for (cacheZone in cacheZones) {
+                cacheZone.distance = cacheZone.updateDistance(location)
+                GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
 
-            if (cacheZone.distance <= DISTANCE_MAX) {
-                closestZones.add(
-                    ZoneMapper(
-                        cacheZone.lng,
-                        cacheZone.lat,
-                        cacheZone.hash,
-                        cacheZone.distance,
-                        cacheZone.radius
+                if (cacheZone.distance <= DISTANCE_MAX) {
+                    closestZones.add(
+                        ZoneMapper(
+                            cacheZone.lng,
+                            cacheZone.lat,
+                            cacheZone.hash,
+                            cacheZone.distance,
+                            cacheZone.radius
+                        )
                     )
-                )
+                }
             }
         }
 

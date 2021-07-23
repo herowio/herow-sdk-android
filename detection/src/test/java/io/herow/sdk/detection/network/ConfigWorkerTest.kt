@@ -6,13 +6,13 @@ import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import com.google.gson.Gson
-import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowPlatform
+import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.RetrofitBuilder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
-import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import kotlinx.coroutines.runBlocking
@@ -34,7 +34,7 @@ class ConfigWorkerTest {
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder
     private lateinit var worker: ConfigWorker
-    private lateinit var herowAPI: HerowAPI
+    private lateinit var herowAPI: IHerowAPI
 
     @Before
     fun setUp() {
@@ -45,8 +45,8 @@ class ConfigWorkerTest {
         sessionHolder.saveOptinValue(true)
         herowAPI = RetrofitBuilder.buildRetrofitForAPI(
             sessionHolder,
-            HerowAPI.TEST_BASE_URL,
-            HerowAPI::class.java
+            IHerowAPI.TEST_BASE_URL,
+            IHerowAPI::class.java
         )
 
         // Mandatory to test testLaunchUser
@@ -142,7 +142,7 @@ class ConfigWorkerTest {
     }
 }
 
-class ConfigWorkerListener(var configResult: ConfigResult? = null) : ConfigListener {
+class ConfigWorkerListener(var configResult: ConfigResult? = null) : IConfigListener {
     override fun onConfigResult(configResult: ConfigResult) {
         this.configResult = configResult
     }

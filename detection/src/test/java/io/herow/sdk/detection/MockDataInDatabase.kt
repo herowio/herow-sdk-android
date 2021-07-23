@@ -15,7 +15,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 
 class MockDataInDatabase(context: Context) {
-    private val database: HerowDatabase = Room.databaseBuilder(context, HerowDatabase::class.java, "test").build()
+    private val database: HerowDatabase =
+        Room.databaseBuilder(context, HerowDatabase::class.java, "test").build()
     private val zoneRepository: ZoneRepository = ZoneRepository(database.zoneDAO())
     private val campaignRepository: CampaignRepository = CampaignRepository(database.campaignDAO())
 
@@ -72,7 +73,7 @@ class MockDataInDatabase(context: Context) {
         job.await()
         return campaignInDB!!
     }
-    
+
     suspend fun updateCampaignTwoWithCapping(): Campaign {
         val capping = Capping(
             maxNumberNotifications = 5

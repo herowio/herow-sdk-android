@@ -5,9 +5,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 
 class ApplicationData(context: Context) {
+
     companion object {
         const val UNKNOWN = "unknown"
+
     }
+
     var applicationName: String
     private var applicationPackage: String
     var applicationVersion: String
@@ -17,7 +20,8 @@ class ApplicationData(context: Context) {
         try {
             val packageManager = context.packageManager
             val packageName = context.packageName
-            val packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
+            val packageInfo =
+                packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
             applicationName = context.getString(packageInfo.applicationInfo.labelRes)
             applicationPackage = context.packageName
             applicationVersion = packageInfo.versionName

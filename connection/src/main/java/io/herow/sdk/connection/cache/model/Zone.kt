@@ -46,11 +46,11 @@ data class Zone(
         }
     }
 
-    fun isIn( location: Location, scale :Double = 1.0): Boolean {
+    fun isIn(location: Location, scale: Double = 1.0): Boolean {
         val zoneLocation = toLocation()
         val distanceToCenterOfZone = location.distanceTo(zoneLocation)
 
         val limit = radius!! * scale
-        return distanceToCenterOfZone <=  limit
+        return distanceToCenterOfZone <= limit
     }
 }

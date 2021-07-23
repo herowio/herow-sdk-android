@@ -4,11 +4,12 @@ import io.herow.sdk.common.logger.GlobalLogger
 import java.util.concurrent.CopyOnWriteArrayList
 
 object ConfigDispatcher {
-    fun addConfigListener(configListener: ConfigListener) {
+
+    fun addConfigListener(configListener: IConfigListener) {
         configListeners.add(configListener)
     }
 
-    private val configListeners = CopyOnWriteArrayList<ConfigListener>()
+    private val configListeners = CopyOnWriteArrayList<IConfigListener>()
 
     fun dispatchConfigResult(configResult: ConfigResult) {
         for (configListener in configListeners) {

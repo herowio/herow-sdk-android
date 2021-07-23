@@ -10,7 +10,7 @@ import okhttp3.Response
  * @see Interceptor
  * @see DataHolder
  */
-class SessionInterceptor(private val sessionHolder: SessionHolder): Interceptor {
+class SessionInterceptor(private val sessionHolder: SessionHolder) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder = chain.request().newBuilder()
         requestBuilder.addHeader(HerowHeaders.SDK_VERSION_HEADER, BuildConfig.SDK_VERSION)
@@ -32,7 +32,7 @@ class SessionInterceptor(private val sessionHolder: SessionHolder): Interceptor 
         if (deviceId.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.DEVICE_ID_HEADER, deviceId)
         }
-        
+
         return chain.proceed(requestBuilder.build())
     }
 }

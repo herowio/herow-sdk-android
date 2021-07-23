@@ -7,7 +7,7 @@ import io.herow.sdk.connection.userinfo.UserInfoResult
 import retrofit2.Response
 import retrofit2.http.*
 
-interface HerowAPI {
+interface IHerowAPI {
     companion object {
         const val PRE_PROD_BASE_URL = "https://sdk7-preprod.herow.io"
         const val PROD_BASE_URL = "https://sdk7.herow.io"

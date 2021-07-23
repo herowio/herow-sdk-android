@@ -10,7 +10,7 @@ class HerowLogEnterOrExit(
     appState: String,
     geofenceEvent: GeofenceEvent,
     campaign: Campaign? = null
-): HerowLogData() {
+) : HerowLogData() {
     companion object {
         const val LOCATION = "lastLocation"
         const val PLACE = "place"

@@ -10,7 +10,8 @@ class GlobalLogger {
     var logger: ILogger? = null
 
     companion object {
-        @JvmStatic  var shared = GlobalLogger()
+        @JvmStatic
+        var shared = GlobalLogger()
     }
 
     fun startDebug() {

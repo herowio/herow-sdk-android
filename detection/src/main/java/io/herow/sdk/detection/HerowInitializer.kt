@@ -1,5 +1,6 @@
 package io.herow.sdk.detection
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.util.Log
@@ -14,33 +15,35 @@ import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
-import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.ICacheListener
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigDispatcher
-import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
 import io.herow.sdk.detection.cache.CacheManager
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
-import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
+import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
-import io.herow.sdk.detection.geofencing.GeofenceListener
+import io.herow.sdk.detection.geofencing.IGeofenceListener
 import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.location.LocationDispatcher
-import io.herow.sdk.detection.location.LocationListener
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-
-class HerowInitializer private constructor(val context: Context) : LocationListener {
+@Suppress("MemberVisibilityCanBePrivate")
+class HerowInitializer private constructor(val context: Context) : ILocationListener,
+    KoinComponent {
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
@@ -53,6 +56,11 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     private var sessionHolder: SessionHolder
 
+    //Koin
+    private val herowDatabase: HerowDatabase by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val zoneRepository: ZoneRepository by inject()
+
     init {
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         sessionHolder = SessionHolder(DataHolder(context))
@@ -60,15 +68,17 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         logsManager = LogsManager(context)
         cacheManager = CacheManager(context)
         loadIdentifiers(context)
-        locationManager = LocationManager(context, sessionHolder)
-        notificationManager = NotificationManager(context, sessionHolder)
+        locationManager = LocationManager(context, sessionHolder, ioDispatcher)
+        notificationManager = NotificationManager(context, sessionHolder, ioDispatcher)
         registerListeners()
     }
 
+    @SuppressLint("StaticFieldLeak")
     companion object {
         private lateinit var herowInitializer: HerowInitializer
 
-        @JvmStatic fun getInstance(context: Context): HerowInitializer {
+        @JvmStatic
+        fun getInstance(context: Context): HerowInitializer {
             if (!::herowInitializer.isInitialized) {
                 herowInitializer = HerowInitializer(context)
             }
@@ -95,7 +105,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
      * to be able to use it only if the developer has already the library include in his project.
      */
     private fun loadIdentifiers(context: Context) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(ioDispatcher).launch {
             kotlin.runCatching {
                 val deviceId = DeviceHelper.getDeviceId(context)
                 sessionHolder.saveDeviceId(deviceId)
@@ -138,7 +148,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     fun getOptinValue(): Boolean = sessionHolder.getOptinValue()
 
-    fun removeCustomId()  {
+    fun removeCustomId() {
         sessionHolder.removeCustomID()
     }
 
@@ -242,28 +252,25 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     fun isOnClickAndCollect(): Boolean = sessionHolder.getClickAndCollectProgress()
 
-    fun registerClickAndCollectListener(listener: ClickAndCollectListener) {
+    fun registerClickAndCollectListener(listener: IClickAndCollectListener) {
         ClickAndCollectDispatcher.registerClickAndCollectListener(listener)
     }
 
-    fun unregisterClickAndCollectListener(listener: ClickAndCollectListener) {
+    fun unregisterClickAndCollectListener(listener: IClickAndCollectListener) {
         ClickAndCollectDispatcher.unregisterClickAndCollectListener(listener)
     }
 
-    fun registerEventListener(geofenceListener: GeofenceListener) {
+    fun registerEventListener(geofenceListener: IGeofenceListener) {
         GlobalLogger.shared.info(context, "Register event listener called")
         GeofenceDispatcher.addGeofenceListener(geofenceListener)
     }
 
-    fun registerCacheListener(cacheListener: CacheListener) {
+    fun registerCacheListener(cacheListener: ICacheListener) {
         GlobalLogger.shared.info(context, "Register cache listener called")
         CacheDispatcher.addCacheListener(cacheListener)
     }
 
-    fun fetchZonesInDatabase(): List<Zone>? {
-        val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-        return zoneRepository.getAllZones()
-    }
+    fun fetchZonesInDatabase(): List<Zone>? = zoneRepository.getAllZones()
 
     /**
      * Save user choice optin value
@@ -289,7 +296,12 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     fun reset(sdkId: String, sdkKey: String, customID: String) {
         sessionHolder.reset()
-        HerowDatabaseHelper.deleteDatabase(context)
+
+        runBlocking {
+            withContext(ioDispatcher) {
+                herowDatabase.clearAllTables()
+            }
+        }
 
         configureAfterReset(sdkId, sdkKey, customID)
     }

@@ -68,16 +68,19 @@ class Converters {
     fun accessToString(access: Access): String = Gson().toJson(access)
 
     @TypeConverter
-    fun stringToCapping(string: String?): Capping? = Gson().fromJson(string, Capping::class.java) ?: null
+    fun stringToCapping(string: String?): Capping? =
+        Gson().fromJson(string, Capping::class.java) ?: null
 
     @TypeConverter
     fun cappingToString(capping: Capping?): String = Gson().toJson(capping) ?: ""
 
     @TypeConverter
-    fun stringToNotification(string: String): Notification = Gson().fromJson(string, Notification::class.java)
+    fun stringToNotification(string: String): Notification =
+        Gson().fromJson(string, Notification::class.java)
 
     @TypeConverter
-    fun notificationToString(notification: Notification?): String = Gson().toJson(notification) ?: ""
+    fun notificationToString(notification: Notification?): String =
+        Gson().toJson(notification) ?: ""
 
     @TypeConverter
     fun stringToPoi(string: String): Poi = Gson().fromJson(string, Poi::class.java)
@@ -92,7 +95,8 @@ class Converters {
     fun zoneToString(zone: Zone): String = Gson().toJson(zone)
 
     @TypeConverter
-    fun stringToLocation(string: String?): Location? = Gson().fromJson(string, Location::class.java) ?: null
+    fun stringToLocation(string: String?): Location? =
+        Gson().fromJson(string, Location::class.java) ?: null
 
     @TypeConverter
     fun locationToString(location: Location?): String = Gson().toJson(location) ?: ""

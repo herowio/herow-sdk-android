@@ -5,11 +5,12 @@ import io.herow.sdk.connection.logs.Log
 import java.util.concurrent.CopyOnWriteArrayList
 
 object LogsDispatcher {
-    fun addLogListener(logsListener: LogsListener) {
+
+    fun addLogListener(logsListener: ILogsListener) {
         logsListeners.add(logsListener)
     }
 
-    private val logsListeners = CopyOnWriteArrayList<LogsListener>()
+    private val logsListeners = CopyOnWriteArrayList<ILogsListener>()
 
     fun dispatchLogsResult(listOfLogs: List<Log>) {
         GlobalLogger.shared.info(null, "Dispatching logs to: $logsListeners")

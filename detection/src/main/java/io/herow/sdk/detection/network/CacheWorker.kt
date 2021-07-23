@@ -8,19 +8,22 @@ import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
-import io.herow.sdk.connection.HerowAPI
+import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.repository.CampaignRepository
+import io.herow.sdk.connection.cache.repository.PoiRepository
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
-import io.herow.sdk.connection.database.HerowDatabaseHelper
 import io.herow.sdk.detection.geofencing.model.LocationMapper
 import io.herow.sdk.detection.geofencing.model.toLocation
 import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.*
 
 /**
@@ -29,15 +32,14 @@ import java.util.*
  */
 class CacheWorker(
     val context: Context,
-    workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters) {
+    workerParameters: WorkerParameters,
+    private val ioDispatcher: CoroutineDispatcher
+) : CoroutineWorker(context, workerParameters), KoinComponent {
 
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
-
-    private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-    private val poiRepository = HerowDatabaseHelper.getPoiRepository(context)
-    private val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
+    private val zoneRepository: ZoneRepository by inject()
+    private val poiRepository: PoiRepository by inject()
+    private val campaignRepository: CampaignRepository by inject()
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
@@ -83,7 +85,7 @@ class CacheWorker(
      */
     private suspend fun launchCacheRequest(
         sessionHolder: SessionHolder,
-        herowAPI: HerowAPI,
+        herowAPI: IHerowAPI,
         database: HerowDatabase,
         locationMapper: LocationMapper
     ) {
@@ -163,13 +165,12 @@ class CacheWorker(
     }
 
     private fun sendNotification(locationMapper: LocationMapper) {
-        val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
         val zonesResult = zoneRepository.getAllZones() as ArrayList<Zone>
         val location = LocationMapper().toLocation(locationMapper)
 
         GlobalLogger.shared.info(context, "ZonesResult is $zonesResult")
         GlobalLogger.shared.info(context, "Location is $location")
 
-        ZoneManager(context, zonesResult).dispatchZonesAndNotification(location)
+        ZoneManager(context, zonesResult, ioDispatcher).dispatchZonesAndNotification(location)
     }
 }

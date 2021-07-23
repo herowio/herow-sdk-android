@@ -1,5 +1,5 @@
 package io.herow.sdk.connection.cache
 
-interface CacheListener {
+interface ICacheListener {
     fun onCacheReception()
 }

@@ -14,8 +14,8 @@ import io.herow.sdk.detection.MockDataInDatabase
 import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.GeofenceEvent
-import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
+import io.herow.sdk.detection.geofencing.IGeofenceListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -121,7 +121,7 @@ class NotificationManagerTest {
     }
 }
 
-class NotificationManagerListener(var test: String = "NO") : GeofenceListener {
+class NotificationManagerListener(var test: String = "NO") : IGeofenceListener {
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
         for (event in geofenceEvents) {
             if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {

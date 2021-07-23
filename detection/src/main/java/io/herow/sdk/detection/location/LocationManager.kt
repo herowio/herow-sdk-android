@@ -14,20 +14,19 @@ import io.herow.sdk.common.states.app.IAppStateListener
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.config.ConfigListener
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import org.koin.core.component.KoinComponent
 
 class LocationManager(
     context: Context,
-    val sessionHolder: SessionHolder
-) : ConfigListener, IAppStateListener, LocationPriorityListener {
+    val sessionHolder: SessionHolder,
+    val ioDispatcher: CoroutineDispatcher
+) : IConfigListener, IAppStateListener, ILocationPriorityListener, KoinComponent {
 
     companion object {
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -38,7 +37,7 @@ class LocationManager(
 
     private val fusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
-    private val zoneManager = ZoneManager(context, ArrayList())
+    private val zoneManager = ZoneManager(context, ArrayList(), ioDispatcher)
     private val geofenceEventGenerator = GeofenceEventGenerator(sessionHolder)
     private var locationCallback: LocationCallback
     private var zones: List<Zone>? = null
@@ -49,7 +48,7 @@ class LocationManager(
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
                 if (locationResult.locations.isNotEmpty()) {
-                val lastLocation =  locationResult.locations.last()
+                    val lastLocation = locationResult.locations.last()
                     LocationDispatcher.dispatchLocation(lastLocation)
                     updateMonitoring(lastLocation)
                 }
@@ -58,10 +57,11 @@ class LocationManager(
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
-        CoroutineScope(Dispatchers.IO).launch {
-            zones = zoneManager.getZones()
 
+        CoroutineScope(ioDispatcher).launch {
+            zones = zoneManager.getZones()
         }
+
         zoneManager.loadZones()
         LocationPriorityDispatcher.registerLocationPriorityListener(this)
     }
@@ -86,7 +86,11 @@ class LocationManager(
         )
         val locationRequest = buildLocationRequest(LocationPriority.HIGH)
 
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback,  Looper.getMainLooper())
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
     }
 
     /**
@@ -123,7 +127,11 @@ class LocationManager(
         val locationRequest = buildLocationRequest(priority)
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         GlobalLogger.shared.debug(null, "relaunch with priority : $priority")
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback,  Looper.getMainLooper())
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
 
     }
 

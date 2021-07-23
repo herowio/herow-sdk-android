@@ -1,5 +1,5 @@
 package io.herow.sdk.detection.geofencing
 
-interface GeofenceListener {
+interface IGeofenceListener {
     fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>)
 }
