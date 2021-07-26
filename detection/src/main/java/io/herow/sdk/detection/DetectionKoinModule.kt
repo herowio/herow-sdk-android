@@ -10,22 +10,7 @@ import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
-import io.herow.sdk.detection.location.LocationManager
-import io.herow.sdk.detection.network.CacheWorker
-import io.herow.sdk.detection.network.LogsWorker
-import io.herow.sdk.detection.notification.NotificationManager
-import io.herow.sdk.detection.zones.ZoneManager
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import org.koin.dsl.module
-
-val workerModule = module {
-    factory { LogsWorker(get(), get(), provideIoDispatcher()) }
-    factory { CacheWorker(get(), get(), provideIoDispatcher()) }
-    single { LocationManager(get(), provideSessionHolder(get()), provideIoDispatcher()) }
-    single { NotificationManager(get(), provideSessionHolder(get()), provideIoDispatcher()) }
-    single { ZoneManager(get(), get(), provideIoDispatcher()) }
-}
 
 val databaseModule = module {
     single { provideHerowDatabase(get()) }
@@ -37,7 +22,6 @@ val databaseModule = module {
     single { provideCampaignRepository(get()) }
 }
 
-private fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
 private fun provideSessionHolder(context: Context): SessionHolder =
     SessionHolder(DataHolder(context))
 

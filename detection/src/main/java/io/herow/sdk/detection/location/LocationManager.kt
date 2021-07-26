@@ -21,23 +21,25 @@ import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class LocationManager(
     context: Context,
-    val sessionHolder: SessionHolder,
-    val ioDispatcher: CoroutineDispatcher
+    val sessionHolder: SessionHolder
 ) : IConfigListener, IAppStateListener, ILocationPriorityListener, KoinComponent {
 
     companion object {
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
+    private val ioDispatcher: CoroutineDispatcher by inject()
+
     private var isOnForeground: Boolean = false
     private var isGeofencingEnable: Boolean = false
 
     private val fusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
-    private val zoneManager = ZoneManager(context, ArrayList(), ioDispatcher)
+    private val zoneManager = ZoneManager(context, ArrayList())
     private val geofenceEventGenerator = GeofenceEventGenerator(sessionHolder)
     private var locationCallback: LocationCallback
     private var zones: List<Zone>? = null

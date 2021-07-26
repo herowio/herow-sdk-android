@@ -16,9 +16,10 @@ import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.geofencing.IGeofenceListener
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.runBlockingTest
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -27,6 +28,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
+@ExperimentalCoroutinesApi
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class NotificationManagerTest {
@@ -39,7 +41,8 @@ class NotificationManagerTest {
     private lateinit var sessionHolder: SessionHolder
     private val listener = NotificationManagerListener()
 
-    private val ioDispatcher = Dispatchers.IO
+    private val testDispatcher = TestCoroutineDispatcher()
+
     private val liveEvents = arrayListOf<GeofenceEvent>()
     private val mockLocation = MockLocation()
 
@@ -52,7 +55,7 @@ class NotificationManagerTest {
         context = InstrumentationRegistry.getInstrumentation().targetContext
         sessionHolder = SessionHolder(DataHolder(context))
         db = Room.databaseBuilder(context, HerowDatabase::class.java, "test").build()
-        notificationManager = NotificationManager(context, sessionHolder)
+        notificationManager = NotificationManager(context, sessionHolder, testDispatcher)
         GeofenceDispatcher.addGeofenceListener(listener)
 
         campaignRepository = CampaignRepository(db.campaignDAO())
@@ -61,11 +64,11 @@ class NotificationManagerTest {
 
     @Test
     fun testNotificationManager() {
-        var zoneWithCampaigns: Zone?
-        var zone: Zone?
-        var campaignTwo: Campaign?
+        testDispatcher.runBlockingTest {
+            var zoneWithCampaigns: Zone?
+            val zone: Zone?
+            val campaignTwo: Campaign?
 
-        runBlocking {
             Assert.assertTrue(listener.test == "NO")
 
             val job = async { MockDataInDatabase(context).createAndInsertZoneOne() }
@@ -74,7 +77,7 @@ class NotificationManagerTest {
             val job2 = async { MockDataInDatabase(context).createAndInsertCampaignTwo() }
             campaignTwo = job2.await()
 
-            val job3 = async(ioDispatcher) { zoneRepository.getZoneByHash(zone!!.hash) }
+            val job3 = async(testDispatcher) { zoneRepository.getZoneByHash(zone.hash) }
             zoneWithCampaigns = job3.await()
 
             // The ID of the CampaignTwo is not available into the list of id's campaigns of ZoneOne
@@ -87,14 +90,14 @@ class NotificationManagerTest {
                 )
             )
             GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
-            Assert.assertTrue(zoneWithCampaigns!!.campaigns!!.size == 1)
-            Assert.assertFalse(zoneWithCampaigns!!.campaigns!![0] == campaignTwo!!.id)
+            Assert.assertTrue(zoneWithCampaigns.campaigns!!.size == 1)
+            Assert.assertFalse(zoneWithCampaigns.campaigns!![0] == campaignTwo.id)
             Assert.assertFalse(listener.test == "OKAY")
 
             val job4 = async { MockDataInDatabase(context).createAndInsertCampaignOne() }
             campaignOne = job4.await()
 
-            val job5 = async(ioDispatcher) { zoneRepository.getZoneByHash(zone!!.hash) }
+            val job5 = async(testDispatcher) { zoneRepository.getZoneByHash(zone.hash) }
             zoneWithCampaigns = job5.await()
 
             // The ID of the CampaignOne is available into the list of id's campaigns of ZoneOne
@@ -109,8 +112,8 @@ class NotificationManagerTest {
             )
             GeofenceDispatcher.dispatchGeofenceEvent(liveEvents)
 
-            Assert.assertTrue(zoneWithCampaigns!!.campaigns!!.size == 1)
-            Assert.assertTrue(zoneWithCampaigns!!.campaigns!![0] == campaignOne!!.id)
+            Assert.assertTrue(zoneWithCampaigns.campaigns!!.size == 1)
+            Assert.assertTrue(zoneWithCampaigns.campaigns!![0] == campaignOne!!.id)
             Assert.assertTrue(listener.test == "OKAY")
         }
     }
@@ -118,10 +121,13 @@ class NotificationManagerTest {
     @After
     fun cleanUp() {
         db.close()
+        testDispatcher.cleanupTestCoroutines()
     }
 }
 
+@ExperimentalCoroutinesApi
 class NotificationManagerListener(var test: String = "NO") : IGeofenceListener {
+
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
         for (event in geofenceEvents) {
             if (event.type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {

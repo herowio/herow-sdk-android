@@ -32,14 +32,14 @@ import java.util.*
  */
 class CacheWorker(
     val context: Context,
-    workerParameters: WorkerParameters,
-    private val ioDispatcher: CoroutineDispatcher
+    workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters), KoinComponent {
 
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
     private val zoneRepository: ZoneRepository by inject()
     private val poiRepository: PoiRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
@@ -171,6 +171,6 @@ class CacheWorker(
         GlobalLogger.shared.info(context, "ZonesResult is $zonesResult")
         GlobalLogger.shared.info(context, "Location is $location")
 
-        ZoneManager(context, zonesResult, ioDispatcher).dispatchZonesAndNotification(location)
+        ZoneManager(context, zonesResult).dispatchZonesAndNotification(location)
     }
 }

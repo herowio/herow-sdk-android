@@ -13,6 +13,7 @@ class HerowLogContext(
     nearbyPois: List<PoiMapper> = ArrayList(),
     nearbyPlaces: List<ZoneMapper> = ArrayList()
 ) : HerowLogData() {
+
     companion object {
         const val LOCATION = "lastLocation"
         const val NEAR_BY_POIS = "nearbyPois"

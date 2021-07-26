@@ -11,13 +11,16 @@ import okhttp3.Response
  * @see DataHolder
  */
 class SessionInterceptor(private val sessionHolder: SessionHolder) : Interceptor {
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder = chain.request().newBuilder()
         requestBuilder.addHeader(HerowHeaders.SDK_VERSION_HEADER, BuildConfig.SDK_VERSION)
         val sdkID = sessionHolder.getSDKID()
+
         if (sdkID.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.SDK_HEADER, sdkID)
         }
+
         val accessToken = sessionHolder.getAccessToken()
         if (accessToken.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.AUTHORIZATION_HEADER, accessToken)

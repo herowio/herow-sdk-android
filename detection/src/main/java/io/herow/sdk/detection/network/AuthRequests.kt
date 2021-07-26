@@ -53,8 +53,6 @@ class AuthRequests(
     private suspend fun authenticationWorkFlow(request: suspend (herowAPI: IHerowAPI) -> Unit) {
         GlobalLogger.shared.info(null, "flow: authenticatoinWorkFlow")
         if (!isTokenUsable(sessionHolder)) {
-            GlobalLogger.shared.info(null, "Token is not usable")
-
             withContext(ioDispatcher) {
                 launchTokenRequest(sessionHolder, platform, herowAPI, request)
             }

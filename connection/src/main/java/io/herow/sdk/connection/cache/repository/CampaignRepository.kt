@@ -4,7 +4,7 @@ import io.herow.sdk.connection.cache.dao.CampaignDAO
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
 
-class CampaignRepository constructor(
+class CampaignRepository(
     private val campaignDAO: CampaignDAO
 ) :
     ICampaignRepository {

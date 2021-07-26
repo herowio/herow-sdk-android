@@ -42,6 +42,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 @Suppress("MemberVisibilityCanBePrivate")
+@SuppressLint("StaticFieldLeak")
 class HerowInitializer private constructor(val context: Context) : ILocationListener,
     KoinComponent {
     private val appStateDetector = AppStateDetector()
@@ -68,12 +69,12 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         logsManager = LogsManager(context)
         cacheManager = CacheManager(context)
         loadIdentifiers(context)
-        locationManager = LocationManager(context, sessionHolder, ioDispatcher)
-        notificationManager = NotificationManager(context, sessionHolder, ioDispatcher)
+        locationManager = LocationManager(context, sessionHolder)
+        notificationManager = NotificationManager(context, sessionHolder)
         registerListeners()
     }
 
-    @SuppressLint("StaticFieldLeak")
+
     companion object {
         private lateinit var herowInitializer: HerowInitializer
 

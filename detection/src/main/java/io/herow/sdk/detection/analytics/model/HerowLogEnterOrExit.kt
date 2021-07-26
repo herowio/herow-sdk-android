@@ -11,6 +11,7 @@ class HerowLogEnterOrExit(
     geofenceEvent: GeofenceEvent,
     campaign: Campaign? = null
 ) : HerowLogData() {
+
     companion object {
         const val LOCATION = "lastLocation"
         const val PLACE = "place"

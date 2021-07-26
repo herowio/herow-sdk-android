@@ -9,12 +9,13 @@ import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.SessionHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class LogsWorker(
     val context: Context,
-    workerParameters: WorkerParameters,
-    private val ioDispatcher: CoroutineDispatcher
-) : CoroutineWorker(context, workerParameters) {
+    workerParameters: WorkerParameters
+) : CoroutineWorker(context, workerParameters), KoinComponent {
 
     companion object {
         const val KEY_LOGS = "detection.logs"
@@ -23,6 +24,7 @@ class LogsWorker(
     }
 
     private lateinit var sessionHolder: SessionHolder
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     override suspend fun doWork(): Result {
         sessionHolder = SessionHolder(DataHolder(applicationContext))

@@ -24,8 +24,7 @@ import org.koin.core.component.inject
 
 class ZoneManager(
     val context: Context,
-    private var zones: ArrayList<Zone>,
-    private val ioDispatcher: CoroutineDispatcher
+    private var zones: ArrayList<Zone>
 ) : ICacheListener, ILocationListener, KoinComponent {
 
     companion object {
@@ -35,6 +34,7 @@ class ZoneManager(
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
     private val zoneRepository: ZoneRepository by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)

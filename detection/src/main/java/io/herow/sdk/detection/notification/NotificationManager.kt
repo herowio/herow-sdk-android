@@ -25,8 +25,7 @@ import org.koin.core.component.inject
 
 class NotificationManager(
     private val context: Context,
-    private val sessionHolder: SessionHolder,
-    private val ioDispatcher: CoroutineDispatcher
+    private val sessionHolder: SessionHolder
 ) :
     IGeofenceListener, KoinComponent {
 
@@ -34,6 +33,8 @@ class NotificationManager(
     private val zoneRepository: ZoneRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
     private var notificationOnExactEntry = false
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000

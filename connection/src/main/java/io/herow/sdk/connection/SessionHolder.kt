@@ -13,6 +13,7 @@ import io.herow.sdk.connection.userinfo.UserInfo
 import java.lang.reflect.Type
 
 class SessionHolder(private val dataHolder: DataHolder) {
+
     companion object {
         private const val KEY_ACCESS_TOKEN = "common.access_token"
         private const val KEY_HEROW_ID = "common.herow_id"

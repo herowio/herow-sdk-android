@@ -8,6 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object RetrofitBuilder {
+
     fun <T> buildRetrofitForAPI(
         sessionHolder: SessionHolder,
         apiURL: String,

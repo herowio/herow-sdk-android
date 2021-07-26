@@ -8,7 +8,6 @@ class ApplicationData(context: Context) {
 
     companion object {
         const val UNKNOWN = "unknown"
-
     }
 
     var applicationName: String

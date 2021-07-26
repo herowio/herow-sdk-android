@@ -21,7 +21,7 @@ class DetectionApplication : Application(), Configuration.Provider {
         startKoin {
             androidContext(this@DetectionApplication)
             workManagerFactory()
-            modules(listOf(dispatcherModule, workerModule, databaseModule))
+            modules(listOf(dispatcherModule, databaseModule))
         }
     }
 }
