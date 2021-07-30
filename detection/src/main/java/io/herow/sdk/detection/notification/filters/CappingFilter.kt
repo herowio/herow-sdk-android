@@ -29,8 +29,8 @@ object CappingFilter : INotificationFilter {
         var startMinutes: Int? = null
         val startFromCampaign: String? = campaign.startHour
 
-        if (startFromCampaign != null || startFromCampaign != "") {
-            val startComponents = startFromCampaign!!.split(":")
+        if (!startFromCampaign.isNullOrEmpty()) {
+            val startComponents = startFromCampaign.split(":")
 
             if (startComponents.count() == 2) {
                 startHour = startComponents[0].toInt()
@@ -58,6 +58,7 @@ object CappingFilter : INotificationFilter {
         GlobalLogger.shared.info(null, "First raz date is: $firstRazDate")
 
         val herowCapping = getHerowCapping(sessionHolder, campaign)
+        println("HerowCapping is: $herowCapping")
         val razDateConvertedInLocalDateTime =
             TimeHelper.convertTimestampToLocalDateTime(herowCapping.razDate)
         val count = if (currentLocalDateTime < razDateConvertedInLocalDateTime) {

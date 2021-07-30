@@ -32,7 +32,7 @@ class LocationManager(
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val dispatcher: CoroutineDispatcher by inject()
 
     private var isOnForeground: Boolean = false
     private var isGeofencingEnable: Boolean = false
@@ -60,7 +60,7 @@ class LocationManager(
         LocationDispatcher.addLocationListener(zoneManager)
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
 
-        CoroutineScope(ioDispatcher).launch {
+        CoroutineScope(dispatcher).launch {
             zones = zoneManager.getZones()
         }
 

@@ -50,7 +50,7 @@ class CacheManager(val context: Context) : ILocationListener {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            val locationMapper = toLocationMapper(location)
+            val locationMapper = location.toLocationMapper(location)
 
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<CacheWorker>()
                 .addTag(NetworkWorkerTags.CACHE)

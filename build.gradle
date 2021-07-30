@@ -1,10 +1,10 @@
 buildscript {
     ext {
-        kotlin_version = "1.5.20"
+        kotlin_version = "1.5.21"
         kotlin_coroutines_version = "1.4.3"
         lifecycle_version = "2.2.0"
         okhttp_version = "4.9.0"
-        play_services_ads = "20.1.0"
+        play_services_ads = "20.2.0"
         play_services_location = "17.1.0"
         retrofit_version = "2.7.2"
         worker_version = "2.5.0"
@@ -125,16 +125,11 @@ subprojects {
         kapt "androidx.room:room-compiler:2.3.0"
         testImplementation "androidx.room:room-testing:2.3.0"
 
-        // Koin core features
+        // Koin
         implementation "io.insert-koin:koin-core:$koin_version"
-        // Koin test features
-        testImplementation "io.insert-koin:koin-test:$koin_version"
-        // Koin main features for Android (Scope,ViewModel ...)
         implementation "io.insert-koin:koin-android:$koin_version"
-        // Koin for Jetpack WorkManager
-        implementation "io.insert-koin:koin-androidx-workmanager:$koin_version"
-        // Koin for Jetpack Compose
-        implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+        testImplementation "io.insert-koin:koin-test:$koin_version"
+        testImplementation "io.insert-koin:koin-test-junit4:$koin_version"
     }
 }
 

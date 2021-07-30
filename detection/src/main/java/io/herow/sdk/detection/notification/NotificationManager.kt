@@ -9,17 +9,17 @@ import androidx.core.app.NotificationCompat
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
+import io.herow.sdk.connection.cache.model.HerowNotification
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
+import io.herow.sdk.connection.cache.repository.HerowNotificationRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.detection.R
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.geofencing.IGeofenceListener
 import io.herow.sdk.detection.notification.filters.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -32,9 +32,10 @@ class NotificationManager(
     private val filterList: ArrayList<INotificationFilter> = arrayListOf()
     private val zoneRepository: ZoneRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
+    private val herowNotificationRepository: HerowNotificationRepository by inject()
     private var notificationOnExactEntry = false
 
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val dispatcher: CoroutineDispatcher by inject()
 
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000
@@ -82,7 +83,7 @@ class NotificationManager(
                         "GeofenceEvents selected trigger is: $trigger"
                     )
                     runBlocking {
-                        withContext(ioDispatcher) {
+                        withContext(dispatcher) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
                             val zoneName =
                                 if (event.zone.access?.name != null) event.zone.access?.name else "non name"
@@ -91,7 +92,6 @@ class NotificationManager(
                                 context,
                                 "zone name: $zoneName campagnsName: $campaignNames"
                             )
-
 
                             if (campaigns.isNotEmpty()) {
                                 for (campaign in campaigns) {
@@ -169,6 +169,7 @@ class NotificationManager(
             NotificationDispatcher.dispatchNotification(event, campaign)
         }
 
+        saveNotification(title, description)
         GlobalLogger.shared.info(context, "Dispatching notification for $event")
     }
 
@@ -196,12 +197,20 @@ class NotificationManager(
         )
     }
 
+    private fun saveNotification(title: String, content: String) {
+        val herowNotification = HerowNotification(title = title, description = content)
+        CoroutineScope(dispatcher).launch {
+            withContext(dispatcher) {
+                herowNotificationRepository.insert(herowNotification)
+            }
+        }
+    }
+
     fun notificationsOnExactZoneEntry(value: Boolean) {
         notificationOnExactEntry = value
         GlobalLogger.shared.info(
             context,
             "NotificationManager  exact entry: $notificationOnExactEntry"
         )
-
     }
 }

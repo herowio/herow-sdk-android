@@ -35,10 +35,11 @@ class AuthRequests(
         const val KEY_PLATFORM = "detection.platform"
     }
 
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val dispatcher: CoroutineDispatcher by inject()
 
     private var isWorking = false
     private val platform = getPlatform()
+
     private val herowAPI: IHerowAPI = RetrofitBuilder.buildRetrofitForAPI(
         sessionHolder,
         getApiUrl(platform),
@@ -53,7 +54,7 @@ class AuthRequests(
     private suspend fun authenticationWorkFlow(request: suspend (herowAPI: IHerowAPI) -> Unit) {
         GlobalLogger.shared.info(null, "flow: authenticatoinWorkFlow")
         if (!isTokenUsable(sessionHolder)) {
-            withContext(ioDispatcher) {
+            withContext(dispatcher) {
                 launchTokenRequest(sessionHolder, platform, herowAPI, request)
             }
         } else {
@@ -99,7 +100,7 @@ class AuthRequests(
 
     fun getUserInfoIfNeeded() {
         runBlocking {
-            withContext(ioDispatcher) {
+            withContext(dispatcher) {
                 authenticationWorkFlow {
                     userInfoWorkFlow {}
                 }

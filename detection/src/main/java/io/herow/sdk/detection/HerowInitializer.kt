@@ -16,7 +16,9 @@ import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.ICacheListener
+import io.herow.sdk.connection.cache.model.HerowNotification
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.repository.HerowNotificationRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.database.HerowDatabase
@@ -43,8 +45,7 @@ import org.koin.core.component.inject
 
 @Suppress("MemberVisibilityCanBePrivate")
 @SuppressLint("StaticFieldLeak")
-class HerowInitializer private constructor(val context: Context) : ILocationListener,
-    KoinComponent {
+class HerowInitializer private constructor(val context: Context) : ILocationListener, KoinComponent {
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
@@ -59,8 +60,9 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     //Koin
     private val herowDatabase: HerowDatabase by inject()
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val dispatcher: CoroutineDispatcher by inject()
     private val zoneRepository: ZoneRepository by inject()
+    private val herowNotificationRepository: HerowNotificationRepository by inject()
 
     init {
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
@@ -73,7 +75,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         notificationManager = NotificationManager(context, sessionHolder)
         registerListeners()
     }
-
 
     companion object {
         private lateinit var herowInitializer: HerowInitializer
@@ -95,7 +96,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
         GeofenceDispatcher.addGeofenceListener(notificationManager)
-
     }
 
     /**
@@ -106,7 +106,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
      * to be able to use it only if the developer has already the library include in his project.
      */
     private fun loadIdentifiers(context: Context) {
-        CoroutineScope(ioDispatcher).launch {
+        CoroutineScope(dispatcher).launch {
             kotlin.runCatching {
                 val deviceId = DeviceHelper.getDeviceId(context)
                 sessionHolder.saveDeviceId(deviceId)
@@ -165,6 +165,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     fun synchronize() {
         Log.i("XXX", "Has been filled: ${sdkSession.hasBeenFilled()}")
+        GlobalLogger.shared.info(context, "Hey there")
         if (sdkSession.hasBeenFilled()) {
             launchConfigRequest()
         } else {
@@ -273,6 +274,8 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     fun fetchZonesInDatabase(): List<Zone>? = zoneRepository.getAllZones()
 
+    fun fetchAllNotification(): List<HerowNotification>? = herowNotificationRepository.getFiftyFirstNotifications()
+
     /**
      * Save user choice optin value
      */
@@ -299,7 +302,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         sessionHolder.reset()
 
         runBlocking {
-            withContext(ioDispatcher) {
+            withContext(dispatcher) {
                 herowDatabase.clearAllTables()
             }
         }

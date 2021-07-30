@@ -34,7 +34,7 @@ class ZoneManager(
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
     private val zoneRepository: ZoneRepository by inject()
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val dispatcher: CoroutineDispatcher by inject()
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)
@@ -61,7 +61,7 @@ class ZoneManager(
         zones.clear()
 
         runBlocking {
-            withContext(ioDispatcher) {
+            withContext(dispatcher) {
                 retrieveZones().let { zones.addAll(it) }
             }
         }
@@ -128,7 +128,7 @@ class ZoneManager(
         val zones: ArrayList<Zone>
 
         runBlocking {
-            val zonesInDb = async(ioDispatcher) {
+            val zonesInDb = async(dispatcher) {
                 zoneRepository.getAllZones() as ArrayList<Zone>
             }
 

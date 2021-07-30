@@ -1,12 +1,45 @@
 package io.herow.sdk.detection.network
 
-/* @OptIn(ExperimentalCoroutinesApi::class)
-@Config(sdk = [28])
-@RunWith(RobolectricTestRunner::class) */
-class CacheWorkerTest {
+import android.content.Context
+import android.location.Location
+import androidx.test.core.app.ApplicationProvider
+import androidx.work.ListenableWorker
+import androidx.work.testing.TestListenableWorkerBuilder
+import androidx.work.workDataOf
+import com.google.gson.Gson
+import io.herow.sdk.common.helpers.Constants
+import io.herow.sdk.connection.HerowPlatform
+import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.MockLocation
+import io.herow.sdk.detection.databaseModuleTest
+import io.herow.sdk.detection.dispatcherModule
+import io.herow.sdk.detection.geofencing.model.toLocationMapper
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.Is
+import org.junit.After
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.test.AutoCloseKoinTest
+import org.koin.test.inject
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.util.*
 
-    /* @get:Rule
-    var coroutineTestRule = CoroutineTestRule()
+@OptIn(ExperimentalCoroutinesApi::class)
+@Config(sdk = [28])
+@RunWith(RobolectricTestRunner::class)
+class CacheWorkerTest : AutoCloseKoinTest() {
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     private lateinit var context: Context
     private lateinit var sessionHolder: SessionHolder
@@ -18,6 +51,12 @@ class CacheWorkerTest {
 
     @Before
     fun setUp() {
+        stopKoin()
+        startKoin {
+            androidContext(ApplicationProvider.getApplicationContext())
+            modules(databaseModuleTest, dispatcherModule)
+        }
+
         context = ApplicationProvider.getApplicationContext()
         dataHolder = io.herow.sdk.common.DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
@@ -29,7 +68,7 @@ class CacheWorkerTest {
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
         location = mockLocation.buildLocation()
 
-        val locationMapper = LocationMapper().toLocationMapper(location)
+        val locationMapper = location.toLocationMapper(location)
 
         worker = TestListenableWorkerBuilder<CacheWorker>(context)
             .setInputData(
@@ -46,7 +85,10 @@ class CacheWorkerTest {
 
     @Test
     fun testLaunchCacheWorker() = runBlocking {
-        var result = worker.doWork()
+
+        var result = withContext(ioDispatcher) {
+            worker.doWork()
+        }
 
         assertThat(result, Is.`is`(ListenableWorker.Result.success()))
         Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
@@ -54,18 +96,30 @@ class CacheWorkerTest {
 
         sessionHolder.updateCache(true)
 
-        result = worker.doWork()
+        result = withContext(ioDispatcher) {
+            worker.doWork()
+        }
         assertThat(result, Is.`is`(ListenableWorker.Result.success()))
 
         sessionHolder.saveGeohash("123a")
 
-        result = worker.doWork()
+        result = withContext(ioDispatcher) {
+            worker.doWork()
+        }
         assertThat(result, Is.`is`(ListenableWorker.Result.success()))
 
         sessionHolder.saveOptinValue(false)
 
-        result = worker.doWork()
+        result = withContext(ioDispatcher) {
+            worker.doWork()
+        }
         assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
-    } */
+
+    }
+
+    @After
+    fun cleanUp() {
+        stopKoin()
+    }
 }
 

@@ -5,12 +5,13 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.test.AutoCloseKoinTest
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class GeoHashHelperTest {
+class GeoHashHelperTest: AutoCloseKoinTest() {
     private val expectedEncodedGeoHash = "u4pruydqqvj8"
     private lateinit var locationToEncode: Location
 

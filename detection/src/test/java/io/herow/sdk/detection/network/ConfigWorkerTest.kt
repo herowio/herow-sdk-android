@@ -15,13 +15,20 @@ import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
+import io.herow.sdk.detection.databaseModuleTest
+import io.herow.sdk.detection.dispatcherModule
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.test.KoinTest
 import org.mockito.Mockito.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -29,7 +36,7 @@ import java.util.*
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class ConfigWorkerTest {
+class ConfigWorkerTest: KoinTest {
     private lateinit var context: Context
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder
@@ -38,6 +45,12 @@ class ConfigWorkerTest {
 
     @Before
     fun setUp() {
+        stopKoin()
+        startKoin {
+            androidContext(ApplicationProvider.getApplicationContext())
+            modules(databaseModuleTest, dispatcherModule)
+        }
+
         context = ApplicationProvider.getApplicationContext()
         dataHolder = io.herow.sdk.common.DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
@@ -136,10 +149,11 @@ class ConfigWorkerTest {
         }
     }
 
-    @Test
-    fun userInfoShouldBeNotCalledIfCurrentTimeIsInferior() {
-        val authRequest: AuthRequests = mock(AuthRequests::class.java)
+    @After
+    fun cleanUp() {
+        stopKoin()
     }
+
 }
 
 class ConfigWorkerListener(var configResult: ConfigResult? = null) : IConfigListener {

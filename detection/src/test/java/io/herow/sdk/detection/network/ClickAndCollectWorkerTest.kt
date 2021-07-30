@@ -11,6 +11,8 @@ import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
+import io.herow.sdk.detection.databaseModuleTest
+import io.herow.sdk.detection.dispatcherModule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,12 +24,16 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.test.AutoCloseKoinTest
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class ClickAndCollectWorkerTest {
+class ClickAndCollectWorkerTest: AutoCloseKoinTest() {
     private lateinit var context: Context
     private lateinit var worker: ClickAndCollectWorker
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder
@@ -36,6 +42,12 @@ class ClickAndCollectWorkerTest {
 
     @Before
     fun setUp() {
+        stopKoin()
+        startKoin {
+            androidContext(ApplicationProvider.getApplicationContext())
+            modules(databaseModuleTest, dispatcherModule)
+        }
+
         TimeHelper.testing = true
         DeviceHelper.testing = true
 
@@ -50,12 +62,11 @@ class ClickAndCollectWorkerTest {
     }
 
     @Test
-    fun testLaunchDoWork() {
-        runBlocking {
+    fun testLaunchDoWork() = runBlocking {
             val result = worker.doWork()
             MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-        }
     }
+
 
     @Test
     fun testOnceFinishClickAndCollectShouldNotBeProgression() {
@@ -89,6 +100,7 @@ class ClickAndCollectWorkerTest {
 
     @After
     fun cleanUp() {
+        stopKoin()
         ClickAndCollectDispatcher.unregisterClickAndCollectListener(clickAndCollectWorkerListener)
     }
 }

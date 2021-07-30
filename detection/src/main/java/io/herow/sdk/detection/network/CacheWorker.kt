@@ -39,7 +39,7 @@ class CacheWorker(
     private val zoneRepository: ZoneRepository by inject()
     private val poiRepository: PoiRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val dispatcher: CoroutineDispatcher by inject()
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
@@ -65,7 +65,7 @@ class CacheWorker(
         }
 
         authRequest.execute {
-            withContext(ioDispatcher) {
+            withContext(dispatcher) {
                 GlobalLogger.shared.info(context, "Launching cacheRequest")
                 launchCacheRequest(
                     sessionHolder,
@@ -105,7 +105,7 @@ class CacheWorker(
                         "Cache response body: ${cacheResponse.body()}"
                     )
                     GlobalLogger.shared.info(context, "CacheResult is $cacheResult")
-                    withContext(ioDispatcher) {
+                    withContext(dispatcher) {
                         println("Database is: $database")
                         database.clearAllTables()
                         GlobalLogger.shared.info(context, "Database has been cleared")

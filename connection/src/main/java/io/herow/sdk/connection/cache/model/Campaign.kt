@@ -22,5 +22,5 @@ data class Campaign(
     @Embedded
     var capping: Capping? = null,
     @Embedded
-    var notification: Notification? = null
+    var notification: HerowNotification? = null
 )

@@ -10,6 +10,7 @@ import io.herow.sdk.connection.SessionHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.getScopeId
 import org.koin.core.component.inject
 
 class LogsWorker(
@@ -23,8 +24,8 @@ class LogsWorker(
         var workerID: String = "workerID"
     }
 
+    private val dispatcher: CoroutineDispatcher by inject()
     private lateinit var sessionHolder: SessionHolder
-    private val ioDispatcher: CoroutineDispatcher by inject()
 
     override suspend fun doWork(): Result {
         sessionHolder = SessionHolder(DataHolder(applicationContext))
@@ -37,7 +38,7 @@ class LogsWorker(
         }
 
         autRequest.execute {
-            withContext(ioDispatcher) {
+            withContext(dispatcher) {
                 launchLogsRequest(autRequest.getHerowAPI())
             }
         }
@@ -45,7 +46,6 @@ class LogsWorker(
     }
 
     private suspend fun launchLogsRequest(herowAPI: IHerowAPI) {
-        GlobalLogger.shared.info(context, "Log dispatcher is: $ioDispatcher")
         GlobalLogger.shared.info(context, "Test test")
 
         val log = logsWorkerHashMap[inputData.getString(workerID)]

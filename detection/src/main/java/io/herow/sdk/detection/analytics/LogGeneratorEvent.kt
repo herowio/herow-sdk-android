@@ -50,13 +50,13 @@ class LogGeneratorEvent(
         NotificationDispatcher.addNotificationListener(this)
     }
 
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val dispatcher: CoroutineDispatcher by inject()
     private var appState: String = "bg"
-    private var cachePois = ArrayList<Poi>()
-    private var cacheZones = ArrayList<Zone>()
     private val listOfTemporaryLogsVisit = ArrayList<HerowLogVisit>()
     private val zoneRepository: ZoneRepository by inject()
     private val poiRepository: PoiRepository by inject()
+    var cachePois = ArrayList<Poi>()
+    var cacheZones = ArrayList<Zone>()
 
     override fun onAppInForeground() {
         appState = "fg"
@@ -158,7 +158,7 @@ class LogGeneratorEvent(
         GlobalLogger.shared.info(context, "CachePois before fetching are: $cachePois")
 
         runBlocking {
-            withContext(ioDispatcher) {
+            withContext(dispatcher) {
                 retrievePois().let { cachePois.addAll(it) }
                 retrieveZones().let { cacheZones.addAll(it) }
             }
@@ -228,11 +228,11 @@ class LogGeneratorEvent(
         LogsDispatcher.dispatchLogsResult(logs)
     }
 
-    private suspend fun retrievePois(): ArrayList<Poi> = withContext(ioDispatcher) {
+    private suspend fun retrievePois(): ArrayList<Poi> = withContext(dispatcher) {
         poiRepository.getAllPois() as ArrayList<Poi>
     }
 
-    private suspend fun retrieveZones(): ArrayList<Zone> = withContext(ioDispatcher) {
+    private suspend fun retrieveZones(): ArrayList<Zone> = withContext(dispatcher) {
         zoneRepository.getAllZones() as ArrayList<Zone>
     }
 

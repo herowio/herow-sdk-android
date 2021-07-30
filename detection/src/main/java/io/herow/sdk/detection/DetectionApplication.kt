@@ -1,27 +1,29 @@
 package io.herow.sdk.detection
 
 import android.app.Application
+import android.util.Log
 import androidx.work.Configuration
-import io.herow.sdk.common.koin.dispatcherModule
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.workmanager.koin.workManagerFactory
-import org.koin.core.KoinExperimentalAPI
 import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 
-class DetectionApplication : Application(), Configuration.Provider {
+open class DetectionApplication : Application(), Configuration.Provider {
 
     override fun getWorkManagerConfiguration(): Configuration = Configuration.Builder()
-        .setMinimumLoggingLevel(android.util.Log.INFO)
+        .setMinimumLoggingLevel(Log.INFO)
         .build()
 
-    @KoinExperimentalAPI
     override fun onCreate() {
         super.onCreate()
 
         startKoin {
             androidContext(this@DetectionApplication)
-            workManagerFactory()
             modules(listOf(dispatcherModule, databaseModule))
         }
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        stopKoin()
     }
 }
