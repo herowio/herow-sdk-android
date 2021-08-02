@@ -132,7 +132,6 @@ class NotificationManager(
         return campaigns
     }
 
-
     private fun createNotification(context: Context, event: GeofenceEvent, campaign: Campaign) {
         GlobalLogger.shared.info(context, "Creating notification for $campaign")
         val notifManager = NotificationHelper.setUpNotificationChannel(context)
@@ -152,6 +151,7 @@ class NotificationManager(
             sessionHolder
         )
         GlobalLogger.shared.info(context, "Creating notification for $title $description")
+
         val builder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(description)
@@ -166,10 +166,10 @@ class NotificationManager(
                 NotificationHelper.hashCode(event.zone.hash + event.type + campaign.campaignID),
                 builder.build()
             )
-            NotificationDispatcher.dispatchNotification(event, campaign)
+
+            saveNotification(title, description, event, campaign)
         }
 
-        saveNotification(title, description)
         GlobalLogger.shared.info(context, "Dispatching notification for $event")
     }
 
@@ -197,13 +197,15 @@ class NotificationManager(
         )
     }
 
-    private fun saveNotification(title: String, content: String) {
+    private fun saveNotification(title: String, content: String, event: GeofenceEvent, campaign: Campaign) {
         val herowNotification = HerowNotification(title = title, description = content)
         CoroutineScope(dispatcher).launch {
             withContext(dispatcher) {
                 herowNotificationRepository.insert(herowNotification)
             }
         }
+
+        NotificationDispatcher.dispatchNotification(event, campaign)
     }
 
     fun notificationsOnExactZoneEntry(value: Boolean) {
