@@ -20,12 +20,15 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: add platform_secrets 
-        env:
-            PLATFORM_SECRETS: ${{ secrets.PLATFORM_SECRETS }}
-        run: echo $PLATFORM_SECRETS > platform-secrets.properties
+      - name: Checkout secrets
+        uses: actions/checkout@v2
+        with:
+          repository: 'herowio/herow-api-secrets'
+          token: ${{ secrets.PAT_READ_PRIVATE_REPO }}
+          path: secrets
+      - name: copy platform-secrets.properties
+        run: cp secrets/platform-secrets.properties ./platform-secrets.properties
       - name: extract version
-       
         run: 
            echo "RELEASE_VERSION=v$(bash gradlew -q versionName)" >> $GITHUB_ENV
       - name: Create Release
