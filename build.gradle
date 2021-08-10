@@ -141,7 +141,7 @@ static def findApiKey(String property) {
 }
 
 tasks.create("versionName") {
-    doLast {   println("${project.version}") }
+    doLast { println("${project.version}") }
 }
 
 task clean(type: Delete) {

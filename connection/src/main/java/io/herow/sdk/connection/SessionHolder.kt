@@ -262,9 +262,13 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return map as HashMap<String, String>
     }
 
-    fun getHerowCapping(campaign: Campaign): HerowCapping {
+    fun getHerowCapping(campaign: Campaign): HerowCapping? {
         val string = getHerowCappings()[campaign.id] ?: ""
-        val result = GsonProvider.fromJson(string, HerowCapping::class.java)
+        val result = if (string.isEmpty()) {
+            null
+        } else {
+            GsonProvider.fromJson(string, HerowCapping::class.java)
+        }
 
         GlobalLogger.shared.info(null, "All Cappings = $result")
         return result

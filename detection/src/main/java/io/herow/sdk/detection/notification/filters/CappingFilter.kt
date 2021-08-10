@@ -88,7 +88,13 @@ object CappingFilter : INotificationFilter {
     private fun getHerowCapping(
         sessionHolder: SessionHolder,
         campaign: Campaign
-    ): HerowCapping = sessionHolder.getHerowCapping(campaign)
+    ): HerowCapping {
+
+        val herowCapping: HerowCapping? = sessionHolder.getHerowCapping(campaign)
+        GlobalLogger.shared.info(null, "Herow is: $herowCapping")
+
+        return herowCapping ?: HerowCapping(campaign.id!!, TimeHelper.getCurrentTime(), 0)
+    }
 
     private fun saveHerowCapping(herowCapping: HerowCapping, sessionHolder: SessionHolder) {
         GlobalLogger.shared.info(null, "HerowCapping exists")

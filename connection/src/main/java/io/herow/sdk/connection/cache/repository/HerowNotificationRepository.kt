@@ -8,5 +8,5 @@ class HerowNotificationRepository(
 ): IHerowNotificationRepository {
 
     override fun insert(herowNotification: HerowNotification) = herowNotificationDAO.insert(herowNotification)
-    override fun getFiftyFirstNotifications(): List<HerowNotification>? = herowNotificationDAO.getFiftyFirstNotifications()
+    override fun getFiftyFirstNotifications(owner: String): List<HerowNotification>? = herowNotificationDAO.getFiftyFirstNotifications(owner)
 }

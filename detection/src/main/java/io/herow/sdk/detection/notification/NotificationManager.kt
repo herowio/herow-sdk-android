@@ -161,13 +161,15 @@ class NotificationManager(
                 setContentIntent(notificationPendingIntent)
             }
 
+        val notificationOwner: String = sessionHolder.getSDKID()
+
         with(notifManager) {
             notify(
                 NotificationHelper.hashCode(event.zone.hash + event.type + campaign.campaignID),
                 builder.build()
             )
 
-            saveNotification(title, description, event, campaign)
+            saveNotification(notificationOwner, title, description, event, campaign)
         }
 
         GlobalLogger.shared.info(context, "Dispatching notification for $event")
@@ -197,8 +199,8 @@ class NotificationManager(
         )
     }
 
-    private fun saveNotification(title: String, content: String, event: GeofenceEvent, campaign: Campaign) {
-        val herowNotification = HerowNotification(title = title, description = content)
+    private fun saveNotification(owner: String, title: String, content: String, event: GeofenceEvent, campaign: Campaign) {
+        val herowNotification = HerowNotification(owner = owner, title = title, description = content)
         CoroutineScope(dispatcher).launch {
             withContext(dispatcher) {
                 herowNotificationRepository.insert(herowNotification)

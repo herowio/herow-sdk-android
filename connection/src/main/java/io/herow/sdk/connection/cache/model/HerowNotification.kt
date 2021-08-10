@@ -10,6 +10,7 @@ import androidx.room.PrimaryKey
 data class HerowNotification(
     @PrimaryKey(autoGenerate = true)
     var herowNotificationID: Long = 0,
+    var owner: String = "",
     var title: String? = "",
     var description: String? = "",
     @Ignore

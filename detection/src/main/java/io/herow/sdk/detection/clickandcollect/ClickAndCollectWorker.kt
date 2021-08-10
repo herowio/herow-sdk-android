@@ -83,6 +83,8 @@ class ClickAndCollectWorker(
         val foregroundInfo = NotificationHelper.foregroundNotification(applicationContext, id)
         setForeground(foregroundInfo)
 
+        GlobalLogger.shared.info(applicationContext, "ClickAndCollect - Into launchJob")
+
         if (hasLocationPermission()) {
             launchLocationsUpdate()
         }

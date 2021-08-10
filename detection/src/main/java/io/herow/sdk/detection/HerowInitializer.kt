@@ -232,7 +232,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
             if (lastConfig != null) {
                 ConfigDispatcher.dispatchConfigResult(lastConfig)
             }
-
         }
     }
 
@@ -274,7 +273,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     fun fetchZonesInDatabase(): List<Zone>? = zoneRepository.getAllZones()
 
-    fun fetchAllNotification(): List<HerowNotification>? = herowNotificationRepository.getFiftyFirstNotifications()
+    fun fetchAllNotification(owner: String): List<HerowNotification>? = herowNotificationRepository.getFiftyFirstNotifications(owner)
 
     /**
      * Save user choice optin value
