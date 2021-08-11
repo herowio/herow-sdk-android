@@ -12,14 +12,14 @@ object NotificationDispatcher {
         notificationListeners.add(notificationListener)
     }
 
-    fun dispatchNotification(geofenceEvent: GeofenceEvent, campaign: Campaign) {
+    fun dispatchNotification(geofenceEvent: GeofenceEvent, campaign: Campaign, title: String, description: String) {
         GlobalLogger.shared.info(null, "Dispatching once notification is sent")
         GlobalLogger.shared.info(
             null,
             "Listeners in NotificationDispatcher: $notificationListeners"
         )
         for (listener in notificationListeners) {
-            listener.onNotificationSent(geofenceEvent, campaign)
+            listener.onNotificationSent(geofenceEvent, campaign, title, description)
         }
     }
 }

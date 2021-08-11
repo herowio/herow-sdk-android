@@ -10,7 +10,6 @@ import io.herow.sdk.connection.SessionHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.getScopeId
 import org.koin.core.component.inject
 
 class LogsWorker(

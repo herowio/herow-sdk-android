@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.util.*
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the

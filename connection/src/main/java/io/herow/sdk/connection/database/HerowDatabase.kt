@@ -6,18 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import io.herow.sdk.connection.cache.dao.CampaignDAO
-import io.herow.sdk.connection.cache.dao.HerowNotificationDAO
 import io.herow.sdk.connection.cache.dao.PoiDAO
 import io.herow.sdk.connection.cache.dao.ZoneDAO
 import io.herow.sdk.connection.cache.model.Campaign
-import io.herow.sdk.connection.cache.model.HerowNotification
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.utils.Converters
 
 @Database(
-    entities = [Campaign::class, Poi::class, Zone::class, HerowNotification::class],
-    version = 5,
+    entities = [Campaign::class, Poi::class, Zone::class],
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -26,7 +24,6 @@ abstract class HerowDatabase : RoomDatabase() {
     abstract fun campaignDAO(): CampaignDAO
     abstract fun zoneDAO(): ZoneDAO
     abstract fun poiDAO(): PoiDAO
-    abstract fun herowNotificationDAO(): HerowNotificationDAO
 
     companion object {
         @Volatile

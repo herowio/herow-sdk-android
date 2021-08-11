@@ -236,7 +236,7 @@ class LogGeneratorEvent(
         zoneRepository.getAllZones() as ArrayList<Zone>
     }
 
-    override fun onNotificationSent(geofenceEvent: GeofenceEvent, campaign: Campaign) {
+    override fun onNotificationSent(geofenceEvent: GeofenceEvent, campaign: Campaign, title: String, description: String) {
         GlobalLogger.shared.info(context, "Geofence of notification is: $geofenceEvent")
         val herowLogNotification = HerowLogNotification(appState, geofenceEvent, campaign)
         herowLogNotification.enrich(applicationData, sessionHolder)

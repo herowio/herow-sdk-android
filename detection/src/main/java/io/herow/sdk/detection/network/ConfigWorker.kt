@@ -56,6 +56,7 @@ class ConfigWorker(
                 sessionHolder.saveConfig(configResult)
 
                 val headers = configResponse.headers()
+                GlobalLogger.shared.info(context = null, "Headers in ConfigWorker are: $headers")
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->
                     defineCacheStatus(
                         sessionHolder,

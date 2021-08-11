@@ -16,9 +16,7 @@ import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.ICacheListener
-import io.herow.sdk.connection.cache.model.HerowNotification
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.cache.repository.HerowNotificationRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.database.HerowDatabase
@@ -62,7 +60,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     private val herowDatabase: HerowDatabase by inject()
     private val dispatcher: CoroutineDispatcher by inject()
     private val zoneRepository: ZoneRepository by inject()
-    private val herowNotificationRepository: HerowNotificationRepository by inject()
 
     init {
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
@@ -272,8 +269,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     }
 
     fun fetchZonesInDatabase(): List<Zone>? = zoneRepository.getAllZones()
-
-    fun fetchAllNotification(owner: String): List<HerowNotification>? = herowNotificationRepository.getFiftyFirstNotifications(owner)
 
     /**
      * Save user choice optin value
