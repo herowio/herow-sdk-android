@@ -10,8 +10,8 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
-import io.herow.sdk.detection.databaseModuleTest
-import io.herow.sdk.detection.dispatcherModule
+import io.herow.sdk.detection.koin.databaseModuleTest
+import io.herow.sdk.detection.koin.dispatcherModule
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 import kotlinx.coroutines.CoroutineDispatcher

@@ -11,8 +11,8 @@ import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
-import io.herow.sdk.detection.databaseModuleTest
-import io.herow.sdk.detection.dispatcherModule
+import io.herow.sdk.detection.koin.databaseModuleTest
+import io.herow.sdk.detection.koin.dispatcherModule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

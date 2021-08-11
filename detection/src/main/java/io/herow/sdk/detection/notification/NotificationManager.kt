@@ -16,18 +16,18 @@ import io.herow.sdk.detection.R
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.geofencing.IGeofenceListener
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.notification.filters.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class NotificationManager(
     private val context: Context,
     private val sessionHolder: SessionHolder
 ) :
-    IGeofenceListener, KoinComponent {
+    IGeofenceListener, ICustomKoinComponent {
 
     private val filterList: ArrayList<INotificationFilter> = arrayListOf()
     private val zoneRepository: ZoneRepository by inject()

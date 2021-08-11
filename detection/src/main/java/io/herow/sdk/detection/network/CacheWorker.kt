@@ -19,10 +19,10 @@ import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.geofencing.model.LocationMapper
 import io.herow.sdk.detection.geofencing.model.toLocation
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 /**
@@ -32,7 +32,7 @@ import org.koin.core.component.inject
 class CacheWorker(
     val context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters), KoinComponent {
+) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
 
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
     private val zoneRepository: ZoneRepository by inject()

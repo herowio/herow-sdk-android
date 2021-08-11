@@ -21,13 +21,13 @@ import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.geofencing.IGeofenceListener
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.notification.INotificationListener
 import io.herow.sdk.detection.notification.NotificationDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 /**
@@ -39,7 +39,7 @@ class LogGeneratorEvent(
     private val sessionHolder: SessionHolder,
     val context: Context
 ) :
-    KoinComponent, IAppStateListener, ICacheListener, ILocationListener, IGeofenceListener,
+    ICustomKoinComponent, IAppStateListener, ICacheListener, ILocationListener, IGeofenceListener,
     INotificationListener {
 
     companion object {

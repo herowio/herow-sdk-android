@@ -10,8 +10,8 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.HerowCapping
 import io.herow.sdk.detection.MockDataInDatabase
-import io.herow.sdk.detection.databaseModuleTest
-import io.herow.sdk.detection.dispatcherModule
+import io.herow.sdk.detection.koin.databaseModuleTest
+import io.herow.sdk.detection.koin.dispatcherModule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking

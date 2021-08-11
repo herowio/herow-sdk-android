@@ -8,8 +8,8 @@ import androidx.work.workDataOf
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.databaseModuleTest
-import io.herow.sdk.detection.dispatcherModule
+import io.herow.sdk.detection.koin.databaseModuleTest
+import io.herow.sdk.detection.koin.dispatcherModule
 import io.herow.sdk.detection.helpers.LogsHelper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking

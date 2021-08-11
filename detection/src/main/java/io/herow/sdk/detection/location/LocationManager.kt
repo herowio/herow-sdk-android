@@ -17,16 +17,16 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.*
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class LocationManager(
     context: Context,
     val sessionHolder: SessionHolder
-) : IConfigListener, IAppStateListener, ILocationPriorityListener, KoinComponent {
+) : IConfigListener, IAppStateListener, ILocationPriorityListener, ICustomKoinComponent {
 
     companion object {
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())

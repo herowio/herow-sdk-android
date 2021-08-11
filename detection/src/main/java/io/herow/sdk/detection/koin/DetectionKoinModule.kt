@@ -1,4 +1,4 @@
-package io.herow.sdk.detection
+package io.herow.sdk.detection.koin
 
 import android.content.Context
 import io.herow.sdk.common.DataHolder

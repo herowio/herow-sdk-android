@@ -14,18 +14,18 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.detection.geofencing.GeofencingReceiver
 import io.herow.sdk.detection.helpers.GeofencingHelper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class ZoneManager(
     val context: Context,
     private var zones: ArrayList<Zone>
-) : ICacheListener, ILocationListener, KoinComponent {
+) : ICacheListener, ILocationListener, ICustomKoinComponent {
 
     companion object {
         private const val GEOFENCE_REQUEST_CODE = 1919

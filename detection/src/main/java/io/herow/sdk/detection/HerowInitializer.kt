@@ -30,6 +30,7 @@ import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.IGeofenceListener
 import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
@@ -38,12 +39,11 @@ import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.*
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 @Suppress("MemberVisibilityCanBePrivate")
 @SuppressLint("StaticFieldLeak")
-class HerowInitializer private constructor(val context: Context) : ILocationListener, KoinComponent {
+class HerowInitializer private constructor(val context: Context) : ILocationListener, ICustomKoinComponent {
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")

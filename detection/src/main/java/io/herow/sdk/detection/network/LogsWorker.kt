@@ -7,15 +7,15 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class LogsWorker(
     val context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters), KoinComponent {
+) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
 
     companion object {
         const val KEY_LOGS = "detection.logs"

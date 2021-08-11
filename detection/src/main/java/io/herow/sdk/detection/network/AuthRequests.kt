@@ -14,11 +14,11 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.network.model.RetrofitConnectionObject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 /**
@@ -27,7 +27,7 @@ import org.koin.core.component.inject
 class AuthRequests(
     private val sessionHolder: SessionHolder,
     private val data: Data
-) : KoinComponent {
+) : ICustomKoinComponent {
     companion object {
         const val KEY_SDK_ID = "detection.sdk_id"
         const val KEY_SDK_KEY = "detection.sdk_key"
