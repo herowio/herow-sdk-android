@@ -5,7 +5,6 @@ import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.IAppStateListener
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.connection.cache.ICacheListener
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
@@ -39,7 +38,7 @@ class LogGeneratorEvent(
     private val sessionHolder: SessionHolder,
     val context: Context
 ) :
-    ICustomKoinComponent, IAppStateListener, ICacheListener, ILocationListener, IGeofenceListener,
+    ICustomKoinComponent, IAppStateListener, ILocationListener, IGeofenceListener,
     INotificationListener {
 
     companion object {
@@ -55,8 +54,8 @@ class LogGeneratorEvent(
     private val listOfTemporaryLogsVisit = ArrayList<HerowLogVisit>()
     private val zoneRepository: ZoneRepository by inject()
     private val poiRepository: PoiRepository by inject()
-    var cachePois = ArrayList<Poi>()
-    var cacheZones = ArrayList<Zone>()
+    var cachePois: ArrayList<Poi>? = null
+    var cacheZones: ArrayList<Zone>? = null
 
     override fun onAppInForeground() {
         appState = "fg"
@@ -85,29 +84,38 @@ class LogGeneratorEvent(
 
         herowLogContext.enrich(applicationData, sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext))
-        GlobalLogger.shared.info(context, "List of logs are:  $listOfLogs")
+        GlobalLogger.shared.info(context, "List of logs are: $listOfLogs")
         LogsDispatcher.dispatchLogsResult(listOfLogs)
     }
 
     private fun computeNearbyPois(location: Location): List<PoiMapper> {
         val closestPois: MutableList<PoiMapper> = ArrayList()
+
+        runBlocking {
+            withContext(dispatcher) {
+                cachePois = retrievePois()
+            }
+        }
+
         GlobalLogger.shared.info(context, "CachePois are: $cachePois")
 
-        synchronized(cachePois) {
-            for (cachePoi in cachePois) {
-                cachePoi.distance = cachePoi.updateDistance(location)
+        if (cachePois != null) {
+            if (cachePois!!.isNotEmpty()) {
+                for (cachePoi in cachePois!!) {
+                    cachePoi.distance = cachePoi.updateDistance(location)
 
-                GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
-                GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
+                    GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
+                    GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
 
-                if (cachePoi.distance <= DISTANCE_MAX) {
-                    closestPois.add(
-                        PoiMapper(
-                            cachePoi.id,
-                            cachePoi.distance,
-                            cachePoi.tags
+                    if (cachePoi.distance <= DISTANCE_MAX) {
+                        closestPois.add(
+                            PoiMapper(
+                                cachePoi.id,
+                                cachePoi.distance,
+                                cachePoi.tags
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -123,26 +131,34 @@ class LogGeneratorEvent(
     private fun computeNearbyPlaces(location: Location): List<ZoneMapper> {
         val closestZones: MutableList<ZoneMapper> = ArrayList()
 
-        GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
+        runBlocking {
+            withContext(dispatcher) {
+                cacheZones = retrieveZones()
+            }
+        }
 
-        synchronized(cacheZones) {
-            for (cacheZone in cacheZones) {
-                cacheZone.distance = cacheZone.updateDistance(location)
-                GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
+        if (cacheZones != null) {
+            if (cacheZones!!.isNotEmpty()) {
+                for (cacheZone in cacheZones!!) {
+                    cacheZone.distance = cacheZone.updateDistance(location)
+                    GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
 
-                if (cacheZone.distance <= DISTANCE_MAX) {
-                    closestZones.add(
-                        ZoneMapper(
-                            cacheZone.lng,
-                            cacheZone.lat,
-                            cacheZone.hash,
-                            cacheZone.distance,
-                            cacheZone.radius
+                    if (cacheZone.distance <= DISTANCE_MAX) {
+                        closestZones.add(
+                            ZoneMapper(
+                                cacheZone.lng,
+                                cacheZone.lat,
+                                cacheZone.hash,
+                                cacheZone.distance,
+                                cacheZone.radius
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
+
+        GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
 
         closestZones.sortBy {
             it.distance
@@ -150,22 +166,6 @@ class LogGeneratorEvent(
 
         GlobalLogger.shared.info(context, "Closests zones are: $closestZones")
         return closestZones
-    }
-
-    override fun onCacheReception() {
-        cachePois.clear()
-        cacheZones.clear()
-        GlobalLogger.shared.info(context, "CachePois before fetching are: $cachePois")
-
-        runBlocking {
-            withContext(dispatcher) {
-                retrievePois().let { cachePois.addAll(it) }
-                retrieveZones().let { cacheZones.addAll(it) }
-            }
-        }
-
-        GlobalLogger.shared.info(context, "CachePois after fetching are: $cachePois")
-        GlobalLogger.shared.info(context, "CacheZones after fetching are: $cacheZones")
     }
 
     override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
@@ -228,15 +228,28 @@ class LogGeneratorEvent(
         LogsDispatcher.dispatchLogsResult(logs)
     }
 
-    private suspend fun retrievePois(): ArrayList<Poi> = withContext(dispatcher) {
-        poiRepository.getAllPois() as ArrayList<Poi>
+    private fun retrievePois(): ArrayList<Poi>? {
+        if (cachePois != null) {
+            cachePois!!.clear()
+        }
+
+        return poiRepository.getAllPois() as ArrayList<Poi>?
     }
 
-    private suspend fun retrieveZones(): ArrayList<Zone> = withContext(dispatcher) {
-        zoneRepository.getAllZones() as ArrayList<Zone>
+    private fun retrieveZones(): ArrayList<Zone>? {
+        if (cacheZones != null) {
+            cacheZones!!.clear()
+        }
+
+        return zoneRepository.getAllZones() as ArrayList<Zone>?
     }
 
-    override fun onNotificationSent(geofenceEvent: GeofenceEvent, campaign: Campaign, title: String, description: String) {
+    override fun onNotificationSent(
+        geofenceEvent: GeofenceEvent,
+        campaign: Campaign,
+        title: String,
+        description: String
+    ) {
         GlobalLogger.shared.info(context, "Geofence of notification is: $geofenceEvent")
         val herowLogNotification = HerowLogNotification(appState, geofenceEvent, campaign)
         herowLogNotification.enrich(applicationData, sessionHolder)

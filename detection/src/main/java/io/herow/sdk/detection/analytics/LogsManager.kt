@@ -8,7 +8,6 @@ import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.helpers.WorkHelper
@@ -26,7 +25,6 @@ class LogsManager(private val context: Context) : ILogsListener {
     init {
         AppStateDetector.addAppStateListener(logGeneratorEvent)
         LocationDispatcher.addLocationListener(logGeneratorEvent)
-        CacheDispatcher.addCacheListener(logGeneratorEvent)
         GeofenceDispatcher.addGeofenceListener(logGeneratorEvent)
     }
 
