@@ -34,11 +34,13 @@ class CacheWorker(
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
 
+    var testing = false
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
+    private val database: HerowDatabase by inject()
     private val zoneRepository: ZoneRepository by inject()
     private val poiRepository: PoiRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
-    private val dispatcher: CoroutineDispatcher by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
@@ -47,7 +49,6 @@ class CacheWorker(
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val authRequest = AuthRequests(sessionHolder, inputData)
-        val database: HerowDatabase = HerowDatabase.getDatabase(context)
 
         GlobalLogger.shared.info(context, "Inside doWork() from CacheWorker")
         GlobalLogger.shared.info(context, "InputData $inputData")
@@ -63,13 +64,12 @@ class CacheWorker(
             return Result.failure()
         }
 
-        authRequest.execute {
-            withContext(dispatcher) {
+        withContext(ioDispatcher) {
+            authRequest.execute {
                 GlobalLogger.shared.info(context, "Launching cacheRequest")
                 launchCacheRequest(
                     sessionHolder,
                     authRequest.getHerowAPI(),
-                    database,
                     locationMapper
                 )
             }
@@ -85,7 +85,6 @@ class CacheWorker(
     private suspend fun launchCacheRequest(
         sessionHolder: SessionHolder,
         herowAPI: IHerowAPI,
-        database: HerowDatabase,
         locationMapper: LocationMapper
     ) {
         val extractedGeoHash = extractGeoHash(sessionHolder)
@@ -104,24 +103,21 @@ class CacheWorker(
                         "Cache response body: ${cacheResponse.body()}"
                     )
                     GlobalLogger.shared.info(context, "CacheResult is $cacheResult")
-                    withContext(dispatcher) {
-                        println("Database is: $database")
-                        database.clearAllTables()
-                        GlobalLogger.shared.info(context, "Database has been cleared")
+                    database.clearAllTables()
+                    GlobalLogger.shared.info(context, "Database has been cleared")
 
-                        for (zone in cacheResult!!.zones) {
-                            GlobalLogger.shared.info(context, "Zone is: $zone")
-                        }
-
-                        saveCacheDataInDB(cacheResult)
-                        GlobalLogger.shared.info(context, "CacheResult has been saved in BDD")
-
-                        CacheDispatcher.dispatch()
-                        GlobalLogger.shared.info(context, "Dispatching zones")
-
-                        GlobalLogger.shared.info(context, "Sending notification")
-                        sendNotification(locationMapper)
+                    for (zone in cacheResult!!.zones) {
+                        GlobalLogger.shared.info(context, "Zone is: $zone")
                     }
+
+                    saveCacheDataInDB(cacheResult)
+                    GlobalLogger.shared.info(context, "CacheResult has been saved in BDD")
+
+                    CacheDispatcher.dispatch()
+                    GlobalLogger.shared.info(context, "Dispatching zones")
+
+                    GlobalLogger.shared.info(context, "Sending notification")
+                    sendNotification(locationMapper)
                 }
             }
         }

@@ -19,8 +19,8 @@ import io.herow.sdk.detection.geofencing.IGeofenceListener
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.notification.filters.*
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 class NotificationManager(
@@ -34,7 +34,7 @@ class NotificationManager(
     private val campaignRepository: CampaignRepository by inject()
     private var notificationOnExactEntry = false
 
-    private val dispatcher: CoroutineDispatcher by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000
@@ -81,32 +81,30 @@ class NotificationManager(
                         context,
                         "GeofenceEvents selected trigger is: $trigger"
                     )
-                    runBlocking {
-                        withContext(dispatcher) {
-                            val campaigns = fetchCampaignInDatabase(event.zone)
-                            val zoneName =
-                                if (event.zone.access?.name != null) event.zone.access?.name else "non name"
-                            val campaignNames = campaigns.map { it.notification?.title }
-                            GlobalLogger.shared.info(
-                                context,
-                                "zone name: $zoneName campagnsName: $campaignNames"
-                            )
 
-                            if (campaigns.isNotEmpty()) {
-                                for (campaign in campaigns) {
-                                    GlobalLogger.shared.info(context, "Campaign are: $campaign")
-                                    if (canCreateNotification(campaign)) {
-                                        createNotification(context, event, campaign)
-                                    } else {
-                                        GlobalLogger.shared.info(
-                                            context,
-                                            "Campaign: $campaign not displayed"
-                                        )
-                                    }
+                    CoroutineScope(ioDispatcher).launch {
+                        val campaigns = fetchCampaignInDatabase(event.zone)
+                        val zoneName = if (event.zone.access?.name != null) event.zone.access?.name else "non name"
+                        val campaignNames = campaigns.map { it.notification?.title }
+                        GlobalLogger.shared.info(
+                            context,
+                            "zone name: $zoneName campagnsName: $campaignNames"
+                        )
+
+                        if (campaigns.isNotEmpty()) {
+                            for (campaign in campaigns) {
+                                GlobalLogger.shared.info(context, "Campaign are: $campaign")
+                                if (canCreateNotification(campaign)) {
+                                    createNotification(context, event, campaign)
+                                } else {
+                                    GlobalLogger.shared.info(
+                                        context,
+                                        "Campaign: $campaign not displayed"
+                                    )
                                 }
-                            } else {
-                                GlobalLogger.shared.info(context, "no Campaign")
                             }
+                        } else {
+                            GlobalLogger.shared.info(context, "no Campaign")
                         }
                     }
                 }

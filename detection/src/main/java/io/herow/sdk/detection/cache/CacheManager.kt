@@ -12,30 +12,33 @@ import io.herow.sdk.detection.geofencing.model.toLocationMapper
 import io.herow.sdk.detection.helpers.DateHelper
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
-import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.CacheWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.koin.core.component.inject
 
-class CacheManager(val context: Context) : ILocationListener {
+class CacheManager(val context: Context) : ILocationListener, ICustomKoinComponent {
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
     private val workManager = WorkManager.getInstance(context)
     private val sessionHolder = SessionHolder(DataHolder(context))
     private val workOfData = WorkHelper.getWorkOfData(sessionHolder)
     private val platform = WorkHelper.getPlatform(sessionHolder)
 
-    /**
-     * Launch cache request if
-     * - Geohash is different from the old one
-     * -
-     */
     override fun onLocationUpdate(location: Location) {
         GlobalLogger.shared.info(context, "Into onLocationUpdate from CacheManager")
         val shouldGetCache = shouldGetCache(sessionHolder, location)
         GlobalLogger.shared.info(context, "Should get cache: $shouldGetCache")
+
         if (shouldGetCache) {
-            LocationManager.scope.launch { CacheManager(context).launchCacheRequest(location) }
+            CoroutineScope(ioDispatcher).launch {
+                launchCacheRequest(location)
+            }
         }
     }
 

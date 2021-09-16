@@ -17,8 +17,6 @@ import io.herow.sdk.connection.userinfo.UserInfoResult
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.network.model.RetrofitConnectionObject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 
 /**
@@ -35,7 +33,7 @@ class AuthRequests(
         const val KEY_PLATFORM = "detection.platform"
     }
 
-    private val dispatcher: CoroutineDispatcher by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     private var isWorking = false
     private val platform = getPlatform()
@@ -54,9 +52,7 @@ class AuthRequests(
     private suspend fun authenticationWorkFlow(request: suspend (herowAPI: IHerowAPI) -> Unit) {
         GlobalLogger.shared.info(null, "flow: authenticatoinWorkFlow")
         if (!isTokenUsable(sessionHolder)) {
-            withContext(dispatcher) {
-                launchTokenRequest(sessionHolder, platform, herowAPI, request)
-            }
+            launchTokenRequest(sessionHolder, platform, herowAPI, request)
         } else {
             GlobalLogger.shared.info(null, "Token is usable or isWorking")
             request(herowAPI)
@@ -98,13 +94,9 @@ class AuthRequests(
         return false
     }
 
-    fun getUserInfoIfNeeded() {
-        runBlocking {
-            withContext(dispatcher) {
-                authenticationWorkFlow {
-                    userInfoWorkFlow {}
-                }
-            }
+    suspend fun getUserInfoIfNeeded() {
+        authenticationWorkFlow {
+            userInfoWorkFlow {}
         }
     }
 

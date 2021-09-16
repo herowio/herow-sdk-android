@@ -10,6 +10,10 @@ object LogsDispatcher {
         logsListeners.add(logsListener)
     }
 
+    fun unregisterLogListener(logsListener: ILogsListener) {
+        logsListeners.remove(logsListener)
+    }
+
     private val logsListeners = CopyOnWriteArrayList<ILogsListener>()
 
     fun dispatchLogsResult(listOfLogs: List<Log>) {

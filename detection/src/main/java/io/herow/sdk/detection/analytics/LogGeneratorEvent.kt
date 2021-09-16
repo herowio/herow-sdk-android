@@ -25,8 +25,8 @@ import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.notification.INotificationListener
 import io.herow.sdk.detection.notification.NotificationDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 /**
@@ -91,39 +91,37 @@ class LogGeneratorEvent(
     private fun computeNearbyPois(location: Location): List<PoiMapper> {
         val closestPois: MutableList<PoiMapper> = ArrayList()
 
-        runBlocking {
-            withContext(dispatcher) {
-                cachePois = retrievePois()
-            }
-        }
+        CoroutineScope(dispatcher).launch {
+            cachePois = retrievePois()
 
-        GlobalLogger.shared.info(context, "CachePois are: $cachePois")
+            GlobalLogger.shared.info(context, "CachePois are: $cachePois")
 
-        if (cachePois != null) {
-            if (cachePois!!.isNotEmpty()) {
-                for (cachePoi in cachePois!!) {
-                    cachePoi.distance = cachePoi.updateDistance(location)
+            if (cachePois != null) {
+                if (cachePois!!.isNotEmpty()) {
+                    for (cachePoi in cachePois!!) {
+                        cachePoi.distance = cachePoi.updateDistance(location)
 
-                    GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
-                    GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
+                        GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
+                        GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
 
-                    if (cachePoi.distance <= DISTANCE_MAX) {
-                        closestPois.add(
-                            PoiMapper(
-                                cachePoi.id,
-                                cachePoi.distance,
-                                cachePoi.tags
+                        if (cachePoi.distance <= DISTANCE_MAX) {
+                            closestPois.add(
+                                PoiMapper(
+                                    cachePoi.id,
+                                    cachePoi.distance,
+                                    cachePoi.tags
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
-        }
 
-        closestPois.sortBy {
-            it.distance
+            closestPois.sortBy {
+                it.distance
+            }
+            GlobalLogger.shared.info(context, "Closests POIS are: $closestPois")
         }
-        GlobalLogger.shared.info(context, "Closests POIS are: $closestPois")
 
         return closestPois
     }
@@ -131,40 +129,39 @@ class LogGeneratorEvent(
     private fun computeNearbyPlaces(location: Location): List<ZoneMapper> {
         val closestZones: MutableList<ZoneMapper> = ArrayList()
 
-        runBlocking {
-            withContext(dispatcher) {
-                cacheZones = retrieveZones()
-            }
-        }
+        CoroutineScope(dispatcher).launch {
+            cacheZones = retrieveZones()
 
-        if (cacheZones != null) {
-            if (cacheZones!!.isNotEmpty()) {
-                for (cacheZone in cacheZones!!) {
-                    cacheZone.distance = cacheZone.updateDistance(location)
-                    GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
+            if (cacheZones != null) {
+                if (cacheZones!!.isNotEmpty()) {
+                    for (cacheZone in cacheZones!!) {
+                        cacheZone.distance = cacheZone.updateDistance(location)
+                        GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
 
-                    if (cacheZone.distance <= DISTANCE_MAX) {
-                        closestZones.add(
-                            ZoneMapper(
-                                cacheZone.lng,
-                                cacheZone.lat,
-                                cacheZone.hash,
-                                cacheZone.distance,
-                                cacheZone.radius
+                        if (cacheZone.distance <= DISTANCE_MAX) {
+                            closestZones.add(
+                                ZoneMapper(
+                                    cacheZone.lng,
+                                    cacheZone.lat,
+                                    cacheZone.hash,
+                                    cacheZone.distance,
+                                    cacheZone.radius
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
+
+            GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
+
+            closestZones.sortBy {
+                it.distance
+            }
+
+            GlobalLogger.shared.info(context, "Closests zones are: $closestZones")
         }
 
-        GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
-
-        closestZones.sortBy {
-            it.distance
-        }
-
-        GlobalLogger.shared.info(context, "Closests zones are: $closestZones")
         return closestZones
     }
 
@@ -255,6 +252,7 @@ class LogGeneratorEvent(
         herowLogNotification.enrich(applicationData, sessionHolder)
         val logToSend = Log(herowLogNotification)
         GlobalLogger.shared.info(context, "Log notification is: $logToSend")
+
         LogsDispatcher.dispatchLogsResult(arrayListOf(logToSend))
     }
 }

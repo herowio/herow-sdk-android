@@ -29,7 +29,7 @@ val databaseModule = module {
 }
 
 val databaseModuleTest = module {
-    single { provideHerowDatabaseTest(get()) }
+    factory { provideHerowDatabaseTest(get()) }
     single { provideZoneDAO(get()) }
     single { providePoiDAO(get()) }
     single { provideCampaignDAO(get()) }

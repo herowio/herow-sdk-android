@@ -12,6 +12,10 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.detection.helpers.DateHelper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
+import org.koin.core.component.inject
 
 /**
  * @see IHerowAPI#config()
@@ -19,16 +23,22 @@ import io.herow.sdk.detection.helpers.DateHelper
 class ConfigWorker(
     context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters) {
+) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    var testing = false
 
     override suspend fun doWork(): Result {
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
         GlobalLogger.shared.info(applicationContext, "DoWork is called")
 
         val authRequest = AuthRequests(sessionHolder, inputData)
-        authRequest.execute {
-            GlobalLogger.shared.info(applicationContext, "Launching configRequest")
-            launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
+
+        withContext(ioDispatcher) {
+            authRequest.execute {
+                GlobalLogger.shared.info(applicationContext, "Launching configRequest")
+                launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
+            }
         }
 
         return Result.success()

@@ -17,9 +17,8 @@ import io.herow.sdk.detection.helpers.GeofencingHelper
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 class ZoneManager(
@@ -34,7 +33,7 @@ class ZoneManager(
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
     private val zoneRepository: ZoneRepository by inject()
-    private val dispatcher: CoroutineDispatcher by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)
@@ -60,11 +59,10 @@ class ZoneManager(
     fun loadZones() {
         zones.clear()
 
-        runBlocking {
-            withContext(dispatcher) {
-                retrieveZones().let { zones.addAll(it) }
-            }
+        CoroutineScope(ioDispatcher).launch {
+            retrieveZones().let { zones.addAll(it) }
         }
+
         GlobalLogger.shared.info(context, "Zones from BDD are: $zones")
         updateGeofencesMonitoring()
     }
@@ -120,26 +118,10 @@ class ZoneManager(
     }
 
     override fun onLocationUpdate(location: Location) {
-
         dispatchZonesAndNotification(location)
     }
 
-    private fun retrieveZones(): ArrayList<Zone> {
-        val zones: ArrayList<Zone>
-
-        runBlocking {
-            val zonesInDb = async(dispatcher) {
-                zoneRepository.getAllZones() as ArrayList<Zone>
-            }
-
-            GlobalLogger.shared.info(null, "Inside coroutine for data")
-            zones = zonesInDb.await()
-        }
-
-        GlobalLogger.shared.info(context, "Zones in DB are: $zones")
-
-        return zones
-    }
+    private fun retrieveZones(): ArrayList<Zone> = zoneRepository.getAllZones() as ArrayList<Zone>
 
     fun dispatchZonesAndNotification(location: Location) {
         GlobalLogger.shared.info(context, "Inside dispatchZonesAndNotification() method")

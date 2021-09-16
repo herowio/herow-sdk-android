@@ -2,49 +2,45 @@ package io.herow.sdk.detection.network
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.koin.databaseModuleTest
-import io.herow.sdk.detection.koin.dispatcherModule
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.helpers.LogsHelper
+import io.herow.sdk.detection.koin.HerowKoinTestContext
+import io.herow.sdk.detection.koin.ICustomKoinTestComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.hamcrest.MatcherAssert
 import org.hamcrest.core.Is
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
-import org.koin.test.KoinTest
+import org.koin.core.component.inject
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @ExperimentalCoroutinesApi
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class LogsWorkerTest: KoinTest {
+class LogsWorkerTest: ICustomKoinTestComponent {
 
-    private lateinit var context: Context
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: DataHolder
     private lateinit var worker: LogsWorker
 
     @Before
     fun setUp() {
-        stopKoin()
-        startKoin {
-            androidContext(ApplicationProvider.getApplicationContext())
-            modules(databaseModuleTest, dispatcherModule)
-        }
-
-        context = ApplicationProvider.getApplicationContext()
+        HerowInitializer.setStaticTesting(true)
+        HerowKoinTestContext.init(context)
         dataHolder = DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
         sessionHolder.saveSDKID("test")
@@ -60,24 +56,25 @@ class LogsWorkerTest: KoinTest {
                 )
             )
             .build()
+
+        worker.testing = true
     }
 
     @Test
     fun testLogsHasBeenSent() = runBlocking {
         sessionHolder.saveOptinValue(true)
 
-        val result = worker.doWork()
-        MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.success()))
+        withContext(ioDispatcher) {
+            val result = worker.doWork()
+            MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.success()))
+        }
     }
 
     @Test
     fun testIfOptinFalseLogWontSend() = runBlocking {
-        val result = worker.doWork()
-        MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
-    }
-
-    @After
-    fun cleanUp() {
-        stopKoin()
+        withContext(ioDispatcher) {
+            val result = worker.doWork()
+            MatcherAssert.assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
+        }
     }
 }

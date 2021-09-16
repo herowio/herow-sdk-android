@@ -11,15 +11,13 @@ import io.herow.sdk.detection.analytics.model.HerowLogContext
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koin.test.AutoCloseKoinTest
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class HerowLogContextTest: AutoCloseKoinTest() {
-    private val sessionHolder =
-        SessionHolder(DataHolder(ApplicationProvider.getApplicationContext()))
+class HerowLogContextTest {
+    private val sessionHolder = SessionHolder(DataHolder(ApplicationProvider.getApplicationContext()))
 
     @Test
     fun testHerowLogContextIsParcelable() {

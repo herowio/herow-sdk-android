@@ -17,22 +17,22 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.detection.geofencing.GeofenceEventGenerator
+import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 class LocationManager(
     context: Context,
-    val sessionHolder: SessionHolder
+    val sessionHolder: SessionHolder,
+    var testing: Boolean = false
 ) : IConfigListener, IAppStateListener, ILocationPriorityListener, ICustomKoinComponent {
 
-    companion object {
-        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    }
-
-    private val dispatcher: CoroutineDispatcher by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     private var isOnForeground: Boolean = false
     private var isGeofencingEnable: Boolean = false
@@ -60,7 +60,13 @@ class LocationManager(
         LocationDispatcher.addLocationListener(zoneManager)
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
 
-        CoroutineScope(dispatcher).launch {
+        println("Value into LocationManager of testing: $testing")
+
+        if (testing) {
+            HerowKoinTestContext.init(context)
+        }
+
+        CoroutineScope(ioDispatcher).launch {
             zones = zoneManager.getZones()
         }
 

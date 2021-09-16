@@ -1,7 +1,7 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
-import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
@@ -15,19 +15,19 @@ import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
-import io.herow.sdk.detection.koin.databaseModuleTest
-import io.herow.sdk.detection.koin.dispatcherModule
+import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.detection.koin.HerowKoinTestContext
+import io.herow.sdk.detection.koin.ICustomKoinTestComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
-import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
+import org.koin.core.component.inject
 import org.koin.test.KoinTest
 import org.mockito.Mockito.*
 import org.robolectric.RobolectricTestRunner
@@ -36,8 +36,10 @@ import java.util.*
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class ConfigWorkerTest: KoinTest {
-    private lateinit var context: Context
+class ConfigWorkerTest: KoinTest, ICustomKoinTestComponent {
+    private val ioDispatcher: CoroutineDispatcher by inject()
+
+    private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var sessionHolder: SessionHolder
     private lateinit var dataHolder: io.herow.sdk.common.DataHolder
     private lateinit var worker: ConfigWorker
@@ -45,13 +47,9 @@ class ConfigWorkerTest: KoinTest {
 
     @Before
     fun setUp() {
-        stopKoin()
-        startKoin {
-            androidContext(ApplicationProvider.getApplicationContext())
-            modules(databaseModuleTest, dispatcherModule)
-        }
+        HerowInitializer.setStaticTesting(true)
+        HerowKoinTestContext.init(context)
 
-        context = ApplicationProvider.getApplicationContext()
         dataHolder = io.herow.sdk.common.DataHolder(context)
         sessionHolder = SessionHolder(dataHolder)
         sessionHolder.saveSDKID("test")
@@ -73,16 +71,19 @@ class ConfigWorkerTest: KoinTest {
                     AuthRequests.KEY_CUSTOM_ID to NetworkConstants.CUSTOM_ID
                 )
             ).build()
+        worker.testing = true
     }
 
 
     @Test
     fun testLaunchTokenConfigWorker() {
         runBlocking {
-            val result = worker.doWork()
-            assertThat(result, `is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
-            Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
+            withContext(ioDispatcher) {
+                val result = worker.doWork()
+                assertThat(result, `is`(ListenableWorker.Result.success()))
+                Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
+                Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
+            }
         }
     }
 
@@ -93,10 +94,14 @@ class ConfigWorkerTest: KoinTest {
         Assert.assertNull(configWorkerListener.configResult)
 
         runBlocking {
-            val result = worker.doWork()
-            assertThat(result, `is`(ListenableWorker.Result.success()))
-            Assert.assertNotNull(configWorkerListener.configResult)
+            withContext(ioDispatcher) {
+                val result = worker.doWork()
+                assertThat(result, `is`(ListenableWorker.Result.success()))
+                Assert.assertNotNull(configWorkerListener.configResult)
+            }
         }
+
+        ConfigDispatcher.unregisterConfigListener(configWorkerListener)
     }
 
     @Test
@@ -104,9 +109,11 @@ class ConfigWorkerTest: KoinTest {
         sessionHolder.saveModifiedCacheTime("Tue, 25 Aug 2020 12:57:38 GMT")
 
         runBlocking {
-            val result = worker.doWork()
-            assertThat(result, `is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(!sessionHolder.hasNoCacheTimeSaved())
+            withContext(ioDispatcher) {
+                val result = worker.doWork()
+                assertThat(result, `is`(ListenableWorker.Result.success()))
+                Assert.assertTrue(!sessionHolder.hasNoCacheTimeSaved())
+            }
         }
     }
 
@@ -115,9 +122,11 @@ class ConfigWorkerTest: KoinTest {
         sessionHolder.saveModifiedCacheTime("Mon, 30 Jun 2025 12:57:38 GMT")
 
         runBlocking {
-            val result = worker.doWork()
-            assertThat(result, `is`(ListenableWorker.Result.success()))
-            Assert.assertFalse(sessionHolder.getUpdateCacheStatus())
+            withContext(ioDispatcher) {
+                val result = worker.doWork()
+                assertThat(result, `is`(ListenableWorker.Result.success()))
+                Assert.assertFalse(sessionHolder.getUpdateCacheStatus())
+            }
         }
     }
 
@@ -126,9 +135,11 @@ class ConfigWorkerTest: KoinTest {
         sessionHolder.saveModifiedCacheTime("Tue, 9 Jun 2020 12:57:38 GMT")
 
         runBlocking {
-            val result = worker.doWork()
-            assertThat(result, `is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(sessionHolder.getUpdateCacheStatus())
+            withContext(ioDispatcher) {
+                val result = worker.doWork()
+                assertThat(result, `is`(ListenableWorker.Result.success()))
+                Assert.assertTrue(sessionHolder.getUpdateCacheStatus())
+            }
         }
     }
 
@@ -148,12 +159,6 @@ class ConfigWorkerTest: KoinTest {
             verify(authRequest, never()).launchUserInfoRequest(sessionHolder, herowAPI)
         }
     }
-
-    @After
-    fun cleanUp() {
-        stopKoin()
-    }
-
 }
 
 class ConfigWorkerListener(var configResult: ConfigResult? = null) : IConfigListener {

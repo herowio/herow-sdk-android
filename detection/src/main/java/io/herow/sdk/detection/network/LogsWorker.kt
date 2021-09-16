@@ -17,30 +17,32 @@ class LogsWorker(
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
 
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private lateinit var sessionHolder: SessionHolder
+    var testing = false
+
     companion object {
         const val KEY_LOGS = "detection.logs"
         var logsWorkerHashMap = HashMap<String?, String?>()
         var workerID: String = "workerID"
     }
 
-    private val dispatcher: CoroutineDispatcher by inject()
-    private lateinit var sessionHolder: SessionHolder
-
     override suspend fun doWork(): Result {
         sessionHolder = SessionHolder(DataHolder(applicationContext))
 
-        val autRequest = AuthRequests(sessionHolder, inputData)
+        val authRequests = AuthRequests(sessionHolder, inputData)
         if (!sessionHolder.getOptinValue()) {
             GlobalLogger.shared.debug(context, "Optin value is set to false")
 
             return Result.failure()
         }
 
-        autRequest.execute {
-            withContext(dispatcher) {
-                launchLogsRequest(autRequest.getHerowAPI())
+        withContext(ioDispatcher) {
+            authRequests.execute {
+                launchLogsRequest(authRequests.getHerowAPI())
             }
         }
+
         return Result.success()
     }
 

@@ -9,6 +9,10 @@ object ConfigDispatcher {
         configListeners.add(configListener)
     }
 
+    fun unregisterConfigListener(configListener: IConfigListener) {
+        configListeners.remove(configListener)
+    }
+
     private val configListeners = CopyOnWriteArrayList<IConfigListener>()
 
     fun dispatchConfigResult(configResult: ConfigResult) {

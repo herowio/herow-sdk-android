@@ -6,6 +6,7 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.detection.MockLocation
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -80,11 +81,16 @@ class GeofenceEventGeneratorTest {
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
     }
 
-    class HerowGeofenceListener : IGeofenceListener {
-        var lastEvents: List<GeofenceEvent> = ArrayList()
+    @After
+    fun cleanUp() {
+        GeofenceDispatcher.unregisterGeofenceListener(herowGeofenceListener)
+    }
+}
 
-        override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
-            lastEvents = geofenceEvents
-        }
+class HerowGeofenceListener : IGeofenceListener {
+    var lastEvents: List<GeofenceEvent> = ArrayList()
+
+    override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
+        lastEvents = geofenceEvents
     }
 }

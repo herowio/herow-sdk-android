@@ -38,7 +38,9 @@ import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -58,8 +60,9 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     //Koin
     private val herowDatabase: HerowDatabase by inject()
-    private val dispatcher: CoroutineDispatcher by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
     private val zoneRepository: ZoneRepository by inject()
+
 
     init {
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
@@ -68,20 +71,31 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         logsManager = LogsManager(context)
         cacheManager = CacheManager(context)
         loadIdentifiers(context)
-        locationManager = LocationManager(context, sessionHolder)
+        locationManager = LocationManager(context, sessionHolder, true)
         notificationManager = NotificationManager(context, sessionHolder)
         registerListeners()
     }
 
     companion object {
+        private  var _testing = false
+        @JvmStatic
+        fun isTesting() : Boolean {
+            return _testing
+        }
+        @JvmStatic
+        fun setStaticTesting(staticTesting: Boolean)  {
+            _testing = staticTesting
+        }
+
         private lateinit var herowInitializer: HerowInitializer
 
         @JvmStatic
-        fun getInstance(context: Context): HerowInitializer {
+        fun getInstance(context: Context, testingStatus: Boolean = false): HerowInitializer {
+            println("Value of testingStatus: $testingStatus")
+            setStaticTesting(testingStatus)
             if (!::herowInitializer.isInitialized) {
                 herowInitializer = HerowInitializer(context)
             }
-
             return herowInitializer
         }
     }
@@ -103,7 +117,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
      * to be able to use it only if the developer has already the library include in his project.
      */
     private fun loadIdentifiers(context: Context) {
-        CoroutineScope(dispatcher).launch {
+        CoroutineScope(ioDispatcher).launch {
             kotlin.runCatching {
                 val deviceId = DeviceHelper.getDeviceId(context)
                 sessionHolder.saveDeviceId(deviceId)
@@ -281,7 +295,10 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
             AuthRequests.KEY_CUSTOM_ID to customID,
             AuthRequests.KEY_PLATFORM to platform.name
         )
-        AuthRequests(sessionHolder, datas).getUserInfoIfNeeded()
+
+        CoroutineScope(ioDispatcher).launch {
+            AuthRequests(sessionHolder, datas).getUserInfoIfNeeded()
+        }
     }
 
     override fun onLocationUpdate(location: Location) {
@@ -295,13 +312,10 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     fun reset(sdkId: String, sdkKey: String, customID: String) {
         sessionHolder.reset()
 
-        runBlocking {
-            withContext(dispatcher) {
-                herowDatabase.clearAllTables()
-            }
+        CoroutineScope(ioDispatcher).launch {
+            herowDatabase.clearAllTables()
+            configureAfterReset(sdkId, sdkKey, customID)
         }
-
-        configureAfterReset(sdkId, sdkKey, customID)
     }
 
     private fun configureAfterReset(sdkId: String, sdkKey: String, customID: String) {

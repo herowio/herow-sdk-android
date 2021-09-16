@@ -10,6 +10,10 @@ object GeofenceDispatcher {
         geofenceListeners.add(geofenceListener)
     }
 
+    fun unregisterGeofenceListener(geofenceListener: IGeofenceListener) {
+        geofenceListeners.remove(geofenceListener)
+    }
+
     private val geofenceListeners = CopyOnWriteArrayList<IGeofenceListener>()
 
     fun dispatchGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {

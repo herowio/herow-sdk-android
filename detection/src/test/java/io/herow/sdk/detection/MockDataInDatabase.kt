@@ -1,5 +1,7 @@
 package io.herow.sdk.detection
 
+import android.content.Context
+import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Capping
@@ -7,18 +9,27 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.koin.HerowKoinTestContext
+import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.test.KoinTest
-import org.koin.test.inject
+import org.junit.After
+import org.koin.core.component.inject
 
-class MockDataInDatabase : KoinTest {
-
+class MockDataInDatabase : ICustomKoinTestComponent {
     private val database: HerowDatabase by inject()
     private val zoneRepository: ZoneRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
-    suspend fun createAndInsertZoneOne(dispatcher: CoroutineDispatcher): Zone {
+    val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
+
+    init {
+        HerowKoinTestContext.init(context)
+    }
+
+    fun createAndInsertZoneOne(): Zone {
         val zone = Zone(
             hash = "testHashNotification",
             lat = 48.117266,
@@ -28,213 +39,211 @@ class MockDataInDatabase : KoinTest {
             access = null
         )
 
-        var zoneInDB: Zone?
-
-        withContext(dispatcher) {
-            zoneRepository.insert(zone)
-            zoneInDB = zoneRepository.getZoneByHash(zone.hash)!!
+        val zoneByHash = runBlocking {
+            withContext(ioDispatcher) {
+                zoneRepository.insert(zone)
+                zoneRepository.getZoneByHash(zone.hash)
+            }
         }
 
-        return zoneInDB!!
+        return zoneByHash!!
     }
 
-    suspend fun createAndInsertCampaignOne(dispatcher: CoroutineDispatcher): Campaign {
+    fun createAndInsertCampaignOne(): Campaign {
         val campaign = Campaign(
             id = "campaignOne"
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignById = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignById!!
     }
 
-    suspend fun createAndInsertCampaignTwo(dispatcher: CoroutineDispatcher): Campaign {
+    fun createAndInsertCampaignTwo(): Campaign {
         val campaign = Campaign(id = "campaignTwo")
-        var campaignInDB: Campaign?
 
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
-        }
+        campaignRepository.insert(campaign)
+        val campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
 
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun updateCampaignTwoWithCapping(dispatcher: CoroutineDispatcher): Campaign {
+    fun updateCampaignTwoWithCapping(): Campaign {
         val capping = Capping(
             maxNumberNotifications = 5
         )
-        var campaignInDB: Campaign?
 
-        withContext(dispatcher) {
-            campaignInDB = campaignRepository.getCampaignByID("campaignTwo")
-            campaignInDB!!.capping = capping
-            campaignRepository.update(campaignInDB!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                val tmpCampaign = campaignRepository.getCampaignByID("campaignTwo")
+                tmpCampaign!!.capping = capping
+                campaignRepository.update(tmpCampaign)
+                tmpCampaign
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb
     }
 
-    suspend fun createCampaignWithNoEnd(dispatcher: CoroutineDispatcher): Campaign {
+    fun createCampaignWithNoEnd(): Campaign {
         val campaign = Campaign(
             id = "CampaignNoEnd",
             begin = TimeHelper.getCurrentTime() - 5000
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
-        }
-
-        return campaignInDB!!
-    }
-
-    suspend fun updateCampaignWithEndBefore(campaign: Campaign, dispatcher: CoroutineDispatcher): Campaign {
-        var campaignInDb: Campaign?
-
-        withContext(dispatcher) {
-            campaign.end = TimeHelper.getCurrentTime() - 3000
-            campaignRepository.update(campaign)
-            campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
         return campaignInDb!!
     }
 
-    suspend fun updateCampaignWithEndAfter(campaign: Campaign, dispatcher: CoroutineDispatcher): Campaign {
-        var campaignInDb: Campaign?
+    fun updateCampaignWithEndBefore(campaign: Campaign): Campaign {
+        campaign.end = TimeHelper.getCurrentTime() - 3000
 
-        withContext(dispatcher) {
-            campaign.end = TimeHelper.getCurrentTime() + 3000
-            campaignRepository.update(campaign)
-            campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.update(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
         return campaignInDb!!
     }
 
-    suspend fun createCampaignWithLateBegin(dispatcher: CoroutineDispatcher): Campaign {
+    fun updateCampaignWithEndAfter(campaign: Campaign): Campaign {
+        campaign.end = TimeHelper.getCurrentTime() + 3000
+
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.update(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
+        }
+
+        return campaignInDb!!
+    }
+
+    fun createCampaignWithLateBegin(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithLateBegin",
             begin = 1780264800000
         )
 
-        var campaignInDB: Campaign?
+        campaignRepository.insert(campaign)
+        val campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
 
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
-        }
-
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun createCampaignWithMondayTuesdayFriday(dispatcher: CoroutineDispatcher): Campaign {
+    fun createCampaignWithMondayTuesdayFriday(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithMondayTuesdayAndFriday",
             daysRecurrence = listOf("monday", "tuesday", "friday")
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun createCampaignWithWednesday(dispatcher: CoroutineDispatcher): Campaign {
+    fun createCampaignWithWednesday(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithWednesday",
             daysRecurrence = listOf("tuesday", "wednesday")
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun createCampaignWithOnlyStartHour(dispatcher: CoroutineDispatcher): Campaign {
+    fun createCampaignWithOnlyStartHour(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithOnlyStartHour",
             startHour = "02:00"
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun createCampaignWithOnlyStopHour(dispatcher: CoroutineDispatcher): Campaign {
+
+    fun createCampaignWithOnlyStopHour(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithOnlyStopHour",
             stopHour = "23:00"
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun createCampaignWithShortSlot(dispatcher: CoroutineDispatcher): Campaign {
+    fun createCampaignWithShortSlot(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithShortSlot",
             startHour = "01:00",
             stopHour = "02:00"
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun createCampaignWithLongSlot(dispatcher: CoroutineDispatcher): Campaign {
+    fun createCampaignWithLongSlot(): Campaign {
         val campaign = Campaign(
             id = "CampaignWithLongSlot",
             startHour = "02:00",
             stopHour = "23:00"
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb!!
     }
 
-    suspend fun createCampaignWithCapping(dispatcher: CoroutineDispatcher): Campaign {
+    fun createCampaignWithCapping(): Campaign {
         val capping = Capping(
             maxNumberNotifications = 5
         )
@@ -243,13 +252,19 @@ class MockDataInDatabase : KoinTest {
             capping = capping
         )
 
-        var campaignInDB: Campaign?
-
-        withContext(dispatcher) {
-            campaignRepository.insert(campaign)
-            campaignInDB = campaignRepository.getCampaignByID(campaign.id!!)
+        val campaignInDb = runBlocking {
+            withContext(ioDispatcher) {
+                campaignRepository.insert(campaign)
+                campaignRepository.getCampaignByID(campaign.id!!)
+            }
         }
 
-        return campaignInDB!!
+        return campaignInDb!!
+    }
+
+    @After
+    fun cleanUp() {
+        println("Closing DB")
+        database.close()
     }
 }

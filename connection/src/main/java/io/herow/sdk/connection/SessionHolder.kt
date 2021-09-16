@@ -3,6 +3,7 @@ package io.herow.sdk.connection
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Campaign
@@ -262,10 +263,15 @@ class SessionHolder(private val dataHolder: DataHolder) {
         return map as HashMap<String, String>
     }
 
-    fun getHerowCapping(campaign: Campaign): HerowCapping? {
+    fun getHerowCapping(campaign: Campaign): HerowCapping {
         val string = getHerowCappings()[campaign.id] ?: ""
+
         val result = if (string.isEmpty()) {
-            null
+            HerowCapping().apply {
+                count = 0
+                razDate = TimeHelper.getCurrentTime()
+                campaignId = campaign.id!!
+            }
         } else {
             GsonProvider.fromJson(string, HerowCapping::class.java)
         }
