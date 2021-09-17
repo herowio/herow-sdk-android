@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.notification
 
 import android.content.Context
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
@@ -22,6 +23,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -40,9 +42,14 @@ class NotificationManagerTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var notificationManager: NotificationManager
 
-    private val db: HerowDatabase by inject()
-    private val campaignRepository: CampaignRepository by inject()
-    private val zoneRepository: ZoneRepository by inject()
+    private val db: HerowDatabase = Room.databaseBuilder(
+        context,
+        HerowDatabase::class.java,
+        "herow_test_BDD"
+    ).build()
+
+    private val campaignRepository: CampaignRepository = CampaignRepository(db.campaignDAO())
+    private val zoneRepository: ZoneRepository = ZoneRepository(db.zoneDAO())
 
     private lateinit var sessionHolder: SessionHolder
     private val listener = NotificationManagerListener()
@@ -108,7 +115,11 @@ class NotificationManagerTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
             Assert.assertTrue(zoneWithCampaigns.campaigns!![0] == campaignOne!!.id)
             Assert.assertTrue(listener.test == "OKAY")
         }
+    }
 
+    @After
+    fun cleanup() {
+        db.close()
     }
 }
 

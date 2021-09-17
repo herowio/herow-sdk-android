@@ -1,6 +1,7 @@
 package io.herow.sdk.detection
 
 import android.content.Context
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.cache.model.Campaign
@@ -14,16 +15,21 @@ import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.junit.After
 import org.koin.core.component.inject
 
 class MockDataInDatabase : ICustomKoinTestComponent {
-    private val database: HerowDatabase by inject()
-    private val zoneRepository: ZoneRepository by inject()
-    private val campaignRepository: CampaignRepository by inject()
-    private val ioDispatcher: CoroutineDispatcher by inject()
-
     val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
+
+    private val db: HerowDatabase = Room.databaseBuilder(
+        context,
+        HerowDatabase::class.java,
+        "herow_test_BDD"
+    ).build()
+
+    private val zoneRepository: ZoneRepository = ZoneRepository(db.zoneDAO())
+    private val campaignRepository: CampaignRepository = CampaignRepository(db.campaignDAO())
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
 
     init {
         HerowKoinTestContext.init(context)
@@ -46,6 +52,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
             }
         }
 
+        db.close()
         return zoneByHash!!
     }
 
@@ -60,7 +67,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignById!!
     }
 
@@ -69,7 +76,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
 
         campaignRepository.insert(campaign)
         val campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -86,7 +93,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 tmpCampaign
             }
         }
-
+        db.close()
         return campaignInDb
     }
 
@@ -102,7 +109,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -115,7 +122,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -128,7 +135,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -140,7 +147,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
 
         campaignRepository.insert(campaign)
         val campaignInDb = campaignRepository.getCampaignByID(campaign.id!!)
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -156,7 +163,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -172,7 +179,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -188,7 +195,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -205,7 +212,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -222,7 +229,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -239,7 +246,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
     }
 
@@ -258,13 +265,7 @@ class MockDataInDatabase : ICustomKoinTestComponent {
                 campaignRepository.getCampaignByID(campaign.id!!)
             }
         }
-
+        db.close()
         return campaignInDb!!
-    }
-
-    @After
-    fun cleanUp() {
-        println("Closing DB")
-        database.close()
     }
 }

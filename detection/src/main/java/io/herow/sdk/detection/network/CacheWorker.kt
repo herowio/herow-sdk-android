@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
@@ -17,8 +18,10 @@ import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.model.LocationMapper
 import io.herow.sdk.detection.geofencing.model.toLocation
+import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.CoroutineDispatcher
@@ -36,6 +39,8 @@ class CacheWorker(
 
     var testing = false
     private var inputGeoHash = inputData.getString(KEY_GEOHASH) ?: ""
+
+    private val db: HerowDatabase = Room.databaseBuilder(context, HerowDatabase::class.java, "herow_test_BDD").build()
     private val database: HerowDatabase by inject()
     private val zoneRepository: ZoneRepository by inject()
     private val poiRepository: PoiRepository by inject()
@@ -47,6 +52,10 @@ class CacheWorker(
     }
 
     override suspend fun doWork(): Result {
+        if (HerowInitializer.isTesting()) {
+            HerowKoinTestContext.init(context)
+        }
+
         val sessionHolder = SessionHolder(DataHolder(applicationContext))
         val authRequest = AuthRequests(sessionHolder, inputData)
 
@@ -103,14 +112,12 @@ class CacheWorker(
                         "Cache response body: ${cacheResponse.body()}"
                     )
                     GlobalLogger.shared.info(context, "CacheResult is $cacheResult")
-                    database.clearAllTables()
-                    GlobalLogger.shared.info(context, "Database has been cleared")
-
-                    for (zone in cacheResult!!.zones) {
-                        GlobalLogger.shared.info(context, "Zone is: $zone")
+                    if (!HerowInitializer.isTesting()) {
+                        database.clearAllTables()
+                        GlobalLogger.shared.info(context, "Database has been cleared")
                     }
 
-                    saveCacheDataInDB(cacheResult)
+                    saveCacheDataInDB(cacheResult!!)
                     GlobalLogger.shared.info(context, "CacheResult has been saved in BDD")
 
                     CacheDispatcher.dispatch()
@@ -137,30 +144,53 @@ class CacheWorker(
 
     private fun saveCacheDataInDB(cacheResult: CacheResult) {
         GlobalLogger.shared.info(context, "Cache result is: $cacheResult")
+
+        if (HerowInitializer.isTesting()) {
+            db.clearAllTables()
+        }
+
         if (!cacheResult.zones.isNullOrEmpty()) {
             for (zone in cacheResult.zones) {
-                zoneRepository.insert(zone)
+                if (HerowInitializer.isTesting()) {
+                    ZoneRepository(db.zoneDAO()).insert(zone)
+                } else {
+                    zoneRepository.insert(zone)
+                }
             }
             GlobalLogger.shared.info(context, "Zones have been saved in DB")
         }
 
         if (!cacheResult.pois.isNullOrEmpty()) {
             for (poi in cacheResult.pois) {
-                poiRepository.insert(poi)
+                if (HerowInitializer.isTesting()) {
+                    println("poi to insert is: $poi")
+                    PoiRepository(db.poiDAO()).insert(poi)
+                } else {
+                    poiRepository.insert(poi)
+                }
             }
             GlobalLogger.shared.info(context, "Pois have been saved in DB")
         }
 
         if (!cacheResult.campaigns.isNullOrEmpty()) {
             for (campaign in cacheResult.campaigns) {
-                campaignRepository.insert(campaign)
+                if (HerowInitializer.isTesting()) {
+                    CampaignRepository(db.campaignDAO()).insert(campaign)
+                } else {
+                    campaignRepository.insert(campaign)
+                }
             }
             GlobalLogger.shared.info(context, "Campaigns have been saved in DB")
         }
     }
 
     private fun sendNotification(locationMapper: LocationMapper) {
-        val zonesResult = zoneRepository.getAllZones() as ArrayList<Zone>
+        val zonesResult = if (HerowInitializer.isTesting()) {
+            ZoneRepository(db.zoneDAO()).getAllZones() as ArrayList<Zone>
+        } else {
+            zoneRepository.getAllZones() as ArrayList<Zone>
+        }
+
         val location = LocationMapper().toLocation(locationMapper)
 
         GlobalLogger.shared.info(context, "ZonesResult is $zonesResult")

@@ -1,6 +1,7 @@
 package io.herow.sdk.detection
 
 import android.content.Context
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
@@ -13,7 +14,11 @@ import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -28,24 +33,24 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 class HerowInitializerTest : KoinTest, ICustomKoinTestComponent {
 
-    private lateinit var context: Context
+    private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var sessionHolder: SessionHolder
     private var campaigns: List<Campaign>? = mutableListOf()
     private var zones: List<Zone>? = mutableListOf()
     private var pois: List<Poi>? = mutableListOf()
 
     private val ioDispatcher: CoroutineDispatcher by inject()
-    private val database: HerowDatabase by inject()
-    private val zoneRepository: ZoneRepository by inject()
-    private val poiRepository: PoiRepository by inject()
-    private val campaignRepository: CampaignRepository by inject()
+    private val database: HerowDatabase =
+        Room.databaseBuilder(context, HerowDatabase::class.java, "herow_test_BDD").build()
+    private val zoneRepository: ZoneRepository = ZoneRepository(database.zoneDAO())
+    private val poiRepository: PoiRepository = PoiRepository(database.poiDAO())
+    private val campaignRepository: CampaignRepository = CampaignRepository(database.campaignDAO())
 
     @Before
     fun setUp() {
-        context = InstrumentationRegistry.getInstrumentation().targetContext
-        sessionHolder = SessionHolder(DataHolder(context))
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
+        sessionHolder = SessionHolder(DataHolder(context))
     }
 
     @Test
@@ -54,7 +59,7 @@ class HerowInitializerTest : KoinTest, ICustomKoinTestComponent {
 
         Assert.assertTrue(sessionHolder.getAll() == 0)
 
-        CoroutineScope(ioDispatcher).launch(CoroutineName("test-herow-initializer")) {
+        withContext(ioDispatcher) {
             pois = poiRepository.getAllPois()
             zones = zoneRepository.getAllZones()
             campaigns = campaignRepository.getAllCampaigns()
@@ -63,5 +68,10 @@ class HerowInitializerTest : KoinTest, ICustomKoinTestComponent {
         Assert.assertTrue(pois.isNullOrEmpty())
         Assert.assertTrue(zones.isNullOrEmpty())
         Assert.assertTrue(campaigns.isNullOrEmpty())
+    }
+
+    @After
+    fun cleanUp() {
+        database.close()
     }
 }

@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.analytics
 
 import android.content.Context
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
@@ -18,20 +19,21 @@ import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import kotlinx.coroutines.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.greaterThan
-import org.junit.After
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.inject
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
+//TODO This one fails - Expected 1 found 0
 @ExperimentalCoroutinesApi
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class LogGeneratorEventTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
+
+    @get:Rule
+    val executorRule = InstantTaskExecutorRule()
 
     private val ioDispatcher: CoroutineDispatcher by inject()
     private val herowLogsListener = HerowLogsListener()
@@ -104,9 +106,7 @@ class LogGeneratorEventTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
                 )
             )
 
-
-            val firstGeofenceEvent =
-                GeofenceEvent(firstZone, MockLocation().buildLocation(), GeofenceType.EXIT, confidence)
+            val firstGeofenceEvent = GeofenceEvent(firstZone, MockLocation().buildLocation(), GeofenceType.ENTER, confidence)
             val secondGeofenceEvent = GeofenceEvent(
                 secondZone,
                 MockLocation().buildLocation(),
@@ -119,7 +119,8 @@ class LogGeneratorEventTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
             delay(500)
 
             val updatedFirstGeofenceEvent =
-                GeofenceEvent(firstZone, MockLocation().buildLocation(), GeofenceType.ENTER, confidence)
+                GeofenceEvent(firstZone, MockLocation().buildLocation(), GeofenceType.EXIT, confidence)
+
             logGeneratorEvent.onGeofenceEvent(listOf(updatedFirstGeofenceEvent, secondGeofenceEvent))
             Assert.assertEquals(1, herowLogsListener.herowLogsVisit.size)
 

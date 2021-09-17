@@ -21,7 +21,6 @@ object LogsDispatcher {
         GlobalLogger.shared.info(null, "Dispatching logs: $listOfLogs")
         for (logsListener in logsListeners) {
             if (listOfLogs.isNotEmpty()) {
-
                 logsListener.onLogsToSend(listOfLogs)
             }
         }

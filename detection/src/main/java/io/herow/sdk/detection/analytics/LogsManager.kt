@@ -7,8 +7,10 @@ import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
+import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.logs.Log
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.location.LocationDispatcher
@@ -70,6 +72,7 @@ class LogsManager(private val context: Context) : ILogsListener {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
+
         val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<LogsWorker>()
             .addTag(NetworkWorkerTags.LOGS)
             .setConstraints(constraints)
@@ -78,7 +81,11 @@ class LogsManager(private val context: Context) : ILogsListener {
                     AuthRequests.KEY_SDK_ID to workOfData[Constants.SDK_ID],
                     AuthRequests.KEY_SDK_KEY to workOfData[Constants.SDK_KEY],
                     AuthRequests.KEY_CUSTOM_ID to workOfData[Constants.CUSTOM_ID],
-                    AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name,
+                    if(HerowInitializer.isTesting()) {
+                        AuthRequests.KEY_PLATFORM to HerowPlatform.TEST.name
+                    } else {
+                        AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name
+                    },
                     LogsWorker.workerID to uuid
                 )
             )

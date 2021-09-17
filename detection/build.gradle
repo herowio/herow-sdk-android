@@ -14,4 +14,7 @@ dependencies {
 
     // Testing Worker
     testImplementation 'androidx.work:work-testing:2.5.0'
+
+    // Test helpers
+    testImplementation 'androidx.arch.core:core-testing:2.1.0'
 }
