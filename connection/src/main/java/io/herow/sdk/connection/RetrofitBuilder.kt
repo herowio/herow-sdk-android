@@ -15,6 +15,7 @@ object RetrofitBuilder {
         apiClass: Class<T>,
         addLoggingInterceptor: Boolean = false
     ): T {
+        print("api = $apiURL")
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl(apiURL)
             .addConverterFactory(ScalarsConverterFactory.create())
