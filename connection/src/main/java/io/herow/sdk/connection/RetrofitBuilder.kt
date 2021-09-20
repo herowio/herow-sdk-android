@@ -6,6 +6,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.net.URL
 
 object RetrofitBuilder {
 
@@ -15,9 +16,10 @@ object RetrofitBuilder {
         apiClass: Class<T>,
         addLoggingInterceptor: Boolean = false
     ): T {
-        print("api = $apiURL")
+
+        val url = URL(apiURL)
         val retrofit: Retrofit = Retrofit.Builder()
-            .baseUrl(apiURL)
+            .baseUrl(url)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .client(getOkHttpClient(sessionHolder, addLoggingInterceptor))
