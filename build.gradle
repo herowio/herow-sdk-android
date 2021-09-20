@@ -1,14 +1,14 @@
 buildscript {
     ext {
-        kotlin_version = "1.5.21"
+        kotlin_version = "1.5.30"
         kotlin_coroutines_version = "1.4.3"
         lifecycle_version = "2.2.0"
-        okhttp_version = "4.9.0"
-        play_services_ads = "20.2.0"
+        okhttp_version = "4.9.1"
+        play_services_ads = "20.3.0"
         play_services_location = "17.1.0"
-        retrofit_version = "2.7.2"
-        worker_version = "2.5.0"
-        room_version = "2.2.6"
+        retrofit_version = "2.9.0"
+        worker_version = "2.6.0"
+        room_version = "2.3.0"
         easy_permission = "0.1.0"
         koin_version = "3.1.2"
     }

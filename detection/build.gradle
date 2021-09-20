@@ -13,7 +13,7 @@ dependencies {
     compileOnly "com.google.android.gms:play-services-ads:$play_services_ads"
 
     // Testing Worker
-    testImplementation 'androidx.work:work-testing:2.5.0'
+    testImplementation "androidx.work:work-testing:$worker_version"
 
     // Test helpers
     testImplementation 'androidx.arch.core:core-testing:2.1.0'
