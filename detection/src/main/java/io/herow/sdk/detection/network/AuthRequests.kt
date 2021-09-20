@@ -18,6 +18,7 @@ import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.network.model.RetrofitConnectionObject
 import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.component.inject
+import java.net.MalformedURLException
 
 /**
  * Token and UserInfo workflow
@@ -55,7 +56,11 @@ class AuthRequests(
             launchTokenRequest(sessionHolder, platform, herowAPI, request)
         } else {
             GlobalLogger.shared.info(null, "Token is usable or isWorking")
-            request(herowAPI)
+            try {
+                request(herowAPI)
+            } catch (malformedException: MalformedURLException) {
+                println("Exception in URL, cause is: ${malformedException.cause} - ${malformedException.message}")
+            }
         }
     }
 
