@@ -12,7 +12,7 @@ interface IHerowAPI {
         const val PRE_PROD_BASE_URL = "https://sdk7-preprod.herow.io"
         //const val PRE_PROD_BASE_URL = "https://m-preprod.herow.io"
         const val PROD_BASE_URL = "https://sdk7.herow.io"
-        const val TEST_BASE_URL = "https://herow-sdk-backend-poc.ew.r.appspot.com/"
+        const val TEST_BASE_URL = "https://herow-sdk-backend-poc.ew.r.appspot.com"
     }
 
     @Headers(
