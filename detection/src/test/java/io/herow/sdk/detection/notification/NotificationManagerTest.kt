@@ -3,7 +3,6 @@ package io.herow.sdk.detection.notification
 import android.content.Context
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
@@ -37,9 +36,10 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class NotificationManagerTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
-
     private val ioDispatcher: CoroutineDispatcher by inject()
-    private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
+    private val sessionHolder: SessionHolder by inject()
+
+    private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var notificationManager: NotificationManager
 
     private val db: HerowDatabase = Room.databaseBuilder(
@@ -50,8 +50,6 @@ class NotificationManagerTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
 
     private val campaignRepository: CampaignRepository = CampaignRepository(db.campaignDAO())
     private val zoneRepository: ZoneRepository = ZoneRepository(db.zoneDAO())
-
-    private lateinit var sessionHolder: SessionHolder
     private val listener = NotificationManagerListener()
     private val liveEvents = arrayListOf<GeofenceEvent>()
     private val mockLocation = MockLocation()
@@ -64,8 +62,8 @@ class NotificationManagerTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
     fun setUp() {
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
-        sessionHolder = SessionHolder(DataHolder(context))
-        notificationManager = NotificationManager(context, sessionHolder)
+        sessionHolder.reset()
+        notificationManager = NotificationManager(context)
 
         GeofenceDispatcher.addGeofenceListener(listener)
     }

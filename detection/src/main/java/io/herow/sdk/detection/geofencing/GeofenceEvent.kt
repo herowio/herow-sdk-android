@@ -116,5 +116,4 @@ data class GeofenceEvent(
 
         return (result * 100.0).roundToInt() / 100.0
     }
-
 }

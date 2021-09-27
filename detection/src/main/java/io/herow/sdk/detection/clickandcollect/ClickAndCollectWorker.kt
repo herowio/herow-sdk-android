@@ -12,20 +12,22 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import org.koin.core.component.inject
 
 @SuppressLint("InlinedApi")
 class ClickAndCollectWorker(
     context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters), ILocationPriorityListener {
+) : CoroutineWorker(context, workerParameters), ILocationPriorityListener, ICustomKoinComponent {
+    private val sessionHolder: SessionHolder by inject()
 
     companion object {
         private const val LOCATION_REQUEST_CODE = 2021
@@ -55,8 +57,6 @@ class ClickAndCollectWorker(
     }
 
     override suspend fun doWork(): Result {
-        val sessionHolder = SessionHolder(DataHolder(applicationContext))
-
         return coroutineScope {
             sessionHolder.saveClickAndCollectProgress(true)
             val job = async {
@@ -88,7 +88,7 @@ class ClickAndCollectWorker(
         if (hasLocationPermission()) {
             launchLocationsUpdate()
         }
-        // In order to only test
+        // In order to test only
         if (TimeHelper.testing) {
             delay(TimeHelper.TWO_SECONDS_MS)
         } else {

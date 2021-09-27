@@ -14,7 +14,7 @@ object HerowKoinContext {
         koinApplication {
             androidContext(appContext)
             androidLogger(Level.INFO)
-            modules(listOf(dispatcherModule, databaseModule))
+            modules(listOf(dispatcherModule, databaseModule, sessionModule))
         }.koin
     }
 

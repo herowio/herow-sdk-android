@@ -3,7 +3,6 @@ package io.herow.sdk.detection.network
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowHeaders
@@ -26,28 +25,28 @@ class ConfigWorker(
 ) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
 
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
     var testing = false
 
     override suspend fun doWork(): Result {
-        val sessionHolder = SessionHolder(DataHolder(applicationContext))
         GlobalLogger.shared.info(applicationContext, "DoWork is called")
 
-        val authRequest = AuthRequests(sessionHolder, inputData)
+        val authRequest = AuthRequests(inputData)
 
         withContext(ioDispatcher) {
             authRequest.execute {
                 GlobalLogger.shared.info(applicationContext, "Launching configRequest")
-                launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
+                launchConfigRequest(authRequest.getHerowAPI())
             }
         }
 
         return Result.success()
     }
 
-    private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: IHerowAPI) {
+    private suspend fun launchConfigRequest(herowAPI: IHerowAPI) {
         GlobalLogger.shared.info(
             applicationContext,
-            "Should launch: ${shouldLaunchConfigRequest(sessionHolder)}"
+            "Should launch: ${shouldLaunchConfigRequest()}"
         )
         val configResponse = herowAPI.config()
         GlobalLogger.shared.info(
@@ -68,10 +67,7 @@ class ConfigWorker(
                 val headers = configResponse.headers()
                 GlobalLogger.shared.info(context = null, "Headers in ConfigWorker are: $headers")
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->
-                    defineCacheStatus(
-                        sessionHolder,
-                        remoteCachedTime
-                    )
+                    defineCacheStatus(remoteCachedTime)
                 }
 
                 GlobalLogger.shared.info(context = null, "Headers are: $headers")
@@ -85,11 +81,10 @@ class ConfigWorker(
      * Check if cache time has already been saved into SP
      */
     private fun defineCacheStatus(
-        sessionHolder: SessionHolder,
         remoteCachedTime: String
     ) {
         if (!sessionHolder.hasNoCacheTimeSaved()) {
-            if (shouldCacheBeUpdated(remoteCachedTime, sessionHolder)) {
+            if (shouldCacheBeUpdated(remoteCachedTime)) {
                 sessionHolder.updateCache(true)
             } else {
                 sessionHolder.updateCache(false)
@@ -106,8 +101,7 @@ class ConfigWorker(
      * in order to compare them
      */
     private fun shouldCacheBeUpdated(
-        remoteCachedTime: String,
-        sessionHolder: SessionHolder
+        remoteCachedTime: String
     ): Boolean {
         val savedTimeStamp =
             DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
@@ -126,7 +120,7 @@ class ConfigWorker(
      * To avoid lauching Config request too early
      * we need to make sure the repeat interval value is respected
      */
-    private fun shouldLaunchConfigRequest(sessionHolder: SessionHolder): Boolean {
+    private fun shouldLaunchConfigRequest(): Boolean {
         if (sessionHolder.firstTimeLaunchingConfig()) {
             return true
         }

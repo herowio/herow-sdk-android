@@ -30,11 +30,11 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 class ClickAndCollectWorkerTest : KoinTest, ICustomKoinTestComponent {
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
 
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var worker: ClickAndCollectWorker
-    private lateinit var dataHolder: io.herow.sdk.common.DataHolder
-    private lateinit var sessionHolder: SessionHolder
+
     private lateinit var clickAndCollectWorkerListener: ClickAndCollectWorkerListener
     private lateinit var herowInitializer: HerowInitializer
 
@@ -42,6 +42,8 @@ class ClickAndCollectWorkerTest : KoinTest, ICustomKoinTestComponent {
     fun setUp() {
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
+        sessionHolder.reset()
+
         herowInitializer = HerowInitializer.getInstance(context, true)
         TimeHelper.testing = true
         DeviceHelper.testing = true
@@ -50,9 +52,6 @@ class ClickAndCollectWorkerTest : KoinTest, ICustomKoinTestComponent {
             .build()
 
         clickAndCollectWorkerListener = ClickAndCollectWorkerListener()
-
-        dataHolder = io.herow.sdk.common.DataHolder(context)
-        sessionHolder = SessionHolder(dataHolder)
     }
 
     @Test

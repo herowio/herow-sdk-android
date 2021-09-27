@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
@@ -56,9 +55,8 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     private var notificationManager: NotificationManager
     private var cacheManager: CacheManager
 
-    private var sessionHolder: SessionHolder
-
     //Koin
+    private val sessionHolder: SessionHolder by inject()
     private val herowDatabase: HerowDatabase by inject()
     private val ioDispatcher: CoroutineDispatcher by inject()
     private val zoneRepository: ZoneRepository by inject()
@@ -66,13 +64,12 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     init {
         ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
-        sessionHolder = SessionHolder(DataHolder(context))
         workManager = WorkManager.getInstance(context)
         logsManager = LogsManager(context)
         cacheManager = CacheManager(context)
         loadIdentifiers(context)
-        locationManager = LocationManager(context, sessionHolder, true)
-        notificationManager = NotificationManager(context, sessionHolder)
+        locationManager = LocationManager(context, true)
+        notificationManager = NotificationManager(context)
         registerListeners()
     }
 
@@ -305,7 +302,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         )
 
         CoroutineScope(ioDispatcher).launch {
-            AuthRequests(sessionHolder, datas).getUserInfoIfNeeded()
+            AuthRequests(datas).getUserInfoIfNeeded()
         }
     }
 

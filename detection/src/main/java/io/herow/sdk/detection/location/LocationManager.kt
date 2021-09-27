@@ -11,7 +11,6 @@ import com.google.android.gms.location.LocationServices
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.IAppStateListener
-import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigResult
@@ -28,10 +27,8 @@ import org.koin.core.component.inject
 
 class LocationManager(
     context: Context,
-    val sessionHolder: SessionHolder,
     var testing: Boolean = false
 ) : IConfigListener, IAppStateListener, ILocationPriorityListener, ICustomKoinComponent {
-
     private val ioDispatcher: CoroutineDispatcher by inject()
 
     private var isOnForeground: Boolean = false
@@ -40,7 +37,7 @@ class LocationManager(
     private val fusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
-    private val geofenceEventGenerator = GeofenceEventGenerator(sessionHolder)
+    private val geofenceEventGenerator = GeofenceEventGenerator()
     private var locationCallback: LocationCallback
     private var zones: List<Zone>? = null
 

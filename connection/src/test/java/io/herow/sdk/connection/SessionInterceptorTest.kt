@@ -18,14 +18,13 @@ import java.util.*
 class SessionInterceptorTest {
     private val mockWebServer = MockWebServer()
     private lateinit var fakeAPI: FakeAPI
-    private lateinit var dataHolder: SessionHolder
+    private lateinit var sessionHolder: SessionHolder
 
     @Before
     fun setUp() {
-        dataHolder = SessionHolder(DataHolder(ApplicationProvider.getApplicationContext()))
+        sessionHolder = SessionHolder(DataHolder(ApplicationProvider.getApplicationContext()))
         val serverURL = mockWebServer.url("/").toString()
-        fakeAPI =
-            RetrofitBuilder.buildRetrofitForAPI(dataHolder, serverURL, FakeAPI::class.java, true)
+        fakeAPI = RetrofitBuilder.buildRetrofitForAPI(sessionHolder, serverURL, FakeAPI::class.java, true)
     }
 
     @Test
@@ -37,9 +36,9 @@ class SessionInterceptorTest {
         Assert.assertFalse(headers.contains(HerowHeaders.DEVICE_ID_HEADER))
         Assert.assertFalse(headers.contains(HerowHeaders.HEROW_ID_HEADER))
 
-        dataHolder.saveAccessToken(UUID.randomUUID().toString())
-        dataHolder.saveDeviceId(UUID.randomUUID().toString())
-        dataHolder.saveHerowId(UUID.randomUUID().toString())
+        sessionHolder.saveAccessToken(UUID.randomUUID().toString())
+        sessionHolder.saveDeviceId(UUID.randomUUID().toString())
+        sessionHolder.saveHerowId(UUID.randomUUID().toString())
 
         mockWebServer.enqueue(MockResponse())
         fakeAPI.getAnswerToUniverse().execute()

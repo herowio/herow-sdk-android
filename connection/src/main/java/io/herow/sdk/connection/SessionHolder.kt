@@ -155,7 +155,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun saveCustomProdURL(prodURL: String) {
         print("Saving prodURL: $prodURL")
         dataHolder[KEY_CUSTOM_PROD_URL] = prodURL
-
     }
 
     fun getCurrentURL(): String = when (getPlatformName()) {

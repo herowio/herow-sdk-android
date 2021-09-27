@@ -2,7 +2,6 @@ package io.herow.sdk.detection.notification.filters
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.detection.HerowInitializer
@@ -29,13 +28,13 @@ class ValidityFilterTest : KoinTest, ICustomKoinTestComponent {
 
     private val ioDispatcher: CoroutineDispatcher by inject()
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-    private lateinit var sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder by inject()
 
     @Before
     fun setUp() {
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
-        sessionHolder = SessionHolder(DataHolder(context))
+        sessionHolder.reset()
     }
 
     @Test

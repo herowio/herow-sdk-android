@@ -3,7 +3,6 @@ package io.herow.sdk.detection
 import android.content.Context
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Poi
@@ -34,7 +33,7 @@ import org.robolectric.annotation.Config
 class HerowInitializerTest : KoinTest, ICustomKoinTestComponent {
 
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-    private lateinit var sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder by inject()
     private var campaigns: List<Campaign>? = mutableListOf()
     private var zones: List<Zone>? = mutableListOf()
     private var pois: List<Poi>? = mutableListOf()
@@ -50,13 +49,11 @@ class HerowInitializerTest : KoinTest, ICustomKoinTestComponent {
     fun setUp() {
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
-        sessionHolder = SessionHolder(DataHolder(context))
+        sessionHolder.reset()
     }
 
     @Test
     fun testHerowInitializer() = runBlocking {
-        sessionHolder.reset()
-
         Assert.assertTrue(sessionHolder.getAll() == 0)
 
         withContext(ioDispatcher) {

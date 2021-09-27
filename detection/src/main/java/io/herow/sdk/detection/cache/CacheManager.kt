@@ -4,7 +4,6 @@ import android.content.Context
 import android.location.Location
 import androidx.work.*
 import com.google.gson.Gson
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
@@ -26,13 +25,14 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
 
     private val ioDispatcher: CoroutineDispatcher by inject()
     private val workManager = WorkManager.getInstance(context)
-    private val sessionHolder = SessionHolder(DataHolder(context))
-    private val workOfData = WorkHelper.getWorkOfData(sessionHolder)
-    private val platform = WorkHelper.getPlatform(sessionHolder)
+    private val sessionHolder: SessionHolder by inject()
+
+    private val workOfData = WorkHelper.getWorkOfData()
+    private val platform = WorkHelper.getPlatform()
 
     override fun onLocationUpdate(location: Location) {
         GlobalLogger.shared.info(context, "Into onLocationUpdate from CacheManager")
-        val shouldGetCache = shouldGetCache(sessionHolder, location)
+        val shouldGetCache = shouldGetCache(location)
         GlobalLogger.shared.info(context, "Should get cache: $shouldGetCache")
 
         if (shouldGetCache) {
@@ -53,7 +53,7 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            val locationMapper = location.toLocationMapper(location)
+            val locationMapper = toLocationMapper(location)
 
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<CacheWorker>()
                 .addTag(NetworkWorkerTags.CACHE)
@@ -82,7 +82,6 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
      * Then check if GeoHash is empty or different from saved data
      */
     private fun isGeoHashUnknownOrDifferent(
-        sessionHolder: SessionHolder,
         location: Location
     ): Boolean {
         val inputGeohash: String = GeoHashHelper.encodeBase32(location).substring(0, 4)
@@ -106,7 +105,7 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
         return false
     }
 
-    private fun shouldFetchNow(sessionHolder: SessionHolder): Boolean {
+    private fun shouldFetchNow(): Boolean {
         val expirationCacheTime =
             DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
         val lastTimeCacheWasLaunched = sessionHolder.getLastTimeCacheWasLaunched()
@@ -114,8 +113,8 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
         return lastTimeCacheWasLaunched == 0L || lastTimeCacheWasLaunched < expirationCacheTime
     }
 
-    private fun shouldGetCache(sessionHolder: SessionHolder, location: Location): Boolean {
-        val differentHash = isGeoHashUnknownOrDifferent(sessionHolder, location)
+    private fun shouldGetCache(location: Location): Boolean {
+        val differentHash = isGeoHashUnknownOrDifferent(location)
         val lastFetchDate = sessionHolder.getLastTimeCacheWasLaunched()
         val lastCacheModifiedDate: Long =
             if (sessionHolder.getLastSavedModifiedDateTimeCache().isEmpty()) {
@@ -134,7 +133,7 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
         }
 
         val cacheIsNotUpToDate = lastFetchDate < lastCacheModifiedDate
-        val fetchNow = shouldFetchNow(sessionHolder)
+        val fetchNow = shouldFetchNow()
 
         GlobalLogger.shared.info(context, "Last fetch date: $lastFetchDate")
         GlobalLogger.shared.info(context, "Last cache modified: $lastCacheModifiedDate")

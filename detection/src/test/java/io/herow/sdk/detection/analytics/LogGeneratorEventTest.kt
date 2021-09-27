@@ -3,7 +3,6 @@ package io.herow.sdk.detection.analytics
 import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.platform.app.InstrumentationRegistry
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Access
 import io.herow.sdk.connection.cache.model.Poi
@@ -36,6 +35,8 @@ class LogGeneratorEventTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
     val executorRule = InstantTaskExecutorRule()
 
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
+
     private val herowLogsListener = HerowLogsListener()
     private lateinit var logGeneratorEvent: LogGeneratorEvent
 
@@ -46,10 +47,11 @@ class LogGeneratorEventTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
     fun setUp() {
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
-        val applicationData = ApplicationData(context)
-        val sessionHolder = SessionHolder(DataHolder(context))
 
-        logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)
+        sessionHolder.reset()
+        val applicationData = ApplicationData(context)
+
+        logGeneratorEvent = LogGeneratorEvent(applicationData, context)
 
         val fakeZone = Zone(
             hash = "ivbxbhxm8rnk",

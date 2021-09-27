@@ -10,7 +10,7 @@ data class LocationMapper(
     var timestamp: Long = 0L
 )
 
-fun Location.toLocationMapper(location: Location): LocationMapper = LocationMapper(
+fun toLocationMapper(location: Location): LocationMapper = LocationMapper(
     location.speed,
     location.accuracy,
     location.longitude,

@@ -4,9 +4,13 @@ import android.location.Location
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.zones.IZoneListener
+import org.koin.core.component.inject
 
-class GeofenceEventGenerator(val sessionHolder: SessionHolder) : IZoneListener {
+class GeofenceEventGenerator: IZoneListener, ICustomKoinComponent {
+    private val sessionHolder: SessionHolder by inject()
+
     private var previousDetectedZones: ArrayList<Zone> = if (sessionHolder.hasPreviousZones()) {
         sessionHolder.getSavedPreviousZones()
     } else {
@@ -23,7 +27,6 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder) : IZoneListener {
     private val confidenceToUpdate = -1.0
 
     override fun detectedZones(zones: List<Zone>, location: Location) {
-
         GlobalLogger.shared.info(null, "Into detectedZones method")
         defineGeofenceEventType(zones, location, null, previousDetectedZones)
     }
@@ -121,7 +124,6 @@ class GeofenceEventGenerator(val sessionHolder: SessionHolder) : IZoneListener {
                 }
             }
         }
-
 
         if (type == GeofenceType.GEOFENCE_NOTIFICATION_ENTER) {
             previousDetectedZonesForNotification.clear()

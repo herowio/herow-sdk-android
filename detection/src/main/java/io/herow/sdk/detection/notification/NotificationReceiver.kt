@@ -3,15 +3,18 @@ package io.herow.sdk.detection.notification
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.analytics.ApplicationData
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.model.LogRedirect
+import io.herow.sdk.detection.koin.ICustomKoinComponent
+import org.koin.core.component.inject
 
-class NotificationReceiver : BroadcastReceiver() {
+class NotificationReceiver : BroadcastReceiver(), ICustomKoinComponent {
+
+    private val sessionHolder: SessionHolder by inject()
 
     /** This event is called when user clicks on a notification
      * We dispatch a Log with subtype REDIRECT whenever someone clicks on a notification **/
@@ -19,7 +22,6 @@ class NotificationReceiver : BroadcastReceiver() {
         GlobalLogger.shared.info(context, "Data received from notification: $intent")
 
         val applicationData = ApplicationData(context!!)
-        val sessionHolder = SessionHolder(DataHolder(context))
 
         val hashZone: String? = intent.getStringExtra(NotificationManager.ID_ZONE)
         val idCampaign: String? = intent.getStringExtra(NotificationManager.ID_CAMPAIGN)

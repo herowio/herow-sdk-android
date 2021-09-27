@@ -2,7 +2,6 @@ package io.herow.sdk.detection.notification.filters
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.SessionHolder
@@ -33,16 +32,13 @@ class CappingFilterTest: KoinTest, ICustomKoinTestComponent {
 
     private val ioDispatcher: CoroutineDispatcher by inject()
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-    private lateinit var sessionHolder: SessionHolder
-
-    init {
-        HerowInitializer.setStaticTesting(true)
-        HerowKoinTestContext.init(context)
-    }
+    private val sessionHolder: SessionHolder by inject()
 
     @Before
     fun setUp() {
-        sessionHolder = SessionHolder(DataHolder(context))
+        HerowInitializer.setStaticTesting(true)
+        HerowKoinTestContext.init(context)
+        sessionHolder.reset()
     }
 
     @Test

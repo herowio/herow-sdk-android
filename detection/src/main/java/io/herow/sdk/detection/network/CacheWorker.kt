@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
@@ -46,6 +45,7 @@ class CacheWorker(
     private val poiRepository: PoiRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
@@ -56,8 +56,7 @@ class CacheWorker(
             HerowKoinTestContext.init(context)
         }
 
-        val sessionHolder = SessionHolder(DataHolder(applicationContext))
-        val authRequest = AuthRequests(sessionHolder, inputData)
+        val authRequest = AuthRequests(inputData)
 
         GlobalLogger.shared.info(context, "Inside doWork() from CacheWorker")
         GlobalLogger.shared.info(context, "InputData $inputData")
@@ -77,7 +76,6 @@ class CacheWorker(
             authRequest.execute {
                 GlobalLogger.shared.info(context, "Launching cacheRequest")
                 launchCacheRequest(
-                    sessionHolder,
                     authRequest.getHerowAPI(),
                     locationMapper
                 )
@@ -92,11 +90,10 @@ class CacheWorker(
      * If cache interval has been reached, cache is updated
      */
     private suspend fun launchCacheRequest(
-        sessionHolder: SessionHolder,
         herowAPI: IHerowAPI,
         locationMapper: LocationMapper
     ) {
-        val extractedGeoHash = extractGeoHash(sessionHolder)
+        val extractedGeoHash = extractGeoHash()
         if (extractedGeoHash.isNotEmpty()) {
             val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
             GlobalLogger.shared.info(context, "Cache response is $cacheResponse")
@@ -133,7 +130,7 @@ class CacheWorker(
     /**
      * Save geohash into session
      */
-    private fun extractGeoHash(sessionHolder: SessionHolder): String {
+    private fun extractGeoHash(): String {
         if (inputGeoHash.isNotEmpty()) {
             sessionHolder.saveGeohash(inputGeoHash)
             return inputGeoHash

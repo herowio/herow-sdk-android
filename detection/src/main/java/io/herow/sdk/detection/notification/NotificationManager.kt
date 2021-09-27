@@ -24,8 +24,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 class NotificationManager(
-    private val context: Context,
-    private val sessionHolder: SessionHolder
+    private val context: Context
 ) :
     IGeofenceListener, ICustomKoinComponent {
 
@@ -35,6 +34,7 @@ class NotificationManager(
     private var notificationOnExactEntry = false
 
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
 
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000

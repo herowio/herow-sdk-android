@@ -35,11 +35,12 @@ import org.koin.core.component.inject
  */
 class LogGeneratorEvent(
     private val applicationData: ApplicationData,
-    private val sessionHolder: SessionHolder,
     val context: Context
 ) :
     ICustomKoinComponent, IAppStateListener, ILocationListener, IGeofenceListener,
     INotificationListener {
+
+    private val sessionHolder: SessionHolder by inject()
 
     companion object {
         private const val DISTANCE_MAX = 20_000
@@ -75,7 +76,6 @@ class LogGeneratorEvent(
         }
 
         val herowLogContext = HerowLogContext(
-            sessionHolder,
             appState,
             location,
             nearbyPois,

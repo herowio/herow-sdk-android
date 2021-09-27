@@ -3,7 +3,6 @@ package io.herow.sdk.detection.network
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.SessionHolder
@@ -18,7 +17,7 @@ class LogsWorker(
 ) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
 
     private val ioDispatcher: CoroutineDispatcher by inject()
-    private lateinit var sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder by inject()
     var testing = false
 
     companion object {
@@ -28,9 +27,7 @@ class LogsWorker(
     }
 
     override suspend fun doWork(): Result {
-        sessionHolder = SessionHolder(DataHolder(applicationContext))
-
-        val authRequests = AuthRequests(sessionHolder, inputData)
+        val authRequests = AuthRequests(inputData)
         if (!sessionHolder.getOptinValue()) {
             GlobalLogger.shared.debug(context, "Optin value is set to false")
 

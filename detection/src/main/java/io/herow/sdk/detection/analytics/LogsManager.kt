@@ -3,7 +3,6 @@ package io.herow.sdk.detection.analytics
 import android.content.Context
 import androidx.work.*
 import com.google.gson.Gson
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
@@ -13,16 +12,19 @@ import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.LogsWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
+import org.koin.core.component.inject
 import java.util.*
 
-class LogsManager(private val context: Context) : ILogsListener {
+class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComponent {
     private val applicationData = ApplicationData(context)
-    private val sessionHolder = SessionHolder(DataHolder(context))
-    private val logGeneratorEvent = LogGeneratorEvent(applicationData, sessionHolder, context)
+
+    private val sessionHolder: SessionHolder by inject()
+    private val logGeneratorEvent = LogGeneratorEvent(applicationData, context)
 
     init {
         AppStateDetector.addAppStateListener(logGeneratorEvent)
@@ -58,8 +60,8 @@ class LogsManager(private val context: Context) : ILogsListener {
         GlobalLogger.shared.info(context, "CurrentID is $uuid")
         GlobalLogger.shared.info(context, "LaunchLogsRequest method is called")
 
-        val workOfData = WorkHelper.getWorkOfData(sessionHolder)
-        val platform = WorkHelper.getPlatform(sessionHolder)
+        val workOfData = WorkHelper.getWorkOfData()
+        val platform = WorkHelper.getPlatform()
         GlobalLogger.shared.debug(
             context,
             "Is work scheduled: ${

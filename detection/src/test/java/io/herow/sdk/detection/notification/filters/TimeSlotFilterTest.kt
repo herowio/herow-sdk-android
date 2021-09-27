@@ -2,7 +2,6 @@ package io.herow.sdk.detection.notification.filters
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.detection.HerowInitializer
@@ -28,17 +27,14 @@ import org.robolectric.annotation.Config
 class TimeSlotFilterTest: KoinTest, ICustomKoinTestComponent {
 
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-    private lateinit var sessionHolder: SessionHolder
+    private val sessionHolder: SessionHolder by inject()
     private val ioDispatcher: CoroutineDispatcher by inject()
-
-    init {
-        HerowInitializer.setStaticTesting(true)
-        HerowKoinTestContext.init(context)
-    }
 
     @Before
     fun setUp() {
-        sessionHolder = SessionHolder(DataHolder(context))
+        HerowInitializer.setStaticTesting(true)
+        HerowKoinTestContext.init(context)
+        sessionHolder.reset()
     }
 
     @Test

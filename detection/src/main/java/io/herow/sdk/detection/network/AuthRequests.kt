@@ -24,7 +24,6 @@ import java.net.MalformedURLException
  * Token and UserInfo workflow
  */
 class AuthRequests(
-    private val sessionHolder: SessionHolder,
     private val data: Data
 ) : ICustomKoinComponent {
     companion object {
@@ -35,6 +34,7 @@ class AuthRequests(
     }
 
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
 
     private var isWorking = false
     private val platform = getPlatform()
@@ -52,8 +52,8 @@ class AuthRequests(
 
     private suspend fun authenticationWorkFlow(request: suspend (herowAPI: IHerowAPI) -> Unit) {
         GlobalLogger.shared.info(null, "flow: authenticatoinWorkFlow")
-        if (!isTokenUsable(sessionHolder)) {
-            launchTokenRequest(sessionHolder, platform, herowAPI, request)
+        if (!isTokenUsable()) {
+            launchTokenRequest(platform, herowAPI, request)
         } else {
             GlobalLogger.shared.info(null, "Token is usable or isWorking")
             try {
@@ -67,14 +67,14 @@ class AuthRequests(
     private suspend fun userInfoWorkFlow(request: suspend (herowAPI: IHerowAPI) -> Unit) {
         GlobalLogger.shared.info(null, "flow :userInfoWorkFlow")
 
-        if (needUserInfo(sessionHolder)) {
-            launchUserInfoRequest(sessionHolder, herowAPI, request)
+        if (needUserInfo()) {
+            launchUserInfoRequest(herowAPI, request)
         } else {
             request(herowAPI)
         }
     }
 
-    private fun needUserInfo(sessionHolder: SessionHolder): Boolean {
+    private fun needUserInfo(): Boolean {
         if (sessionHolder.hasNoUserInfoSaved()) {
             GlobalLogger.shared.info(null, "User info has not been saved yet")
             return true
@@ -142,7 +142,7 @@ class AuthRequests(
     /**
      * Check if token is usable
      */
-    private fun isTokenUsable(sessionHolder: SessionHolder): Boolean {
+    private fun isTokenUsable(): Boolean {
         GlobalLogger.shared.info(
             null,
             "AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}"
@@ -163,7 +163,6 @@ class AuthRequests(
         recordedTime > TimeHelper.getCurrentTime()
 
     private suspend fun launchTokenRequest(
-        sessionHolder: SessionHolder,
         platform: HerowPlatform,
         herowAPI: IHerowAPI,
         request: suspend (herowAPI: IHerowAPI) -> Unit
@@ -223,7 +222,6 @@ class AuthRequests(
     private fun isUserInfoUpToDate(): Boolean = getCurrentUserInfo() == getSavedUserInfo()
 
     suspend fun launchUserInfoRequest(
-        sessionHolder: SessionHolder,
         herowAPI: IHerowAPI,
         request: suspend (herowAPI: IHerowAPI) -> Unit = {}
     ) {

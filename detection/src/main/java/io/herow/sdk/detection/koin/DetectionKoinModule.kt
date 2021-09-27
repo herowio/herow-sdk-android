@@ -18,6 +18,11 @@ val dispatcherModule = module {
     factory { provideTestingDispatcherProvider() }
 }
 
+val sessionModule = module {
+    single { provideDataHolder(get())}
+    single { provideSessionHolder(get()) }
+}
+
 val databaseModule = module {
     single { provideHerowDatabase(get()) }
     single { provideZoneDAO(get()) }
@@ -38,10 +43,12 @@ val databaseModuleTest = module {
     single { provideCampaignRepository(get()) }
 }
 
+private fun provideDataHolder(context: Context): DataHolder = DataHolder(context)
+
 private fun provideTestingDispatcherProvider(): CoroutineDispatcher = Dispatchers.IO
 
-private fun provideSessionHolder(context: Context): SessionHolder =
-    SessionHolder(DataHolder(context))
+private fun provideSessionHolder(dataHolder: DataHolder): SessionHolder =
+    SessionHolder(dataHolder)
 
 private fun provideHerowDatabaseTest(context: Context): HerowDatabase = HerowDatabase.getDatabaseTest(context)
 

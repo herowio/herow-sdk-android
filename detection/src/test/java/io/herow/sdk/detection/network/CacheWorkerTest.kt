@@ -2,7 +2,6 @@ package io.herow.sdk.detection.network
 
 import android.content.Context
 import android.location.Location
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
@@ -36,12 +35,10 @@ import java.util.*
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class CacheWorkerTest : KoinTest, ICustomKoinTestComponent {
-
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
 
-    private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-    private lateinit var sessionHolder: SessionHolder
-    private lateinit var dataHolder: io.herow.sdk.common.DataHolder
+    private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var worker: CacheWorker
     private lateinit var location: Location
     private val rennesGeohash: String = "gbwc"
@@ -51,9 +48,7 @@ class CacheWorkerTest : KoinTest, ICustomKoinTestComponent {
     fun setUp() {
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
-
-        dataHolder = io.herow.sdk.common.DataHolder(context)
-        sessionHolder = SessionHolder(dataHolder)
+        sessionHolder.reset()
 
         sessionHolder.saveOptinValue(true)
         sessionHolder.saveSDKID("test")
@@ -62,7 +57,7 @@ class CacheWorkerTest : KoinTest, ICustomKoinTestComponent {
         sessionHolder.saveDeviceId(UUID.randomUUID().toString())
         location = mockLocation.buildLocation()
 
-        val locationMapper = location.toLocationMapper(location)
+        val locationMapper = toLocationMapper(location)
 
         worker = TestListenableWorkerBuilder<CacheWorker>(context)
             .setInputData(

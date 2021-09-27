@@ -38,10 +38,9 @@ import java.util.*
 @RunWith(RobolectricTestRunner::class)
 class ConfigWorkerTest: KoinTest, ICustomKoinTestComponent {
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
 
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
-    private lateinit var sessionHolder: SessionHolder
-    private lateinit var dataHolder: io.herow.sdk.common.DataHolder
     private lateinit var worker: ConfigWorker
     private lateinit var herowAPI: IHerowAPI
 
@@ -49,11 +48,11 @@ class ConfigWorkerTest: KoinTest, ICustomKoinTestComponent {
     fun setUp() {
         HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
+        sessionHolder.reset()
 
-        dataHolder = io.herow.sdk.common.DataHolder(context)
-        sessionHolder = SessionHolder(dataHolder)
         sessionHolder.saveSDKID("test")
         sessionHolder.saveOptinValue(true)
+
         herowAPI = RetrofitBuilder.buildRetrofitForAPI(
             sessionHolder,
             IHerowAPI.TEST_BASE_URL,
@@ -156,7 +155,7 @@ class ConfigWorkerTest: KoinTest, ICustomKoinTestComponent {
         sessionHolder.saveStringUserInfo(Gson().toJson(userInfo))
 
         runBlocking {
-            verify(authRequest, never()).launchUserInfoRequest(sessionHolder, herowAPI)
+            verify(authRequest, never()).launchUserInfoRequest(herowAPI)
         }
     }
 }
