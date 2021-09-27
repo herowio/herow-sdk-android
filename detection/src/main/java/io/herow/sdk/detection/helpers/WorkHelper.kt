@@ -30,9 +30,7 @@ object WorkHelper {
         }
     }
 
-    fun isWorkNotScheduled(workManager: WorkManager, tag: String): Boolean {
-        return !isWorkScheduled(workManager, tag)
-    }
+    fun isWorkNotScheduled(workManager: WorkManager, tag: String): Boolean = !isWorkScheduled(workManager, tag)
 
     fun getWorkOfData(sessionHolder: SessionHolder): HashMap<String, String> {
         val sdkID: String = sessionHolder.getSDKID()

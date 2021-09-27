@@ -8,10 +8,8 @@ interface ICustomKoinComponent: KoinComponent {
 
     override fun getKoin(): Koin {
         return if (HerowInitializer.isTesting()) {
-            println("Testing")
             HerowKoinTestContext.koinTest
         } else {
-            println("Not testing")
             HerowKoinContext.koin
         }
     }

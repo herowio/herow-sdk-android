@@ -3,6 +3,7 @@ package io.herow.sdk.connection
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
@@ -21,6 +22,8 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_SDK_KEY = "common.sdk_key"
         private const val KEY_DEVICE_ID = "common.device_id"
         private const val KEY_CUSTOM_ID = "common.custom_id"
+        private const val KEY_CUSTOM_PREPROD_URL = "common.custom_preprod_url"
+        private const val KEY_CUSTOM_PROD_URL = "common.custom_prod_url"
         private const val KEY_PLATFORM_NAME = "common.platform_name"
         private const val KEY_ADVERTISER_ID = "detection.ad_id"
         private const val KEY_TOKEN_TIMEOUT = "common.timeout_token"
@@ -111,13 +114,12 @@ class SessionHolder(private val dataHolder: DataHolder) {
         dataHolder[KEY_PLATFORM_NAME] = Gson().toJson(platform)
     }
 
-    fun getCustomID(): String {
-        val customID = dataHolder.get<String>(KEY_CUSTOM_ID)
-        if (customID.isNotEmpty()) {
-            return customID
+    fun getCustomID(): String =
+        if (dataHolder.containsKey(KEY_CUSTOM_ID)) {
+            dataHolder[KEY_CUSTOM_ID]
+        } else {
+            ""
         }
-        return ""
-    }
 
     fun removeCustomID() {
         dataHolder[KEY_CUSTOM_ID] = ""
@@ -126,6 +128,59 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun saveCustomID(customID: String) {
         if (customID.isNotEmpty()) {
             dataHolder[KEY_CUSTOM_ID] = customID
+        }
+    }
+
+    fun saveCustomPreProdURL(preProdURL: String) {
+        dataHolder[KEY_CUSTOM_PREPROD_URL] = preProdURL
+
+    }
+
+    fun getCustomPreProdURL(): String =
+        if (dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
+            dataHolder[KEY_CUSTOM_PREPROD_URL]
+        } else {
+            Constants.DEFAULT_PRE_PROD_URL
+        }
+
+    fun getCustomProdURL(): String =
+        if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
+            println("into data holder")
+            dataHolder[KEY_CUSTOM_PROD_URL]
+        } else {
+            println("not into data holder")
+            Constants.DEFAULT_PROD_URL
+        }
+
+    fun saveCustomProdURL(prodURL: String) {
+        print("Saving prodURL: $prodURL")
+        dataHolder[KEY_CUSTOM_PROD_URL] = prodURL
+
+    }
+
+    fun getCurrentURL(): String = when (getPlatformName()) {
+        HerowPlatform.PRE_PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
+            dataHolder[KEY_CUSTOM_PREPROD_URL]
+        } else {
+            ""
+        }
+        HerowPlatform.PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
+            dataHolder[KEY_CUSTOM_PROD_URL]
+        } else {
+            ""
+        }
+        else -> ""
+    }
+
+    fun removeCustomURL() {
+        when (getPlatformName()) {
+            HerowPlatform.PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
+                dataHolder[KEY_CUSTOM_PROD_URL] = ""
+            }
+            HerowPlatform.PRE_PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
+                dataHolder[KEY_CUSTOM_PREPROD_URL] = ""
+            }
+            else -> println("Platform name not recognized")
         }
     }
 
@@ -164,7 +219,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
         } else {
             dataHolder[KEY_CACHE_TIMEOUT]
         }
-
 
     fun updateCache(update: Boolean) {
         dataHolder[KEY_UPDATE_CACHE] = update
@@ -329,4 +383,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
     )
 
     fun reset() = dataHolder.removeAll()
+
+    fun getAllValues() = dataHolder.getAllValues()
 }

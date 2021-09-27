@@ -128,13 +128,13 @@ class AuthRequests(
     private fun getApiUrl(platform: HerowPlatform): String {
         return when (platform) {
             HerowPlatform.PRE_PROD -> {
-                IHerowAPI.PRE_PROD_BASE_URL
+                sessionHolder.getCustomPreProdURL()
             }
             HerowPlatform.TEST -> {
                 IHerowAPI.TEST_BASE_URL
             }
             else -> {
-                IHerowAPI.PROD_BASE_URL
+                sessionHolder.getCustomProdURL()
             }
         }
     }

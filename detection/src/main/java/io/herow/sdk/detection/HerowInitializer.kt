@@ -158,11 +158,19 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     fun getCustomId(): String = sessionHolder.getCustomID()
 
-    fun getOptinValue(): Boolean = sessionHolder.getOptinValue()
-
     fun removeCustomId() {
         sessionHolder.removeCustomID()
     }
+
+    fun setProdCustomURL(url: String) = sessionHolder.saveCustomProdURL(url)
+
+    fun setPreProdCustomURL(url: String) = sessionHolder.saveCustomPreProdURL(url)
+
+    fun removeCustomURL() = sessionHolder.removeCustomURL()
+
+    fun getCurrentURL(): String = sessionHolder.getCurrentURL()
+
+    fun getOptinValue(): Boolean = sessionHolder.getOptinValue()
 
     fun acceptOptin(): HerowInitializer {
         saveOptinValue(true)
@@ -309,9 +317,12 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         notificationManager.notificationsOnExactZoneEntry(value)
     }
 
-    fun reset(sdkId: String, sdkKey: String, customID: String) {
-        sessionHolder.reset()
 
+    fun reset() {
+        sessionHolder.reset()
+    }
+    fun reset(sdkId: String, sdkKey: String, customID: String) {
+        reset()
         CoroutineScope(ioDispatcher).launch {
             herowDatabase.clearAllTables()
             configureAfterReset(sdkId, sdkKey, customID)
@@ -325,5 +336,14 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         this.setCustomId(customID)
         this.acceptOptin()
         this.synchronize()
+    }
+
+    fun getData(): HashMap<String, String> {
+        val map: HashMap<String, String> = hashMapOf()
+
+        map["Platform"] = sessionHolder.getPlatformName().name
+        map["URL"] = sessionHolder.getCurrentURL()
+
+        return map
     }
 }
