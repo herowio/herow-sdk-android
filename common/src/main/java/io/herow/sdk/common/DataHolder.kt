@@ -67,8 +67,5 @@ class DataHolder(context: Context, prefsName: String = DEFAULT_SHARED_PREFS_NAME
     }
 
     fun removeAll() = preferences.edit().clear().apply()
-
     fun getAll() = preferences.all.size
-
-    fun getAllValues() = preferences.all.entries
 }

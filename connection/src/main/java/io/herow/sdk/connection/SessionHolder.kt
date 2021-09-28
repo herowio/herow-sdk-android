@@ -382,6 +382,4 @@ class SessionHolder(private val dataHolder: DataHolder) {
     )
 
     fun reset() = dataHolder.removeAll()
-
-    fun getAllValues() = dataHolder.getAllValues()
 }
