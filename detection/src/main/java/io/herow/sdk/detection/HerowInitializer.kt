@@ -50,11 +50,9 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
     private var workManager: WorkManager
     private var notificationManager: NotificationManager
     private var cacheManager: CacheManager
-
     private var sessionHolder: SessionHolder
 
     init {
-        ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         sessionHolder = SessionHolder(DataHolder(context))
         workManager = WorkManager.getInstance(context)
         logsManager = LogsManager(context)
@@ -67,24 +65,25 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     companion object {
         private lateinit var herowInitializer: HerowInitializer
-
         @JvmStatic fun getInstance(context: Context): HerowInitializer {
             if (!::herowInitializer.isInitialized) {
                 herowInitializer = HerowInitializer(context)
             }
-
             return herowInitializer
         }
     }
 
-    private fun registerListeners() {
-        AppStateDetector.addAppStateListener(locationManager)
-        LocationDispatcher.addLocationListener(cacheManager)
-        LocationDispatcher.addLocationListener(this)
-        ConfigDispatcher.addConfigListener(locationManager)
-        LogsDispatcher.addLogListener(logsManager)
-        GeofenceDispatcher.addGeofenceListener(notificationManager)
-
+    private  fun registerListeners() {
+        val instance = this
+        CoroutineScope(Dispatchers.Main).launch {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
+            AppStateDetector.addAppStateListener(locationManager)
+            LocationDispatcher.addLocationListener(cacheManager)
+            LocationDispatcher.addLocationListener(instance)
+            ConfigDispatcher.addConfigListener(locationManager)
+            LogsDispatcher.addLogListener(logsManager)
+            GeofenceDispatcher.addGeofenceListener(notificationManager)
+        }
     }
 
     /**
