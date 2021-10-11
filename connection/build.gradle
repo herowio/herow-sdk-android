@@ -4,5 +4,4 @@ version = "${project.version}"
 
 dependencies {
     api project(':common')
-    testImplementation "com.squareup.okhttp3:mockwebserver:$okhttp_version"
 }

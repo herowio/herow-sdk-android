@@ -7,7 +7,6 @@ import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.IHerowAPI
-import io.herow.sdk.connection.RetrofitBuilder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.token.PlatformData
 import io.herow.sdk.connection.token.TokenResult
@@ -16,6 +15,7 @@ import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.network.model.RetrofitConnectionObject
+import io.herow.sdk.detection.session.RetrofitBuilder
 import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.component.inject
 import java.net.MalformedURLException
@@ -40,7 +40,6 @@ class AuthRequests(
     private val platform = getPlatform()
 
     private val herowAPI: IHerowAPI = RetrofitBuilder.buildRetrofitForAPI(
-        sessionHolder,
         getApiUrl(platform),
         IHerowAPI::class.java
     )

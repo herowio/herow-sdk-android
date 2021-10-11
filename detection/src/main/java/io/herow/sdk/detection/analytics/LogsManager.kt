@@ -3,7 +3,6 @@ package io.herow.sdk.detection.analytics
 import android.content.Context
 import androidx.work.*
 import com.google.gson.Gson
-import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.connection.HerowPlatform
@@ -60,8 +59,6 @@ class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComp
         GlobalLogger.shared.info(context, "CurrentID is $uuid")
         GlobalLogger.shared.info(context, "LaunchLogsRequest method is called")
 
-        val workOfData = WorkHelper.getWorkOfData()
-        val platform = WorkHelper.getPlatform()
         GlobalLogger.shared.debug(
             context,
             "Is work scheduled: ${
@@ -80,13 +77,14 @@ class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComp
             .setConstraints(constraints)
             .setInputData(
                 workDataOf(
-                    AuthRequests.KEY_SDK_ID to workOfData[Constants.SDK_ID],
-                    AuthRequests.KEY_SDK_KEY to workOfData[Constants.SDK_KEY],
-                    AuthRequests.KEY_CUSTOM_ID to workOfData[Constants.CUSTOM_ID],
-                    if(HerowInitializer.isTesting()) {
+                    AuthRequests.KEY_SDK_ID to sessionHolder.getSDKID(),
+                    AuthRequests.KEY_SDK_KEY to sessionHolder.getSdkKey(),
+                    AuthRequests.KEY_CUSTOM_ID to sessionHolder.getCustomID(),
+                    if (HerowInitializer.isTesting()) {
                         AuthRequests.KEY_PLATFORM to HerowPlatform.TEST.name
                     } else {
-                        AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name
+                        //AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name
+                        AuthRequests.KEY_PLATFORM to sessionHolder.getPlatformName().name
                     },
                     LogsWorker.workerID to uuid
                 )

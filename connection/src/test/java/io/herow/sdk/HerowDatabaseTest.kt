@@ -1,4 +1,4 @@
-package io.herow.sdk.connection
+package io.herow.sdk
 
 import android.content.Context
 import androidx.room.Room

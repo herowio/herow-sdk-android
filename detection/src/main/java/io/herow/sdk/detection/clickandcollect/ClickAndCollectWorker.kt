@@ -1,3 +1,4 @@
+
 package io.herow.sdk.detection.clickandcollect
 
 import android.Manifest
@@ -58,7 +59,6 @@ class ClickAndCollectWorker(
 
     override suspend fun doWork(): Result {
         return coroutineScope {
-            sessionHolder.saveClickAndCollectProgress(true)
             val job = async {
                 ClickAndCollectDispatcher.didStartClickAndCollect()
                 launchJob()

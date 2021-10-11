@@ -42,6 +42,7 @@ class CacheWorkerTest : KoinTest, ICustomKoinTestComponent {
     private lateinit var worker: CacheWorker
     private lateinit var location: Location
     private val rennesGeohash: String = "gbwc"
+    private val treffendelGeohash: String = "gbw9"
     private val mockLocation = MockLocation()
 
     @Before

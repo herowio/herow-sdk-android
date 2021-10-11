@@ -39,6 +39,7 @@ import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
@@ -63,7 +64,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
 
     init {
-        ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         workManager = WorkManager.getInstance(context)
         logsManager = LogsManager(context)
         cacheManager = CacheManager(context)
@@ -74,14 +74,16 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     }
 
     companion object {
-        private  var _testing = false
+        private var testing = false
+
         @JvmStatic
-        fun isTesting() : Boolean {
-            return _testing
+        fun isTesting(): Boolean {
+            return testing
         }
+
         @JvmStatic
-        fun setStaticTesting(staticTesting: Boolean)  {
-            _testing = staticTesting
+        fun setStaticTesting(staticTesting: Boolean) {
+            testing = staticTesting
         }
 
         private lateinit var herowInitializer: HerowInitializer
@@ -98,12 +100,19 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     }
 
     private fun registerListeners() {
+        //android.os.Handler(Looper.getMainLooper()).post {
+        CoroutineScope(Dispatchers.IO).launch {
+            GlobalLogger.shared.info(context, "Thread is: ${Thread.currentThread().name}")
+            ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
+        }
+
         AppStateDetector.addAppStateListener(locationManager)
         LocationDispatcher.addLocationListener(cacheManager)
         LocationDispatcher.addLocationListener(this)
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
         GeofenceDispatcher.addGeofenceListener(notificationManager)
+        //}
     }
 
     /**
@@ -224,7 +233,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
                 NetworkWorkerTags.CONFIG
             )
         ) {
-            GlobalLogger.shared.debug(context, "launch ConfigRequest")
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -234,6 +242,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
                 AuthRequests.KEY_CUSTOM_ID to customID,
                 AuthRequests.KEY_PLATFORM to platform.name
             )
+
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
                 .addTag(NetworkWorkerTags.CONFIG)
                 .setConstraints(constraints)
@@ -241,6 +250,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
                     datas
                 )
                 .build()
+
             workManager.enqueue(workerRequest)
             GlobalLogger.shared.info(context, "Config request is enqueued")
         } else {
@@ -260,6 +270,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
             .addTag(ClickAndCollectWorker.tag)
             .build()
         workManager.enqueue(workRequest)
+        sessionHolder.saveClickAndCollectProgress(true)
     }
 
     fun stopClickAndCollect() {
@@ -314,10 +325,10 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         notificationManager.notificationsOnExactZoneEntry(value)
     }
 
-
     fun reset() {
         sessionHolder.reset()
     }
+
     fun reset(sdkId: String, sdkKey: String, customID: String) {
         reset()
         CoroutineScope(ioDispatcher).launch {
@@ -333,14 +344,5 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         this.setCustomId(customID)
         this.acceptOptin()
         this.synchronize()
-    }
-
-    fun getData(): HashMap<String, String> {
-        val map: HashMap<String, String> = hashMapOf()
-
-        map["Platform"] = sessionHolder.getPlatformName().name
-        map["URL"] = sessionHolder.getCurrentURL()
-
-        return map
     }
 }

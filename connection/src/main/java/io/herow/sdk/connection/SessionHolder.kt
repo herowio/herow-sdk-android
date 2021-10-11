@@ -133,7 +133,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun saveCustomPreProdURL(preProdURL: String) {
         dataHolder[KEY_CUSTOM_PREPROD_URL] = preProdURL
-
     }
 
     fun getCustomPreProdURL(): String =

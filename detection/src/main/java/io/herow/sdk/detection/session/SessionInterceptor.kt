@@ -1,8 +1,13 @@
-package io.herow.sdk.connection
+package io.herow.sdk.detection.session
 
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.connection.HerowHeaders
+import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.BuildConfig
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import okhttp3.Interceptor
 import okhttp3.Response
+import org.koin.core.component.inject
 
 /**
  * Allow us to add necessary headers to request as soon as we have saved them in SharedPreferences
@@ -10,7 +15,9 @@ import okhttp3.Response
  * @see Interceptor
  * @see DataHolder
  */
-class SessionInterceptor(private val sessionHolder: SessionHolder) : Interceptor {
+class SessionInterceptor: Interceptor, ICustomKoinComponent {
+
+    private val sessionHolder: SessionHolder by inject()
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder = chain.request().newBuilder()

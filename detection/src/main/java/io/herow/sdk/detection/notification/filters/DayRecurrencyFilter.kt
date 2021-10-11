@@ -15,7 +15,7 @@ object DayRecurrencyFilter : INotificationFilter {
 
         val recurrencies = campaign.daysRecurrence?.map { it.uppercase() }
 
-        if (recurrencies == null || recurrencies.count() == 0) {
+        if (recurrencies == null || recurrencies.isEmpty()) {
             return true
         }
 

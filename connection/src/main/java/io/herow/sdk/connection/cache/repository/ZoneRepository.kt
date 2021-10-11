@@ -11,5 +11,4 @@ class ZoneRepository(
     override fun insert(zone: Zone) = zoneDAO.insertZone(zone)
     override fun getZoneByHash(hash: String): Zone? = zoneDAO.getZoneByHash(hash)
     override fun getAllZones(): List<Zone>? = zoneDAO.getAllZones()
-
 }

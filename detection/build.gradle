@@ -5,6 +5,9 @@ version = "${project.version}"
 dependencies {
     api project(':connection')
 
+    //Mock server
+    testImplementation "com.squareup.okhttp3:mockwebserver:$okhttp_version"
+
     // WorkerManager with coroutine support
     implementation "androidx.work:work-runtime:$worker_version"
     implementation "androidx.work:work-runtime-ktx:$worker_version"

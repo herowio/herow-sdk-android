@@ -20,7 +20,7 @@ object HerowKoinContext {
 
     @Synchronized
     fun init(context: Context) {
-        check(!::appContext.isInitialized) { "Already initialized!" }
+        check(!HerowKoinContext::appContext.isInitialized) { "Already initialized!" }
 
         appContext = context.applicationContext
     }

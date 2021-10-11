@@ -27,12 +27,9 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
     private val workManager = WorkManager.getInstance(context)
     private val sessionHolder: SessionHolder by inject()
 
-    private val workOfData = WorkHelper.getWorkOfData()
-    private val platform = WorkHelper.getPlatform()
-
     override fun onLocationUpdate(location: Location) {
-        GlobalLogger.shared.info(context, "Into onLocationUpdate from CacheManager")
         val shouldGetCache = shouldGetCache(location)
+
         GlobalLogger.shared.info(context, "Should get cache: $shouldGetCache")
 
         if (shouldGetCache) {
@@ -60,10 +57,10 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
                 .setConstraints(constraints)
                 .setInputData(
                     workDataOf(
-                        AuthRequests.KEY_SDK_ID to workOfData[Constants.SDK_ID],
-                        AuthRequests.KEY_SDK_KEY to workOfData[Constants.SDK_KEY],
-                        AuthRequests.KEY_CUSTOM_ID to workOfData[Constants.CUSTOM_ID],
-                        AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name,
+                        AuthRequests.KEY_SDK_ID to sessionHolder.getSDKID(),
+                        AuthRequests.KEY_SDK_KEY to sessionHolder.getSdkKey(),
+                        AuthRequests.KEY_CUSTOM_ID to sessionHolder.getCustomID(),
+                        AuthRequests.KEY_PLATFORM to sessionHolder.getPlatformName().name,
                         CacheWorker.KEY_GEOHASH to sessionHolder.getGeohash(),
                         Constants.LOCATION_DATA to Gson().toJson(locationMapper)
                     )

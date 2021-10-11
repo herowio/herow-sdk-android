@@ -69,9 +69,7 @@ object NotificationHelper {
                     defaultValue[key.value]
                 }
 
-                DynamicKeys.CUSTOM_ID.value -> if (sessionHolder.getCustomID().isNotEmpty()) {
-                    sessionHolder.getCustomID()
-                } else {
+                DynamicKeys.CUSTOM_ID.value -> sessionHolder.getCustomID().ifEmpty {
                     defaultValue[key.value]
                 }
                 else -> "Key not recognized"

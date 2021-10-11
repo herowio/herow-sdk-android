@@ -8,7 +8,6 @@ import androidx.work.workDataOf
 import com.google.gson.Gson
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.IHerowAPI
-import io.herow.sdk.connection.RetrofitBuilder
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
@@ -16,6 +15,7 @@ import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.detection.session.RetrofitBuilder
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import kotlinx.coroutines.CoroutineDispatcher
@@ -36,7 +36,7 @@ import java.util.*
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class ConfigWorkerTest: KoinTest, ICustomKoinTestComponent {
+class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
     private val ioDispatcher: CoroutineDispatcher by inject()
     private val sessionHolder: SessionHolder by inject()
 
@@ -54,7 +54,6 @@ class ConfigWorkerTest: KoinTest, ICustomKoinTestComponent {
         sessionHolder.saveOptinValue(true)
 
         herowAPI = RetrofitBuilder.buildRetrofitForAPI(
-            sessionHolder,
             IHerowAPI.TEST_BASE_URL,
             IHerowAPI::class.java
         )
