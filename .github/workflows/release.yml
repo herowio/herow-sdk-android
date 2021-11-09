@@ -20,12 +20,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: add platform_secrets 
-        env:
-            PLATFORM_SECRETS: ${{ secrets.PLATFORM_SECRETS }}
-        run: echo $PLATFORM_SECRETS > platform-secrets.properties
       - name: extract version
-       
         run: 
            echo "RELEASE_VERSION=v$(bash gradlew -q versionName)" >> $GITHUB_ENV
       - name: Create Release
