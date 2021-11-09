@@ -48,6 +48,8 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun getAll(): Int = dataHolder.getAll()
 
+    fun getAllElements(): MutableMap<String, *> = dataHolder.getAllElements()
+
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
 
     fun saveDeviceId(deviceId: String) {
@@ -84,6 +86,12 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun getAccessToken(): String = dataHolder[KEY_ACCESS_TOKEN]
+
+    fun removeAccessToken() {
+        if (dataHolder.containsKey(KEY_ACCESS_TOKEN)) {
+            dataHolder.removeKey(KEY_ACCESS_TOKEN)
+        }
+    }
 
     fun saveAccessToken(accessToken: String) {
         if (accessToken.isNotEmpty()) {
@@ -136,19 +144,26 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun getCustomPreProdURL(): String =
-        if (dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
-            dataHolder[KEY_CUSTOM_PREPROD_URL]
-        } else {
+        if (!dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
             Constants.DEFAULT_PRE_PROD_URL
+        } else {
+            if (dataHolder[KEY_CUSTOM_PREPROD_URL, ""].isBlank() || dataHolder[KEY_CUSTOM_PREPROD_URL, ""].isEmpty()) {
+                Constants.DEFAULT_PRE_PROD_URL
+            } else {
+                dataHolder[KEY_CUSTOM_PREPROD_URL]
+            }
         }
 
+
     fun getCustomProdURL(): String =
-        if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
-            println("into data holder")
-            dataHolder[KEY_CUSTOM_PROD_URL]
-        } else {
-            println("not into data holder")
+        if (!dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
             Constants.DEFAULT_PROD_URL
+        } else {
+            if (dataHolder[KEY_CUSTOM_PROD_URL, ""].isBlank() || dataHolder[KEY_CUSTOM_PROD_URL, ""].isEmpty()) {
+                Constants.DEFAULT_PROD_URL
+            } else {
+                dataHolder[KEY_CUSTOM_PROD_URL]
+            }
         }
 
     fun saveCustomProdURL(prodURL: String) {
@@ -171,6 +186,7 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun removeCustomURL() {
+        println("YYY - into removeCustomURL")
         when (getPlatformName()) {
             HerowPlatform.PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
                 dataHolder[KEY_CUSTOM_PROD_URL] = ""
@@ -381,4 +397,42 @@ class SessionHolder(private val dataHolder: DataHolder) {
     )
 
     fun reset() = dataHolder.removeAll()
+
+    fun resetForCustomURL() {
+        if (dataHolder.containsKey(KEY_ACCESS_TOKEN)) {
+            dataHolder.removeKey(KEY_ACCESS_TOKEN)
+        }
+
+        if (dataHolder.containsKey(KEY_TOKEN_TIMEOUT)) {
+            dataHolder.removeKey(KEY_TOKEN_TIMEOUT)
+        }
+
+        if (dataHolder.containsKey(KEY_USER_INFO)) {
+            dataHolder.removeKey(KEY_USER_INFO)
+        }
+
+        if (dataHolder.containsKey(KEY_LAST_USER_INFO_LAUNCH)) {
+            dataHolder.removeKey(KEY_LAST_USER_INFO_LAUNCH)
+        }
+
+        if (dataHolder.containsKey(KEY_LAST_LAUNCH_CACHE)) {
+            dataHolder.removeKey(KEY_LAST_LAUNCH_CACHE)
+        }
+
+        if (dataHolder.containsKey(KEY_HEROW_CONFIG)) {
+            dataHolder.removeKey(KEY_HEROW_CONFIG)
+        }
+
+        if (dataHolder.containsKey(KEY_LAUNCH_CONFIG)) {
+            dataHolder.removeKey(KEY_LAUNCH_CONFIG)
+        }
+
+        if (dataHolder.containsKey(KEY_SAVED_PREVIOUS_ZONES)) {
+            dataHolder.removeKey(KEY_SAVED_PREVIOUS_ZONES)
+        }
+
+        if (dataHolder.containsKey(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)) {
+            dataHolder.removeKey(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
+        }
+    }
 }

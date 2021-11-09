@@ -47,11 +47,8 @@ class GeofenceEventGenerator: IZoneListener, ICustomKoinComponent {
         previousZonesDetected: ArrayList<Zone>
     ) {
         val liveEvents = ArrayList<GeofenceEvent>()
-        println("Zones received are: $zones")
-        //GlobalLogger.shared.info(null,"Zones at start are: $zones")
         GlobalLogger.shared.info(null, "Previous zones are: $previousZonesDetected")
-        println("Previous zones detected are: $previousZonesDetected")
-        println("Type is: $type")
+
         if (type == null) {
             for (previousZone in previousZonesDetected) {
                 GlobalLogger.shared.info(null, "Previous detected zone: $previousDetectedZones")

@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
@@ -39,7 +40,7 @@ import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
@@ -51,22 +52,23 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     private var sdkSession = SdkSession("", "")
     private var customID: String = ""
     private var locationManager: LocationManager
-    private var logsManager: LogsManager
-    private var workManager: WorkManager
+    private val logsManager: LogsManager = LogsManager(context)
+    private val workManager: WorkManager = WorkManager.getInstance(context)
     private var notificationManager: NotificationManager
-    private var cacheManager: CacheManager
+    private val cacheManager: CacheManager = CacheManager(context)
+
+    private lateinit var preprodURL: String
+    private lateinit var prodURL: String
 
     //Koin
     private val sessionHolder: SessionHolder by inject()
     private val herowDatabase: HerowDatabase by inject()
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private val zoneRepository: ZoneRepository by inject()
 
 
     init {
-        workManager = WorkManager.getInstance(context)
-        logsManager = LogsManager(context)
-        cacheManager = CacheManager(context)
         loadIdentifiers(context)
         locationManager = LocationManager(context, true)
         notificationManager = NotificationManager(context)
@@ -100,9 +102,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     }
 
     private fun registerListeners() {
-        //android.os.Handler(Looper.getMainLooper()).post {
-        CoroutineScope(Dispatchers.IO).launch {
-            GlobalLogger.shared.info(context, "Thread is: ${Thread.currentThread().name}")
+        applicationScope.launch {
             ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         }
 
@@ -112,7 +112,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
         GeofenceDispatcher.addGeofenceListener(notificationManager)
-        //}
     }
 
     /**
@@ -123,7 +122,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
      * to be able to use it only if the developer has already the library include in his project.
      */
     private fun loadIdentifiers(context: Context) {
-        CoroutineScope(ioDispatcher).launch {
+        applicationScope.launch {
             kotlin.runCatching {
                 val deviceId = DeviceHelper.getDeviceId(context)
                 sessionHolder.saveDeviceId(deviceId)
@@ -143,10 +142,10 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         }
     }
 
-    fun configApp(sdkId: String, sdkKey: String): HerowInitializer {
-        sdkSession = SdkSession(sdkId, sdkKey)
-        sessionHolder.saveSDKID(sdkId)
-        sessionHolder.saveSdkKey(sdkKey)
+    fun configApp(sdkKey: String, sdkSecret: String): HerowInitializer {
+        sdkSession = SdkSession(sdkKey, sdkSecret)
+        sessionHolder.saveSDKID(sdkKey)
+        sessionHolder.saveSdkKey(sdkSecret)
         return this
     }
 
@@ -164,15 +163,21 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
     fun getCustomId(): String = sessionHolder.getCustomID()
 
-    fun removeCustomId() {
-        sessionHolder.removeCustomID()
+    fun removeCustomId() = sessionHolder.removeCustomID()
+
+    fun setPreProdCustomURL(url: String) = resetForCustomURL(true, url)
+
+    fun setProdCustomURL(url: String) = resetForCustomURL(false, url)
+
+    fun removeCustomURL() {
+        sessionHolder.removeCustomURL()
+
+        if (sessionHolder.getPlatformName() == HerowPlatform.PRE_PROD) {
+            resetForCustomURL(true, "")
+        } else {
+            resetForCustomURL(false, "")
+        }
     }
-
-    fun setProdCustomURL(url: String) = sessionHolder.saveCustomProdURL(url)
-
-    fun setPreProdCustomURL(url: String) = sessionHolder.saveCustomPreProdURL(url)
-
-    fun removeCustomURL() = sessionHolder.removeCustomURL()
 
     fun getCurrentURL(): String = sessionHolder.getCurrentURL()
 
@@ -312,7 +317,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
             AuthRequests.KEY_PLATFORM to platform.name
         )
 
-        CoroutineScope(ioDispatcher).launch {
+        applicationScope.launch {
             AuthRequests(datas).getUserInfoIfNeeded()
         }
     }
@@ -325,19 +330,65 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         notificationManager.notificationsOnExactZoneEntry(value)
     }
 
-    fun reset() {
-        sessionHolder.reset()
+    private fun resetForCustomURL(isPreprod: Boolean, newURL: String) {
+        val identifiers: Map<String, String> =
+            mapOf(
+                Pair(if (isPreprod) Constants.CUSTOM_PRE_PROD_URL else Constants.CUSTOM_PROD_URL, newURL)
+            )
+
+        configureAfterCustomURLChange(
+            identifiers,
+            isPreprod
+        )
     }
 
-    fun reset(sdkId: String, sdkKey: String, customID: String) {
+    private fun configureAfterCustomURLChange(
+        identifiers: Map<String, String>,
+        preprod: Boolean
+    ) {
+        sessionHolder.resetForCustomURL()
+        if (preprod) sessionHolder.saveCustomPreProdURL(identifiers[Constants.CUSTOM_PRE_PROD_URL]!!) else sessionHolder.saveCustomProdURL(
+            identifiers[Constants.CUSTOM_PROD_URL]!!
+        )
+
+        clearAllTablesForCustomURL(preprod)
+    }
+
+    fun resetForAccount(sdkId: String, sdkKey: String, customID: String) {
         reset()
-        CoroutineScope(ioDispatcher).launch {
+        clearAllTables(sdkId, sdkKey, customID)
+    }
+
+    private fun reset() = sessionHolder.reset()
+
+    private fun clearAllTablesForCustomURL(isPreprod: Boolean) {
+        applicationScope.launch {
             herowDatabase.clearAllTables()
-            configureAfterReset(sdkId, sdkKey, customID)
+            configureAfterResetForCustomURL(isPreprod)
         }
     }
 
-    private fun configureAfterReset(sdkId: String, sdkKey: String, customID: String) {
+    private fun clearAllTables(sdkId: String, sdkKey: String, customID: String) {
+        applicationScope.launch {
+            herowDatabase.clearAllTables()
+            configureAfterResetForAccount(sdkId, sdkKey, customID)
+        }
+    }
+
+    private fun configureAfterResetForCustomURL(isPreprod: Boolean) {
+        val sdkID = sessionHolder.getSDKID()
+        val sdkKey = sessionHolder.getSdkKey()
+        val customID = sessionHolder.getCustomID()
+
+        this.loadIdentifiers(context)
+        this.configPlatform(if (isPreprod) HerowPlatform.PRE_PROD else HerowPlatform.PROD)
+        this.configApp(sdkID, sdkKey)
+        this.setCustomId(customID)
+        this.acceptOptin()
+        this.synchronize()
+    }
+
+    private fun configureAfterResetForAccount(sdkId: String, sdkKey: String, customID: String) {
         this.loadIdentifiers(context)
         this.configPlatform(HerowPlatform.PRE_PROD)
         this.configApp(sdkId, sdkKey)
@@ -345,4 +396,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         this.acceptOptin()
         this.synchronize()
     }
+
+    fun getSDKVersion(): String = BuildConfig.SDK_VERSION
 }

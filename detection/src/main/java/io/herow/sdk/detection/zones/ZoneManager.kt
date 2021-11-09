@@ -18,6 +18,7 @@ import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
@@ -34,6 +35,7 @@ class ZoneManager(
     private val pendingIntent = createPendingIntent(context)
     private val zoneRepository: ZoneRepository by inject()
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
     private fun createPendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, GeofencingReceiver::class.java)
@@ -59,7 +61,7 @@ class ZoneManager(
     fun loadZones() {
         zones.clear()
 
-        CoroutineScope(ioDispatcher).launch {
+        applicationScope.launch {
             retrieveZones().let { zones.addAll(it) }
         }
 

@@ -1,5 +1,6 @@
 package io.herow.sdk.detection.session
 
+import androidx.annotation.Keep
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.HerowHeaders
 import io.herow.sdk.connection.SessionHolder
@@ -15,6 +16,7 @@ import org.koin.core.component.inject
  * @see Interceptor
  * @see DataHolder
  */
+@Keep
 class SessionInterceptor: Interceptor, ICustomKoinComponent {
 
     private val sessionHolder: SessionHolder by inject()

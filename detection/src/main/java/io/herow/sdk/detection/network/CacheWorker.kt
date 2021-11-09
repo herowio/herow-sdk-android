@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import androidx.annotation.Keep
 import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -24,13 +25,16 @@ import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the
  * Herow platform. You need to use a geohash to call the corresponding API.
  */
+@Keep
 class CacheWorker(
     val context: Context,
     workerParameters: WorkerParameters
@@ -44,8 +48,10 @@ class CacheWorker(
     private val zoneRepository: ZoneRepository by inject()
     private val poiRepository: PoiRepository by inject()
     private val campaignRepository: CampaignRepository by inject()
+
     private val ioDispatcher: CoroutineDispatcher by inject()
     private val sessionHolder: SessionHolder by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
     companion object {
         const val KEY_GEOHASH = "detection.geohash"
@@ -57,10 +63,6 @@ class CacheWorker(
         }
 
         val authRequest = AuthRequests(inputData)
-
-        GlobalLogger.shared.info(context, "Inside doWork() from CacheWorker")
-        GlobalLogger.shared.info(context, "InputData $inputData")
-
         val locationMapper: LocationMapper = inputData.getString(Constants.LOCATION_DATA).let {
             GsonProvider.fromJson(it!!, LocationMapper::class.java)
         }
@@ -72,13 +74,9 @@ class CacheWorker(
             return Result.failure()
         }
 
-        withContext(ioDispatcher) {
+        applicationScope.launch {
             authRequest.execute {
-                GlobalLogger.shared.info(context, "Launching cacheRequest")
-                launchCacheRequest(
-                    authRequest.getHerowAPI(),
-                    locationMapper
-                )
+                launchCacheRequest(authRequest.getHerowAPI(), locationMapper)
             }
         }
 
@@ -94,33 +92,28 @@ class CacheWorker(
         locationMapper: LocationMapper
     ) {
         val extractedGeoHash = extractGeoHash()
+
         if (extractedGeoHash.isNotEmpty()) {
             val cacheResponse = herowAPI.cache(extractedGeoHash.substring(0, 4))
+
             GlobalLogger.shared.info(context, "Cache response is $cacheResponse")
+            GlobalLogger.shared.info(context, "Cache headers are ${cacheResponse.headers()}")
 
             if (cacheResponse.isSuccessful) {
-                GlobalLogger.shared.info(context, "CacheResponse is successful")
-
                 sessionHolder.saveLastLaunchCacheRequest(TimeHelper.getCurrentTime())
 
                 cacheResponse.body()?.let { cacheResult: CacheResult? ->
-                    GlobalLogger.shared.info(
-                        context,
-                        "Cache response body: ${cacheResponse.body()}"
-                    )
+                    GlobalLogger.shared.info(context, "Cache response body: ${cacheResponse.body()}")
                     GlobalLogger.shared.info(context, "CacheResult is $cacheResult")
+
                     if (!HerowInitializer.isTesting()) {
                         database.clearAllTables()
                         GlobalLogger.shared.info(context, "Database has been cleared")
                     }
 
                     saveCacheDataInDB(cacheResult!!)
-                    GlobalLogger.shared.info(context, "CacheResult has been saved in BDD")
 
                     CacheDispatcher.dispatch()
-                    GlobalLogger.shared.info(context, "Dispatching zones")
-
-                    GlobalLogger.shared.info(context, "Sending notification")
                     sendNotification(locationMapper)
                 }
             }
@@ -146,7 +139,7 @@ class CacheWorker(
             db.clearAllTables()
         }
 
-        if (!cacheResult.zones.isNullOrEmpty()) {
+        if (cacheResult.zones.isNotEmpty()) {
             for (zone in cacheResult.zones) {
                 if (HerowInitializer.isTesting()) {
                     ZoneRepository(db.zoneDAO()).insert(zone)
@@ -157,7 +150,7 @@ class CacheWorker(
             GlobalLogger.shared.info(context, "Zones have been saved in DB")
         }
 
-        if (!cacheResult.pois.isNullOrEmpty()) {
+        if (cacheResult.pois.isNotEmpty()) {
             for (poi in cacheResult.pois) {
                 if (HerowInitializer.isTesting()) {
                     println("poi to insert is: $poi")
@@ -169,7 +162,7 @@ class CacheWorker(
             GlobalLogger.shared.info(context, "Pois have been saved in DB")
         }
 
-        if (!cacheResult.campaigns.isNullOrEmpty()) {
+        if (cacheResult.campaigns.isNotEmpty()) {
             for (campaign in cacheResult.campaigns) {
                 if (HerowInitializer.isTesting()) {
                     CampaignRepository(db.campaignDAO()).insert(campaign)

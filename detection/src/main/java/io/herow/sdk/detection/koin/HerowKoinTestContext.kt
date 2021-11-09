@@ -22,8 +22,6 @@ object HerowKoinTestContext {
 
     @Synchronized
     fun init(context: Context) {
-        //check(::koinTestContext.isInitialized) { "Kointest already initialized!" }
-
         koinTestContext = context
     }
 }

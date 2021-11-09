@@ -38,7 +38,7 @@ maven {
 }
 ```
 
-Replace YOUR_GITHUB_USERNAME with the username you usually use to connect to Github.
+Replace YOUR_GITHUB_USERNAME with the username you usually used to connect to Github.
 Replace YOUR_GITHUB_TOKEN by the generated token that you can only see once.
 
 - Sync your project
@@ -79,7 +79,7 @@ override fun onCreate() {
 
 Note 1:
 
-The synchronize method allows to set up the SDK with a configuration file downloaded from the Herow platform. The SDK will start the zone detection process only when the file download is complete.
+The synchronize method allows you to set up the SDK with a configuration file downloaded from the Herow platform. The SDK will start the zone detection process only when the file download is complete.
 
 This configuration file is saved in cache, and the SDK checks for updates at regular intervals.
 
@@ -99,7 +99,7 @@ You will get one access key:
 
 # GDPR Opt-ins
 
-The HEROW SDK only works if the GDPR opt-in is given by the end-user. The SDK can share some informations as user datas.
+The HEROW SDK only works if the GDPR opt-in is given by the end-user. The SDK can share some information as user datas.
 
 **Update the opt-ins permissions**
 
@@ -118,7 +118,7 @@ If the user refuses the optin the sdk will not work.
 
 # Setting a Custom ID
 
-To set a custom ID, make the following call as soon as the user logs in. You can set the custom ID before the synchronize() method, in your class extending Application.
+To set a custom ID, make the following call as soon as the user logs in. You can set the custom ID before synchronize() method, in your class extending Application.
 
 `HerowInitializer.getInstance(context).setCustomId("YOUR_CUSTOM_ID")`
 
@@ -142,7 +142,7 @@ Starting from Android 11, Google prevents apps requesting the Background Locatio
 
 Note 2:
 
-By default, the Click & Collect background service will timeout after 2 hours. This is meant to preserve the initial objective of this feature to locate end-users in the background for Click & Collect scenarios and not provide continuous background tracking.
+By default, the Click & Collect background service will time out after 2 hours. This is meant to preserve the initial objective of this feature to locate end-users in the background for Click & Collect scenarios and not provide continuous background tracking.
 
 
 
@@ -198,7 +198,7 @@ You can stop this mode with this command:
 
 `GlobalLogger.shared.stopDebug()`
 
-If you want to save this logs locally or on remote storage system, you can by implementing this interface: **ILogger** and register it on the GlobalLogger.
+If you want to save these logs locally or on remote storage system, you can by implementing this interface: **ILogger** and register it on the GlobalLogger.
 In this exemple HerowLogger is a class which implements the ILogger interface:
 
 `GlobalLogger.shared.registerLogger(HerowLogger())`

@@ -1,5 +1,6 @@
 package io.herow.sdk.detection.network
 
+import androidx.annotation.Keep
 import androidx.work.Data
 import com.google.gson.Gson
 import io.herow.sdk.common.helpers.TimeHelper
@@ -16,16 +17,17 @@ import io.herow.sdk.connection.userinfo.UserInfoResult
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.network.model.RetrofitConnectionObject
 import io.herow.sdk.detection.session.RetrofitBuilder
-import kotlinx.coroutines.CoroutineDispatcher
 import org.koin.core.component.inject
 import java.net.MalformedURLException
 
 /**
  * Token and UserInfo workflow
  */
+@Keep
 class AuthRequests(
     private val data: Data
 ) : ICustomKoinComponent {
+
     companion object {
         const val KEY_SDK_ID = "detection.sdk_id"
         const val KEY_SDK_KEY = "detection.sdk_key"
@@ -33,9 +35,7 @@ class AuthRequests(
         const val KEY_PLATFORM = "detection.platform"
     }
 
-    private val ioDispatcher: CoroutineDispatcher by inject()
     private val sessionHolder: SessionHolder by inject()
-
     private var isWorking = false
     private val platform = getPlatform()
 
@@ -50,7 +50,7 @@ class AuthRequests(
     fun getHerowAPI(): IHerowAPI = herowAPI
 
     private suspend fun authenticationWorkFlow(request: suspend (herowAPI: IHerowAPI) -> Unit) {
-        GlobalLogger.shared.info(null, "flow: authenticatoinWorkFlow")
+        GlobalLogger.shared.info(null, "flow: authenticationWorkFlow")
         if (!isTokenUsable()) {
             launchTokenRequest(platform, herowAPI, request)
         } else {
@@ -58,7 +58,7 @@ class AuthRequests(
             try {
                 request(herowAPI)
             } catch (malformedException: MalformedURLException) {
-                println("Exception in URL, cause is: ${malformedException.cause} - ${malformedException.message}")
+                println("YYY - Exception in URL, cause is: ${malformedException.cause} - ${malformedException.message}")
             }
         }
     }
@@ -75,11 +75,13 @@ class AuthRequests(
 
     private fun needUserInfo(): Boolean {
         if (sessionHolder.hasNoUserInfoSaved()) {
+            println("YYY - Has no userInfo saved")
             GlobalLogger.shared.info(null, "User info has not been saved yet")
             return true
         }
 
         if (!isUserInfoUpToDate()) {
+            println("YYY - userInfo is not up to date")
             GlobalLogger.shared.info(null, "User info is not up to date")
             return true
         }
@@ -125,14 +127,18 @@ class AuthRequests(
     }
 
     private fun getApiUrl(platform: HerowPlatform): String {
+        println("YYY - Platform is: $platform")
         return when (platform) {
             HerowPlatform.PRE_PROD -> {
+                println("YYY - Into preProd / Getting custom preprod")
                 sessionHolder.getCustomPreProdURL()
             }
             HerowPlatform.TEST -> {
+                println("YYY - Into Test")
                 IHerowAPI.TEST_BASE_URL
             }
             else -> {
+                println("YYY - Into Prod / Getting custom prod")
                 sessionHolder.getCustomProdURL()
             }
         }

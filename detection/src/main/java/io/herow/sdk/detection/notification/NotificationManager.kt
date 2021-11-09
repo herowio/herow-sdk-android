@@ -20,6 +20,7 @@ import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.notification.filters.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
@@ -35,6 +36,7 @@ class NotificationManager(
 
     private val ioDispatcher: CoroutineDispatcher by inject()
     private val sessionHolder: SessionHolder by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000
@@ -82,7 +84,7 @@ class NotificationManager(
                         "GeofenceEvents selected trigger is: $trigger"
                     )
 
-                    CoroutineScope(ioDispatcher).launch {
+                    applicationScope.launch {
                         val campaigns = fetchCampaignInDatabase(event.zone)
                         val zoneName = if (event.zone.access?.name != null) event.zone.access?.name else "non name"
                         val campaignNames = campaigns.map { it.notification?.title }

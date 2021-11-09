@@ -1,3 +1,5 @@
+@file:Suppress("LocalVariableName")
+
 package io.herow.sdk.detection.analytics.model
 
 import io.herow.sdk.connection.cache.model.Campaign

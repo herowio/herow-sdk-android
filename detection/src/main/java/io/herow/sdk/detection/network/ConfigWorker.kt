@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import androidx.annotation.Keep
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.helpers.TimeHelper
@@ -13,29 +14,30 @@ import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.detection.helpers.DateHelper
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 /**
  * @see IHerowAPI#config()
  */
+@Keep
 class ConfigWorker(
     context: Context,
     workerParameters: WorkerParameters
 ) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
 
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private val sessionHolder: SessionHolder by inject()
     var testing = false
 
     override suspend fun doWork(): Result {
-        GlobalLogger.shared.info(applicationContext, "DoWork is called")
-
         val authRequest = AuthRequests(inputData)
 
-        withContext(ioDispatcher) {
+        applicationScope.launch {
             authRequest.execute {
-                GlobalLogger.shared.info(applicationContext, "Launching configRequest")
                 launchConfigRequest(authRequest.getHerowAPI())
             }
         }
@@ -44,28 +46,21 @@ class ConfigWorker(
     }
 
     private suspend fun launchConfigRequest(herowAPI: IHerowAPI) {
-        GlobalLogger.shared.info(
-            applicationContext,
-            "Should launch: ${shouldLaunchConfigRequest()}"
-        )
+        GlobalLogger.shared.info(applicationContext, "Should launch: ${shouldLaunchConfigRequest()}")
+
         val configResponse = herowAPI.config()
-        GlobalLogger.shared.info(
-            applicationContext,
-            "Thread in launchConfig is: ${Thread.currentThread().name}"
-        )
         GlobalLogger.shared.info(applicationContext, "ConfigResponse: $configResponse")
+
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
-                GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
-
                 ConfigDispatcher.dispatchConfigResult(configResult)
-                GlobalLogger.shared.info(applicationContext, "Dispatcher method has been called")
 
                 sessionHolder.saveRepeatInterval(configResult.configInterval)
                 sessionHolder.saveConfig(configResult)
 
                 val headers = configResponse.headers()
                 GlobalLogger.shared.info(context = null, "Headers in ConfigWorker are: $headers")
+
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->
                     defineCacheStatus(remoteCachedTime)
                 }

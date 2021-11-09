@@ -8,6 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 object LocationDispatcher {
     private var lastLocation: Location? = null
     private var skipCount = 0
+
     fun addLocationListener(locationListener: ILocationListener) {
         locationListeners.add(locationListener)
     }
@@ -15,7 +16,7 @@ object LocationDispatcher {
     private val locationListeners = CopyOnWriteArrayList<ILocationListener>()
 
     /**
-     * Update location only if distance is >20m or if distance is <20 & time is >5 minutes
+     * Update location only if distance is >20 m or if distance is <20 & time is >5 minutes
      */
     fun dispatchLocation(newLocation: Location) {
         var skip = false

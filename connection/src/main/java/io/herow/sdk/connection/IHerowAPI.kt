@@ -1,5 +1,6 @@
 package io.herow.sdk.connection
 
+import androidx.annotation.Keep
 import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.token.TokenResult
@@ -7,6 +8,7 @@ import io.herow.sdk.connection.userinfo.UserInfoResult
 import retrofit2.Response
 import retrofit2.http.*
 
+@Keep
 interface IHerowAPI {
 
     companion object {

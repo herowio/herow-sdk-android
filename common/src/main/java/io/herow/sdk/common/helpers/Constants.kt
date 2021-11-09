@@ -8,4 +8,6 @@ object Constants {
     const val LOCATION_DATA: String = "location_data"
     const val DEFAULT_PROD_URL: String = "https://sdk7.herow.io"
     const val DEFAULT_PRE_PROD_URL: String = "https://sdk7-preprod.herow.io"
+    const val CUSTOM_PRE_PROD_URL: String = "CUSTOM_PRE_PROD_URL"
+    const val CUSTOM_PROD_URL: String = "CUSTOM_PROD_URL"
 }

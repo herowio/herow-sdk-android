@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.os.Looper
+import androidx.annotation.Keep
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -22,25 +23,26 @@ import io.herow.sdk.detection.zones.ZoneDispatcher
 import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
+@Keep
 class LocationManager(
     context: Context,
     var testing: Boolean = false
 ) : IConfigListener, IAppStateListener, ILocationPriorityListener, ICustomKoinComponent {
     private val ioDispatcher: CoroutineDispatcher by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
     private var isOnForeground: Boolean = false
     private var isGeofencingEnable: Boolean = false
 
-    private val fusedLocationProviderClient =
-        LocationServices.getFusedLocationProviderClient(context)
+    private val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private val zoneManager = ZoneManager(context, ArrayList())
     private val geofenceEventGenerator = GeofenceEventGenerator()
     private var locationCallback: LocationCallback
     private var zones: List<Zone>? = null
-
 
     init {
         locationCallback = object : LocationCallback() {
@@ -53,17 +55,16 @@ class LocationManager(
                 }
             }
         }
+
         CacheDispatcher.addCacheListener(zoneManager)
         LocationDispatcher.addLocationListener(zoneManager)
         ZoneDispatcher.addZoneListener(geofenceEventGenerator)
-
-        println("Value into LocationManager of testing: $testing")
 
         if (testing) {
             HerowKoinTestContext.init(context)
         }
 
-        CoroutineScope(ioDispatcher).launch {
+        applicationScope.launch {
             zones = zoneManager.getZones()
         }
 
@@ -73,6 +74,7 @@ class LocationManager(
 
     override fun onConfigResult(configResult: ConfigResult) {
         GlobalLogger.shared.info(context = null, "Config Result is: $configResult")
+
         synchronized(isGeofencingEnable) {
             isGeofencingEnable = configResult.isGeofenceEnable
         }

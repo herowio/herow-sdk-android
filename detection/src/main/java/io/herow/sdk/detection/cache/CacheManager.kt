@@ -2,6 +2,7 @@ package io.herow.sdk.detection.cache
 
 import android.content.Context
 import android.location.Location
+import androidx.annotation.Keep
 import androidx.work.*
 import com.google.gson.Gson
 import io.herow.sdk.common.helpers.Constants
@@ -18,14 +19,17 @@ import io.herow.sdk.detection.network.CacheWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
+@Keep
 class CacheManager(val context: Context) : ILocationListener, ICustomKoinComponent {
 
     private val ioDispatcher: CoroutineDispatcher by inject()
     private val workManager = WorkManager.getInstance(context)
     private val sessionHolder: SessionHolder by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
 
     override fun onLocationUpdate(location: Location) {
         val shouldGetCache = shouldGetCache(location)
@@ -33,14 +37,14 @@ class CacheManager(val context: Context) : ILocationListener, ICustomKoinCompone
         GlobalLogger.shared.info(context, "Should get cache: $shouldGetCache")
 
         if (shouldGetCache) {
-            CoroutineScope(ioDispatcher).launch {
+            applicationScope.launch {
                 launchCacheRequest(location)
             }
         }
     }
 
     /**
-     * Launch the cache request to get the zones the SDK must monitored
+     * Launch the cache request to get the zones the SDK must be monitoring
      */
     private fun launchCacheRequest(location: Location) {
         GlobalLogger.shared.info(context, "LaunchCacheRequest method is called")

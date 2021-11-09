@@ -1,9 +1,11 @@
 package io.herow.sdk.common.json
 
 import android.location.Location
+import androidx.annotation.Keep
 import com.google.gson.*
 import java.lang.reflect.Type
 
+@Keep
 class LocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {
     override fun serialize(
         location: Location?,

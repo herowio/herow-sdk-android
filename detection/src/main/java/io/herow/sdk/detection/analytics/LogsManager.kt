@@ -21,7 +21,6 @@ import java.util.*
 
 class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComponent {
     private val applicationData = ApplicationData(context)
-
     private val sessionHolder: SessionHolder by inject()
     private val logGeneratorEvent = LogGeneratorEvent(applicationData, context)
 
@@ -37,7 +36,7 @@ class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComp
      */
     override fun onLogsToSend(listOfLogs: List<Log>) {
         if (listOfLogs.isNotEmpty()) {
-            GlobalLogger.shared.info(context, "List of logs is: $listOfLogs")
+            GlobalLogger.shared.info(context, "List of logs is -- 5 : $listOfLogs")
 
             for (log in listOfLogs) {
                 val logJsonString: String = Gson().toJson(log, Log::class.java)
@@ -49,7 +48,7 @@ class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComp
     }
 
     /**
-     * Launch the logs request to send the events to he Herow Platform
+     * Launch the logs request to send the events to the Herow Platform
      */
     private fun launchLogsRequest(log: String) {
         val workManager = WorkManager.getInstance(context)
@@ -83,7 +82,6 @@ class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComp
                     if (HerowInitializer.isTesting()) {
                         AuthRequests.KEY_PLATFORM to HerowPlatform.TEST.name
                     } else {
-                        //AuthRequests.KEY_PLATFORM to platform[Constants.PLATFORM]!!.name
                         AuthRequests.KEY_PLATFORM to sessionHolder.getPlatformName().name
                     },
                     LogsWorker.workerID to uuid
@@ -91,6 +89,6 @@ class LogsManager(private val context: Context) : ILogsListener, ICustomKoinComp
             )
             .build()
         workManager.enqueue(workerRequest)
-        GlobalLogger.shared.info(context, "Log request is enqueued")
+        GlobalLogger.shared.info(context, "Log request is enqueued -- 6")
     }
 }

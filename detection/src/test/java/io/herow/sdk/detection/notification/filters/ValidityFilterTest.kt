@@ -42,12 +42,12 @@ class ValidityFilterTest : KoinTest, ICustomKoinTestComponent {
         withContext(ioDispatcher) {
             var campaign: Campaign? = MockDataInDatabase().createCampaignWithLateBegin()
 
-            // We have a Begin value after current time
+            // We have a "Begin" value after current time
             // We should not have a notification
             Assert.assertFalse(ValidityFilter.createNotification(campaign!!, sessionHolder))
             campaign = MockDataInDatabase().createCampaignWithNoEnd()
 
-            // We have a Begin value before current time and we have no End value defined
+            // We have a "Begin" value before current time, and we have no End value defined
             // We should have a notification
             Assert.assertTrue(ValidityFilter.createNotification(campaign, sessionHolder))
             campaign = MockDataInDatabase().updateCampaignWithEndBefore(campaign)

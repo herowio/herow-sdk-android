@@ -3,11 +3,11 @@ buildscript {
         kotlin_version = "1.5.31"
         kotlin_coroutines_version = "1.4.3"
         lifecycle_version = "2.2.0"
-        okhttp_version = "4.9.1"
+        okhttp_version = "4.9.2"
         play_services_ads = "20.4.0"
         play_services_location = "17.1.0"
         retrofit_version = "2.9.0"
-        worker_version = "2.6.0"
+        worker_version = "2.7.0"
         room_version = "2.3.0"
         easy_permission = "0.1.0"
         koin_version = "3.1.2"
@@ -36,12 +36,12 @@ subprojects {
     apply from: '../publish.gradle'
 
     android {
-        compileSdkVersion 30
+        compileSdkVersion 31
         buildToolsVersion "30.0.3"
 
         defaultConfig {
             minSdkVersion 21
-            targetSdkVersion 30
+            targetSdkVersion 31
             versionCode 1
             versionName "${project.version}"
             testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
