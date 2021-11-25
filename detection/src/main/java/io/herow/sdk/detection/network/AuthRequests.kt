@@ -75,13 +75,11 @@ class AuthRequests(
 
     private fun needUserInfo(): Boolean {
         if (sessionHolder.hasNoUserInfoSaved()) {
-            println("YYY - Has no userInfo saved")
             GlobalLogger.shared.info(null, "User info has not been saved yet")
             return true
         }
 
         if (!isUserInfoUpToDate()) {
-            println("YYY - userInfo is not up to date")
             GlobalLogger.shared.info(null, "User info is not up to date")
             return true
         }
@@ -127,18 +125,14 @@ class AuthRequests(
     }
 
     private fun getApiUrl(platform: HerowPlatform): String {
-        println("YYY - Platform is: $platform")
         return when (platform) {
             HerowPlatform.PRE_PROD -> {
-                println("YYY - Into preProd / Getting custom preprod")
                 sessionHolder.getCustomPreProdURL()
             }
             HerowPlatform.TEST -> {
-                println("YYY - Into Test")
                 IHerowAPI.TEST_BASE_URL
             }
             else -> {
-                println("YYY - Into Prod / Getting custom prod")
                 sessionHolder.getCustomProdURL()
             }
         }

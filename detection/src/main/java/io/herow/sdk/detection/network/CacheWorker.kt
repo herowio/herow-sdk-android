@@ -153,7 +153,6 @@ class CacheWorker(
         if (cacheResult.pois.isNotEmpty()) {
             for (poi in cacheResult.pois) {
                 if (HerowInitializer.isTesting()) {
-                    println("poi to insert is: $poi")
                     PoiRepository(db.poiDAO()).insert(poi)
                 } else {
                     poiRepository.insert(poi)

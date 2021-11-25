@@ -58,7 +58,6 @@ object CappingFilter : INotificationFilter {
         GlobalLogger.shared.info(null, "First raz date is: $firstRazDate")
 
         val herowCapping = getHerowCapping(sessionHolder, campaign)
-        println("HerowCapping is: $herowCapping")
         val razDateConvertedInLocalDateTime =
             TimeHelper.convertTimestampToLocalDateTime(herowCapping.razDate)
         val count = if (currentLocalDateTime < razDateConvertedInLocalDateTime) {

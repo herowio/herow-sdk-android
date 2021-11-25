@@ -31,7 +31,7 @@ class ZoneManager(
         private const val GEOFENCE_REQUEST_CODE = 1919
     }
 
-    private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
+    private val geofencingClient: GeofencingClient? = LocationServices.getGeofencingClient(context)
     private val pendingIntent = createPendingIntent(context)
     private val zoneRepository: ZoneRepository by inject()
     private val ioDispatcher: CoroutineDispatcher by inject()
@@ -75,7 +75,7 @@ class ZoneManager(
 
     @SuppressLint("MissingPermission")
     private fun updateGeofencesMonitoring() {
-        geofencingClient.removeGeofences(pendingIntent).run {
+        geofencingClient?.removeGeofences(pendingIntent)?.run {
             addOnSuccessListener {
                 GlobalLogger.shared.info(context, "Inside addOnSuccessListener")
                 addGeofences()
@@ -97,13 +97,12 @@ class ZoneManager(
             val geofences = GeofencingHelper.buildGeofenceList(zones)
             val geofenceRequest = GeofencingHelper.getGeofencingRequest(geofences)
 
-            geofencingClient.addGeofences(geofenceRequest, pendingIntent).run {
+            geofencingClient?.addGeofences(geofenceRequest, pendingIntent)?.run {
                 addOnSuccessListener {
                     GlobalLogger.shared.info(
                         context,
                         "addOnSuccessListener - The geofences has been correctly added"
                     )
-                    println("The geofences has been correctly added")
                 }
                 addOnFailureListener {
                     GlobalLogger.shared.error(

@@ -17,9 +17,6 @@ object RetrofitBuilder {
         apiClass: Class<T>,
         addLoggingInterceptor: Boolean = false
     ): T {
-
-        println("YYY - apiURL is $apiURL")
-
         val url = URL(apiURL)
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl(url)

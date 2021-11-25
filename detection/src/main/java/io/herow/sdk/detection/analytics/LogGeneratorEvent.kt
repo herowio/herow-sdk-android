@@ -107,7 +107,7 @@ class LogGeneratorEvent(
 
         if (cachePois != null) {
             if (cachePois!!.isNotEmpty()) {
-                for (cachePoi in cachePois!!) {
+                for (cachePoi in ArrayList<Poi>(cachePois!!)) {
                     cachePoi.distance = cachePoi.updateDistance(location)
 
                     GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
@@ -141,7 +141,10 @@ class LogGeneratorEvent(
 
         if (cacheZones != null) {
             if (cacheZones!!.isNotEmpty()) {
-                for (cacheZone in cacheZones!!) {
+                val iterator = cacheZones!!.iterator()
+
+                while (iterator.hasNext()) {
+                    val cacheZone = iterator.next()
                     cacheZone.distance = cacheZone.updateDistance(location)
                     GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
 

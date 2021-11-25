@@ -84,7 +84,6 @@ class ClickAndCollectWorkerTest : KoinTest, ICustomKoinTestComponent {
 
         runBlocking {
             withContext(ioDispatcher) {
-                println("into onCancellation")
                 val job = launch {
                     worker.doWork()
                 }

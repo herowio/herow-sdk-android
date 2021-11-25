@@ -60,7 +60,6 @@ class GeofenceEventGenerator: IZoneListener, ICustomKoinComponent {
                 GlobalLogger.shared.info(null, "PreviousZone is: $previousZone")
 
                 val exit = zones.none { it.hash == previousZone.hash }
-                println("Exit value is: $exit")
                 if (exit) {
                     GlobalLogger.shared.info(null, "Adding zone - Type EXIT")
                     val geofenceEvent = GeofenceEvent(

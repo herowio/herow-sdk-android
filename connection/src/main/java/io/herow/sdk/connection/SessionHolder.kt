@@ -186,7 +186,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun removeCustomURL() {
-        println("YYY - into removeCustomURL")
         when (getPlatformName()) {
             HerowPlatform.PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
                 dataHolder[KEY_CUSTOM_PROD_URL] = ""

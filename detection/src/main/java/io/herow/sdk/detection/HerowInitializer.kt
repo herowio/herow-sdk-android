@@ -38,11 +38,9 @@ import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.koin.core.component.inject
+import java.net.UnknownHostException
 
 @Suppress("MemberVisibilityCanBePrivate")
 @SuppressLint("StaticFieldLeak")
@@ -92,7 +90,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
         @JvmStatic
         fun getInstance(context: Context, testingStatus: Boolean = false): HerowInitializer {
-            println("Value of testingStatus: $testingStatus")
             setStaticTesting(testingStatus)
             if (!::herowInitializer.isInitialized) {
                 herowInitializer = HerowInitializer(context)
@@ -102,7 +99,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     }
 
     private fun registerListeners() {
-        applicationScope.launch {
+        applicationScope.launch(Dispatchers.Main) {
             ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
         }
 
@@ -204,6 +201,14 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
                 "You need to enter your credentials before being able to use the SDK, with the " +
                         "configApp & configPlatform methods"
             )
+        }
+    }
+
+    fun testOptin() {
+        try  {
+
+        } catch (e: UnknownHostException) {
+            println("${e.message}")
         }
     }
 
@@ -398,4 +403,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     }
 
     fun getSDKVersion(): String = BuildConfig.SDK_VERSION
+
+    fun getGeoHash(): String = sessionHolder.getGeohash()
 }

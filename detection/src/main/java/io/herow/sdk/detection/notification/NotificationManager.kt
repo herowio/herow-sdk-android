@@ -53,7 +53,6 @@ class NotificationManager(
 
     private fun addFilter(filter: INotificationFilter) {
         if (!filterList.contains(filter)) filterList.add(filter)
-        println("Filter list is $filterList")
     }
 
     private fun canCreateNotification(campaign: Campaign): Boolean {
