@@ -23,7 +23,7 @@ jobs:
           java-version: 11.0.12
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Checkout secrets
         uses: actions/checkout@v2
         with:

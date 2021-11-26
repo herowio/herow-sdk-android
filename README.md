@@ -16,14 +16,15 @@ In order to use our SDK you need to configure your Github account.
 - Click on the button "Generate new token". Choose a note and select in scopes "read:packages"
 - Generate token
 
-Warning:
-
-A token is displayed. You will only see it once. You need to save it somewhere because you will never be able to fetch it another time. If you lose or forget it you will need to generate a new token.
+>Warning:
+>
+>A token is displayed. You will only see it once. You need to save it somewhere because you will never be able to fetch it another time. If you lose or forget it you will need to generate a new token.
 
 
 # Installation with Android Studio
 
 - Create or open your project
+
 - Into your build.gradle (project level), into all project > repositories section, add the following code:
 
 ```
@@ -45,7 +46,7 @@ Replace YOUR_GITHUB_TOKEN by the generated token that you can only see once.
 - Go to your build.gradle (app level) and in your dependencies add the following code:
 
 ``` 
-implementation 'io.herow.sdk:detection:7.1.0'
+implementation 'io.herow.sdk:detection:7.2.0'
 ```
 
 - Sync your project
@@ -53,7 +54,7 @@ implementation 'io.herow.sdk:detection:7.1.0'
 
 # Configure the SDK
 
-- Create a new class and make it extend Application
+- Create a new class and extend it to the Application
 
 ```
 import android.app.Application
@@ -62,7 +63,7 @@ class MainApplication: Application() { }
 
 ```
 
-- You will need your SDK credentials and your platform. Override onCreate() method and configure your initialization as followed:
+- You will need your SDK Access Key (SDK ID & Key) and your platform (PRE_PROD or PROD) type. Override the onCreate() method and configure your herowInitializer as follows:
 
 ```
 override fun onCreate() {
@@ -70,98 +71,50 @@ override fun onCreate() {
 
         val herowInitializer = HerowInitializer.getInstance(context)
         herowInitializer
-            .configPlatform(HerowPlatform.PROD) //or HerowPlatform.PRE_PROD
+            .configPlatform(HerowPlatform.PROD) // or HerowPlatform.PRE_PROD
             .configApp(sdkId = "YOUR_SDK_ID", sdkKey = "YOUR_SDK_KEY")
 
         herowInitializer.synchronize()
     }
 ```
 
-Note 1:
+>Note 1:
+>
+>The synchronize method allows the SDK set up with a configuration file downloaded from the Herow platform. The SDK will start the place detection process only when the file download is complete.
+>
+>This configuration file is saved in cache, and the SDK will check for updates at regular intervals.
 
-The synchronize method allows you to set up the SDK with a configuration file downloaded from the Herow platform. The SDK will start the zone detection process only when the file download is complete.
+>Note 2:
+>
+>The HerowInitializer allows you to configure your access to the HEROW platform. HEROW gives you access to the following environments:
+>
+>- PRE_PROD: pre-production environment used for tests
+>- PROD: production environment used for release
 
-This configuration file is saved in cache, and the SDK checks for updates at regular intervals.
-
-Note 2:
-
-The HerowInitializer allows you to configure your access to the HEROW platform. HEROW gives you access to one or several of the following environments:
-
-- preProd: The pre-production platform of the HEROW platform
-- prod: The production platform of the HEROW platform
-
-Warning:
-
-You will get one access key:
-
-- An access key to use with our mobile SDK. This access key is composed of an SDK ID and SDK Key on Herow. Please make sure you use the good credentials to connect the SDK to the correct Herow Platform, otherwise your application won't be able to detect zones.
+>Warnings:
+>
+>- You will get one Access Key: This Access Key is composed of an SDK ID & an SDK Key and is used to configure your SDK.
+>
+>- Please make sure you use the right platform depending on your objective (test or release). Otherwise your SDK won't load/be synced with the right content.
 
 
 # GDPR Opt-ins
 
-The HEROW SDK only works if the GDPR opt-in is given by the end-user. The SDK can share some information as user datas.
+The HEROW SDK has an in-built mandatory GDPR method.
 
 **Update the opt-ins permissions**
 
-- You can accept or refuse. Use these methods:
+Use these methods:
 
-`herowInitializer.acceptOptin()`
+`herowInitializer.acceptOptin()` // Opt-in accepted
 
-`herowInitializer.refuseOptin()`
+`herowInitializer.refuseOptin()` // Opt-in refused
 
-
-Note 1:
-
-If the user refuses the optin the sdk will not work.
-<br />
-
-
-# Setting a Custom ID
-
-To set a custom ID, make the following call as soon as the user logs in. You can set the custom ID before synchronize() method, in your class extending Application.
-
-`HerowInitializer.getInstance(context).setCustomId("YOUR_CUSTOM_ID")`
-
-If the user logs out, you can use the removeCustomID() method. 
-
-`HerowInitializer.getInstance(context).removeCustomID()`
-
-
-
-# Click and Collect
-
-To enable the HEROW SDK to continue tracking end-users location events (such as geofences' detection and position statements) happening in a Click & Collect context when the app is in the background.
-
-These methods are to be called during an active session (app in Foreground) which will enable the SDK to continue tracking the end-user when the app is put in background.
-
-Note 1:
-
-This method only works if the end-user's runtime location permission is at least set to While in use.
-
-Starting from Android 11, Google prevents apps requesting the Background Location Runtime Permission from collecting background location data before the user manually grants the background location permission. You need to specifically ask the user to enable this background permission directly in the settings of the phone.
-
-Note 2:
-
-By default, the Click & Collect background service will time out after 2 hours. This is meant to preserve the initial objective of this feature to locate end-users in the background for Click & Collect scenarios and not provide continuous background tracking.
-
-
-
-**How to start Click and Collect**
-
-Call the following method to enable the background service:
-
-`HerowInitializer.getInstance(context).launchClickAndCollect()`
-
-**How to stop Click and Collect**
-
-Call the following method to disable the background service:
-
-`HerowInitializer.getInstance(context).stopClickAndCollect()`
-
+Note: The HEROW SDK will only work if the GDPR opt-ins are given by the end-users.
 
 # Location permissions
 
-The sdk needs some permissions to work. To be able to take background position readings by activating the **ClickAndCollect** feature you will need the while-in-use permission. If you want to take readings permanently the always permissions will be required.
+The HEROW SDK requires access to the Operating System permissions to work.
 
 Before **Android 10** (API 28 and before) you need to ask for these permissions at runtime:
 
@@ -179,14 +132,69 @@ For **Android 10** (API 29) you need to ask for these permissions at runtime:
 Starting from **Android 11** (Api 30 and above) you need to ask for these permissions at runtime:
 
 - android.Manifest.permission.ACCESS_FINE_LOCATION
-- android.Manifest.permission.ACCESS_COARSE_LOCATION
+- android.Manifest.permission.ACCESS_COARSE_LOCATION 
 
-You also need to specifically ask the user to enable Background location permission directly in the settings of the phone. To do so, Google advices to prompt an AlertDialog to explain why you need the background location permission.
+Regarding BACKGROUND_LOCATION, you now need to explicitely ask your user to modify his/her preferences in the app's settings. To do so, Google advices to prompt an AlertDialog to explain why you need the background location permission.
 
-Note 1:
+</br>
 
-For Android 11, if you choose to ask for the background location permission and the user enables it, you will also benefit from the Android 11 native geofencing service.
+>Note 1:
+>
+>For Android 11, if you choose to ask for the background location permission and the user enables it, you will also benefit from the Android 11 native geofencing service.
+
 <br />
+
+>Note 2: 
+>
+>HEROW has an in-built **ClickAndCollect** method enabling you to perform temporary background location services with access to foreground permission only. More information in our **ClickAndCollect** section.
+
+
+# Setting a Custom ID
+
+To set a customID, make the following call as soon as the user logs in. You can set the customID before the synchronize() method, in your class extending Application.
+
+`HerowInitializer.getInstance(context).setCustomId("YOUR_CUSTOM_ID")`
+
+If the user logs out, you can use the removeCustomID() method. 
+
+`HerowInitializer.getInstance(context).removeCustomID()`
+
+>Note: 
+>
+>**Setting a customID is crucial if you want to reconcile your HEROW user data in your backend or with third-party partners**. The customID is used as cross-solution identification system.
+
+
+# ClickAndCollect
+
+To enable the HEROW SDK to temporarly continue tracking end-users location events (geofence detection or standard location events) happening in a Click & Collect context when the app is in the background (but not closed).
+
+This **method is to be called during an active session (app opened)** which will enable the SDK to continue tracking the end-user when the app is put in background.
+
+>Note 1:
+>
+>This method **only works if the end-user's runtime location permission is at least set to While in use**.
+>
+>From Android 11+ (API 30 and above), Google prevents apps from requesting the Background Location Permission upfront and collecting background location data before the user manually grants the background location permission is his/her app settings.
+
+>Note 2:
+>
+>A Click & Collect context is defined by **specific app scenarios which legitimates a temporary use of the background location to perform a specific task** (ex: pickup scenarios for F&B where location is used to estimate order preparation lead time).
+
+>Note 3: 
+>
+>By default, the Click & Collect background service will timeout after 2 hours. This is meant to preserve the initial objective of this feature to locate end-users in the background for Click & Collect scenarios and not provide continuous background tracking.
+
+**How to start Click and Collect**
+
+Call the following method to enable the background service:
+
+`HerowInitializer.getInstance(context).launchClickAndCollect()`
+
+**How to stop Click and Collect**
+
+Call the following method to disable the background service:
+
+`HerowInitializer.getInstance(context).stopClickAndCollect()`
 
 # Debug mode
 
