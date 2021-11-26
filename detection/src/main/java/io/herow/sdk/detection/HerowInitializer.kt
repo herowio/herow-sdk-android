@@ -29,6 +29,7 @@ import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.IGeofenceListener
+import io.herow.sdk.detection.helpers.PermissionLocationHelper
 import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
@@ -205,7 +206,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     }
 
     fun testOptin() {
-        try  {
+        try {
 
         } catch (e: UnknownHostException) {
             println("${e.message}")
@@ -364,7 +365,8 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         clearAllTables(sdkId, sdkKey, customID)
     }
 
-    private fun reset() = sessionHolder.reset()
+    // Public method used in test
+    fun reset() = sessionHolder.reset()
 
     private fun clearAllTablesForCustomURL(isPreprod: Boolean) {
         applicationScope.launch {
@@ -405,4 +407,6 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     fun getSDKVersion(): String = BuildConfig.SDK_VERSION
 
     fun getGeoHash(): String = sessionHolder.getGeohash()
+
+    fun testPermissionStatus() = PermissionLocationHelper.treatActualPermissions(context)
 }

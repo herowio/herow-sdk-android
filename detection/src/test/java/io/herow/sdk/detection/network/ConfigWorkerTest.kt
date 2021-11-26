@@ -12,12 +12,11 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.config.IConfigListener
-import io.herow.sdk.connection.userinfo.Optin
-import io.herow.sdk.connection.userinfo.UserInfo
+import io.herow.sdk.connection.userinfo.*
 import io.herow.sdk.detection.HerowInitializer
-import io.herow.sdk.detection.session.RetrofitBuilder
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
+import io.herow.sdk.detection.session.RetrofitBuilder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -144,12 +143,17 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
     @Test
     fun userInfoShouldNotBeCalledIfUserIsSavedAndUpToDate() {
         val authRequest: AuthRequests = mock(AuthRequests::class.java)
+        val permissionLocation = PermissionLocation(
+            Precision.FINE,
+            Status.ALWAYS
+        )
 
         // Create same object that the saved one
         val userInfo = UserInfo(
             arrayListOf(Optin(value = false)),
             null,
-            "randomCustom"
+            "randomCustom",
+            permissionLocation
         )
         sessionHolder.saveStringUserInfo(Gson().toJson(userInfo))
 

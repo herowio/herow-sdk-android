@@ -1,5 +1,6 @@
 package io.herow.sdk.detection.network
 
+import android.content.Context
 import androidx.annotation.Keep
 import androidx.work.Data
 import com.google.gson.Gson
@@ -14,6 +15,7 @@ import io.herow.sdk.connection.token.TokenResult
 import io.herow.sdk.connection.userinfo.Optin
 import io.herow.sdk.connection.userinfo.UserInfo
 import io.herow.sdk.connection.userinfo.UserInfoResult
+import io.herow.sdk.detection.helpers.PermissionLocationHelper
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.network.model.RetrofitConnectionObject
 import io.herow.sdk.detection.session.RetrofitBuilder
@@ -36,6 +38,7 @@ class AuthRequests(
     }
 
     private val sessionHolder: SessionHolder by inject()
+    private val context: Context by inject()
     private var isWorking = false
     private val platform = getPlatform()
 
@@ -212,7 +215,8 @@ class AuthRequests(
         return UserInfo(
             optins = arrayListOf(Optin(value = sessionHolder.getOptinValue())),
             advertiserId = adID,
-            customId = data.getString(KEY_CUSTOM_ID) ?: ""
+            customId = data.getString(KEY_CUSTOM_ID) ?: "",
+            permissionLocation = PermissionLocationHelper.treatActualPermissions(context)
         )
     }
 
