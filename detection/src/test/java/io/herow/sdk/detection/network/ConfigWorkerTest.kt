@@ -18,8 +18,10 @@ import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import io.herow.sdk.detection.session.RetrofitBuilder
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is.`is`
 import org.junit.Assert
@@ -33,10 +35,11 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.*
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
-    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val testDispatcher = TestCoroutineDispatcher()
     private val sessionHolder: SessionHolder by inject()
 
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -74,13 +77,12 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
 
     @Test
     fun testLaunchTokenConfigWorker() {
-        runBlocking {
-            withContext(ioDispatcher) {
-                val result = worker.doWork()
-                assertThat(result, `is`(ListenableWorker.Result.success()))
-                Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
-                Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
-            }
+        testDispatcher.runBlockingTest {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Thread.sleep(2000)
+            Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
+            Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
         }
     }
 
@@ -90,12 +92,11 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
         ConfigDispatcher.addConfigListener(configWorkerListener)
         Assert.assertNull(configWorkerListener.configResult)
 
-        runBlocking {
-            withContext(ioDispatcher) {
-                val result = worker.doWork()
-                assertThat(result, `is`(ListenableWorker.Result.success()))
-                Assert.assertNotNull(configWorkerListener.configResult)
-            }
+        testDispatcher.runBlockingTest {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Thread.sleep(1000)
+            Assert.assertNotNull(configWorkerListener.configResult)
         }
 
         ConfigDispatcher.unregisterConfigListener(configWorkerListener)
@@ -105,12 +106,10 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
     fun testWithCacheTimeSaved() {
         sessionHolder.saveModifiedCacheTime("Tue, 25 Aug 2020 12:57:38 GMT")
 
-        runBlocking {
-            withContext(ioDispatcher) {
-                val result = worker.doWork()
-                assertThat(result, `is`(ListenableWorker.Result.success()))
-                Assert.assertTrue(!sessionHolder.hasNoCacheTimeSaved())
-            }
+        testDispatcher.runBlockingTest {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Assert.assertTrue(!sessionHolder.hasNoCacheTimeSaved())
         }
     }
 
@@ -118,25 +117,23 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
     fun testWithCacheTimeSuperiorToRemoteTime() {
         sessionHolder.saveModifiedCacheTime("Mon, 30 Jun 2025 12:57:38 GMT")
 
-        runBlocking {
-            withContext(ioDispatcher) {
-                val result = worker.doWork()
-                assertThat(result, `is`(ListenableWorker.Result.success()))
-                Assert.assertFalse(sessionHolder.getUpdateCacheStatus())
-            }
+        testDispatcher.runBlockingTest {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Assert.assertFalse(sessionHolder.getUpdateCacheStatus())
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testWithCacheTimeLowerToRemoteTime() {
         sessionHolder.saveModifiedCacheTime("Tue, 9 Jun 2020 12:57:38 GMT")
 
-        runBlocking {
-            withContext(ioDispatcher) {
-                val result = worker.doWork()
-                assertThat(result, `is`(ListenableWorker.Result.success()))
-                Assert.assertTrue(sessionHolder.getUpdateCacheStatus())
-            }
+        testDispatcher.runBlockingTest {
+            val result = worker.doWork()
+            assertThat(result, `is`(ListenableWorker.Result.success()))
+            Thread.sleep(1000)
+            Assert.assertTrue(sessionHolder.getUpdateCacheStatus())
         }
     }
 

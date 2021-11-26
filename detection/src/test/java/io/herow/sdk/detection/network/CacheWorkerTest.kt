@@ -15,10 +15,9 @@ import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.geofencing.model.toLocationMapper
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
 import org.junit.Assert
@@ -35,7 +34,8 @@ import java.util.*
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class CacheWorkerTest : KoinTest, ICustomKoinTestComponent {
-    private val ioDispatcher: CoroutineDispatcher by inject()
+
+    private val testDispatcher = TestCoroutineDispatcher()
     private val sessionHolder: SessionHolder by inject()
 
     private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -76,30 +76,29 @@ class CacheWorkerTest : KoinTest, ICustomKoinTestComponent {
     }
 
     @Test
-    fun testLaunchCacheWorker(): Unit = runBlocking {
-        withContext(ioDispatcher) {
-            var result = worker.doWork()
+    fun testLaunchCacheWorker(): Unit = testDispatcher.runBlockingTest {
+        var result = worker.doWork()
 
-            assertThat(result, Is.`is`(ListenableWorker.Result.success()))
-            Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
-            Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
+        assertThat(result, Is.`is`(ListenableWorker.Result.success()))
+        Thread.sleep(1000)
+        Assert.assertTrue(sessionHolder.getAccessToken().isNotEmpty())
+        Assert.assertTrue(sessionHolder.getHerowId().isNotEmpty())
 
-            sessionHolder.updateCache(true)
+        sessionHolder.updateCache(true)
 
-            result = worker.doWork()
+        result = worker.doWork()
 
-            assertThat(result, Is.`is`(ListenableWorker.Result.success()))
+        assertThat(result, Is.`is`(ListenableWorker.Result.success()))
 
-            sessionHolder.saveGeohash("123a")
+        sessionHolder.saveGeohash("123a")
 
-            result = worker.doWork()
-            assertThat(result, Is.`is`(ListenableWorker.Result.success()))
+        result = worker.doWork()
+        assertThat(result, Is.`is`(ListenableWorker.Result.success()))
 
-            sessionHolder.saveOptinValue(false)
+        sessionHolder.saveOptinValue(false)
 
-            result = worker.doWork()
-            assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
-        }
+        result = worker.doWork()
+        assertThat(result, Is.`is`(ListenableWorker.Result.failure()))
     }
 }
 
