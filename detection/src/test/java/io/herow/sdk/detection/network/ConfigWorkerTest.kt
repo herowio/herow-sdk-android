@@ -17,7 +17,6 @@ import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import io.herow.sdk.detection.session.RetrofitBuilder
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
@@ -128,11 +127,12 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
     @Test
     fun testWithCacheTimeLowerToRemoteTime() {
         sessionHolder.saveModifiedCacheTime("Tue, 9 Jun 2020 12:57:38 GMT")
+        Thread.sleep(1000)
 
         testDispatcher.runBlockingTest {
             val result = worker.doWork()
             assertThat(result, `is`(ListenableWorker.Result.success()))
-            Thread.sleep(1000)
+            Thread.sleep(2000)
             Assert.assertTrue(sessionHolder.getUpdateCacheStatus())
         }
     }
