@@ -132,7 +132,7 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
         testDispatcher.runBlockingTest {
             val result = worker.doWork()
             assertThat(result, `is`(ListenableWorker.Result.success()))
-            Thread.sleep(2000)
+            Thread.sleep(5000)
             Assert.assertTrue(sessionHolder.getUpdateCacheStatus())
         }
     }
