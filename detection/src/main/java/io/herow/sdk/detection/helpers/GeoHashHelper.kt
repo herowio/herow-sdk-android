@@ -26,8 +26,8 @@ object GeoHashHelper {
      * string using [.toBase32].
      *
      * This function doesn't validate preconditions, which are the following:
-     * 1. lat ∈ [-90, 90)
-     * 2. lng ∈ [-180, 180)
+     * 1. lat ∈ [-90, 90]
+     * 2. lng ∈ [-180, 180]
      * 3. bits ∈ [0, 61]
      *
      * Results are undefined if these preconditions are not met.

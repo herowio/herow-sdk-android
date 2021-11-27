@@ -33,7 +33,7 @@ class AppStateDetectorTest {
         Assert.assertFalse(appStateListener.isOnForeground)
     }
 
-    class MyListener: IAppStateListener {
+    class MyListener : IAppStateListener {
         var isOnForeground: Boolean = false
 
         override fun onAppInForeground() {

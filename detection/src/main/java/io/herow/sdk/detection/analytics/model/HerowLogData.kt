@@ -7,6 +7,7 @@ import io.herow.sdk.detection.BuildConfig
 import io.herow.sdk.detection.analytics.ApplicationData
 
 open class HerowLogData : HashMap<String, Any>() {
+
     companion object {
         const val SUBTYPE = "subtype"
         const val APP_STATE = "app_state"

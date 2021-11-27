@@ -1,3 +1,5 @@
+@file:Suppress("LocalVariableName")
+
 package io.herow.sdk.detection.analytics.model
 
 import io.herow.sdk.connection.cache.model.Campaign
@@ -10,7 +12,8 @@ class HerowLogEnterOrExit(
     appState: String,
     geofenceEvent: GeofenceEvent,
     campaign: Campaign? = null
-): HerowLogData() {
+) : HerowLogData() {
+
     companion object {
         const val LOCATION = "lastLocation"
         const val PLACE = "place"

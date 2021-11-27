@@ -3,7 +3,7 @@ package io.herow.sdk.detection.analytics.model
 class LogRedirect(
     zoneHash: String,
     idCampaign: String
-): HerowLogData() {
+) : HerowLogData() {
 
     companion object {
         const val CAMPAIGN_ID = "campaign_id"

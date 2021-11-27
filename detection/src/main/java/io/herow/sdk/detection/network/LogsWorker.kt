@@ -1,20 +1,29 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import androidx.annotation.Keep
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.logger.GlobalLogger
-import io.herow.sdk.connection.HerowAPI
+import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.core.component.inject
 
+@Keep
 class LogsWorker(
     val context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters) {
+) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    var testing = false
 
     companion object {
         const val KEY_LOGS = "detection.logs"
@@ -22,41 +31,34 @@ class LogsWorker(
         var workerID: String = "workerID"
     }
 
-    private lateinit var sessionHolder: SessionHolder
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-
     override suspend fun doWork(): Result {
-        sessionHolder = SessionHolder(DataHolder(applicationContext))
-
-        val autRequest = AuthRequests(sessionHolder, inputData)
+        val authRequests = AuthRequests(inputData)
         if (!sessionHolder.getOptinValue()) {
-            GlobalLogger.shared.debug(context,"Optin value is set to false")
+            GlobalLogger.shared.debug(context, "Optin value is set to false")
 
             return Result.failure()
         }
 
-        autRequest.execute {
-            withContext(dispatcher) {
-                launchLogsRequest(autRequest.getHerowAPI())
+        applicationScope.launch {
+            authRequests.execute {
+                launchLogsRequest(authRequests.getHerowAPI())
             }
         }
+
         return Result.success()
     }
 
-    private suspend fun launchLogsRequest(herowAPI: HerowAPI) {
+    private suspend fun launchLogsRequest(herowAPI: IHerowAPI) {
         val log = logsWorkerHashMap[inputData.getString(workerID)]
-        GlobalLogger.shared.info(context,"Log to send is: $log")
-        GlobalLogger.shared.info(context,"LogWorkerID is: ${inputData.getString(workerID)}")
+        GlobalLogger.shared.info(context, "Log to send is: $log")
 
         if (!log.isNullOrEmpty()) {
             val logResponse = herowAPI.log(log)
-            GlobalLogger.shared.info(context,"LogResponse is: $logResponse")
+            GlobalLogger.shared.info(context, "LogResponse is: $logResponse")
 
             if (logResponse.isSuccessful) {
                 logsWorkerHashMap.remove(workerID)
-                GlobalLogger.shared.info(context,"Log has been sent")
-
-                println("Request has been sent")
+                GlobalLogger.shared.info(context, "Log has been sent")
             } else {
                 println(logResponse)
             }

@@ -1,12 +1,13 @@
 package io.herow.sdk.detection
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
-import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
@@ -14,58 +15,83 @@ import io.herow.sdk.common.states.app.AppStateDetector
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.CacheDispatcher
-import io.herow.sdk.connection.cache.CacheListener
+import io.herow.sdk.connection.cache.ICacheListener
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigDispatcher
-import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
 import io.herow.sdk.detection.cache.CacheManager
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
-import io.herow.sdk.detection.clickandcollect.ClickAndCollectListener
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
+import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
-import io.herow.sdk.detection.geofencing.GeofenceListener
+import io.herow.sdk.detection.geofencing.IGeofenceListener
+import io.herow.sdk.detection.helpers.PermissionLocationHelper
 import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
+import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.location.LocationDispatcher
-import io.herow.sdk.detection.location.LocationListener
 import io.herow.sdk.detection.location.LocationManager
 import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import org.koin.core.component.inject
+import java.net.UnknownHostException
 
-
-class HerowInitializer private constructor(val context: Context) : LocationListener {
+@Suppress("MemberVisibilityCanBePrivate")
+@SuppressLint("StaticFieldLeak")
+class HerowInitializer private constructor(val context: Context) : ILocationListener, ICustomKoinComponent {
     private val appStateDetector = AppStateDetector()
     private var platform: HerowPlatform = HerowPlatform.PROD
     private var sdkSession = SdkSession("", "")
     private var customID: String = ""
     private var locationManager: LocationManager
-    private var logsManager: LogsManager
-    private var workManager: WorkManager
+    private val logsManager: LogsManager = LogsManager(context)
+    private val workManager: WorkManager = WorkManager.getInstance(context)
     private var notificationManager: NotificationManager
-    private var cacheManager: CacheManager
-    private var sessionHolder: SessionHolder
+    private val cacheManager: CacheManager = CacheManager(context)
+
+    private lateinit var preprodURL: String
+    private lateinit var prodURL: String
+
+    //Koin
+    private val sessionHolder: SessionHolder by inject()
+    private val herowDatabase: HerowDatabase by inject()
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    private val zoneRepository: ZoneRepository by inject()
+
 
     init {
-        sessionHolder = SessionHolder(DataHolder(context))
-        workManager = WorkManager.getInstance(context)
-        logsManager = LogsManager(context)
-        cacheManager = CacheManager(context)
         loadIdentifiers(context)
-        locationManager = LocationManager(context, sessionHolder)
-        notificationManager = NotificationManager(context, sessionHolder)
+        locationManager = LocationManager(context, true)
+        notificationManager = NotificationManager(context)
         registerListeners()
     }
 
     companion object {
+        private var testing = false
+
+        @JvmStatic
+        fun isTesting(): Boolean {
+            return testing
+        }
+
+        @JvmStatic
+        fun setStaticTesting(staticTesting: Boolean) {
+            testing = staticTesting
+        }
+
         private lateinit var herowInitializer: HerowInitializer
-        @JvmStatic fun getInstance(context: Context): HerowInitializer {
+
+        @JvmStatic
+        fun getInstance(context: Context, testingStatus: Boolean = false): HerowInitializer {
+            setStaticTesting(testingStatus)
             if (!::herowInitializer.isInitialized) {
                 herowInitializer = HerowInitializer(context)
             }
@@ -73,17 +99,17 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         }
     }
 
-    private  fun registerListeners() {
-        val instance = this
-        CoroutineScope(Dispatchers.Main).launch {
+    private fun registerListeners() {
+        applicationScope.launch(Dispatchers.Main) {
             ProcessLifecycleOwner.get().lifecycle.addObserver(appStateDetector)
-            AppStateDetector.addAppStateListener(locationManager)
-            LocationDispatcher.addLocationListener(cacheManager)
-            LocationDispatcher.addLocationListener(instance)
-            ConfigDispatcher.addConfigListener(locationManager)
-            LogsDispatcher.addLogListener(logsManager)
-            GeofenceDispatcher.addGeofenceListener(notificationManager)
         }
+
+        AppStateDetector.addAppStateListener(locationManager)
+        LocationDispatcher.addLocationListener(cacheManager)
+        LocationDispatcher.addLocationListener(this)
+        ConfigDispatcher.addConfigListener(locationManager)
+        LogsDispatcher.addLogListener(logsManager)
+        GeofenceDispatcher.addGeofenceListener(notificationManager)
     }
 
     /**
@@ -94,7 +120,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
      * to be able to use it only if the developer has already the library include in his project.
      */
     private fun loadIdentifiers(context: Context) {
-        CoroutineScope(Dispatchers.IO).launch {
+        applicationScope.launch {
             kotlin.runCatching {
                 val deviceId = DeviceHelper.getDeviceId(context)
                 sessionHolder.saveDeviceId(deviceId)
@@ -114,10 +140,10 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         }
     }
 
-    fun configApp(sdkId: String, sdkKey: String): HerowInitializer {
-        sdkSession = SdkSession(sdkId, sdkKey)
-        sessionHolder.saveSDKID(sdkId)
-        sessionHolder.saveSdkKey(sdkKey)
+    fun configApp(sdkKey: String, sdkSecret: String): HerowInitializer {
+        sdkSession = SdkSession(sdkKey, sdkSecret)
+        sessionHolder.saveSDKID(sdkKey)
+        sessionHolder.saveSdkKey(sdkSecret)
         return this
     }
 
@@ -135,11 +161,25 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     fun getCustomId(): String = sessionHolder.getCustomID()
 
-    fun getOptinValue(): Boolean = sessionHolder.getOptinValue()
+    fun removeCustomId() = sessionHolder.removeCustomID()
 
-    fun removeCustomId()  {
-        sessionHolder.removeCustomID()
+    fun setPreProdCustomURL(url: String) = resetForCustomURL(true, url)
+
+    fun setProdCustomURL(url: String) = resetForCustomURL(false, url)
+
+    fun removeCustomURL() {
+        sessionHolder.removeCustomURL()
+
+        if (sessionHolder.getPlatformName() == HerowPlatform.PRE_PROD) {
+            resetForCustomURL(true, "")
+        } else {
+            resetForCustomURL(false, "")
+        }
     }
+
+    fun getCurrentURL(): String = sessionHolder.getCurrentURL()
+
+    fun getOptinValue(): Boolean = sessionHolder.getOptinValue()
 
     fun acceptOptin(): HerowInitializer {
         saveOptinValue(true)
@@ -153,6 +193,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     fun synchronize() {
         Log.i("XXX", "Has been filled: ${sdkSession.hasBeenFilled()}")
+        GlobalLogger.shared.info(context, "Hey there")
         if (sdkSession.hasBeenFilled()) {
             launchConfigRequest()
         } else {
@@ -161,6 +202,14 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
                 "You need to enter your credentials before being able to use the SDK, with the " +
                         "configApp & configPlatform methods"
             )
+        }
+    }
+
+    fun testOptin() {
+        try {
+
+        } catch (e: UnknownHostException) {
+            println("${e.message}")
         }
     }
 
@@ -195,7 +244,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
                 NetworkWorkerTags.CONFIG
             )
         ) {
-            GlobalLogger.shared.debug(context, "launch ConfigRequest")
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -205,6 +253,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
                 AuthRequests.KEY_CUSTOM_ID to customID,
                 AuthRequests.KEY_PLATFORM to platform.name
             )
+
             val workerRequest: WorkRequest = OneTimeWorkRequestBuilder<ConfigWorker>()
                 .addTag(NetworkWorkerTags.CONFIG)
                 .setConstraints(constraints)
@@ -212,6 +261,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
                     datas
                 )
                 .build()
+
             workManager.enqueue(workerRequest)
             GlobalLogger.shared.info(context, "Config request is enqueued")
         } else {
@@ -219,7 +269,6 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
             if (lastConfig != null) {
                 ConfigDispatcher.dispatchConfigResult(lastConfig)
             }
-
         }
     }
 
@@ -232,6 +281,7 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
             .addTag(ClickAndCollectWorker.tag)
             .build()
         workManager.enqueue(workRequest)
+        sessionHolder.saveClickAndCollectProgress(true)
     }
 
     fun stopClickAndCollect() {
@@ -241,28 +291,25 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
 
     fun isOnClickAndCollect(): Boolean = sessionHolder.getClickAndCollectProgress()
 
-    fun registerClickAndCollectListener(listener: ClickAndCollectListener) {
+    fun registerClickAndCollectListener(listener: IClickAndCollectListener) {
         ClickAndCollectDispatcher.registerClickAndCollectListener(listener)
     }
 
-    fun unregisterClickAndCollectListener(listener: ClickAndCollectListener) {
+    fun unregisterClickAndCollectListener(listener: IClickAndCollectListener) {
         ClickAndCollectDispatcher.unregisterClickAndCollectListener(listener)
     }
 
-    fun registerEventListener(geofenceListener: GeofenceListener) {
+    fun registerEventListener(geofenceListener: IGeofenceListener) {
         GlobalLogger.shared.info(context, "Register event listener called")
         GeofenceDispatcher.addGeofenceListener(geofenceListener)
     }
 
-    fun registerCacheListener(cacheListener: CacheListener) {
+    fun registerCacheListener(cacheListener: ICacheListener) {
         GlobalLogger.shared.info(context, "Register cache listener called")
         CacheDispatcher.addCacheListener(cacheListener)
     }
 
-    fun fetchZonesInDatabase(): List<Zone>? {
-        val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-        return zoneRepository.getAllZones()
-    }
+    fun fetchZonesInDatabase(): List<Zone>? = zoneRepository.getAllZones()
 
     /**
      * Save user choice optin value
@@ -275,7 +322,10 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
             AuthRequests.KEY_CUSTOM_ID to customID,
             AuthRequests.KEY_PLATFORM to platform.name
         )
-        AuthRequests(sessionHolder, datas).getUserInfoIfNeeded()
+
+        applicationScope.launch {
+            AuthRequests(datas).getUserInfoIfNeeded()
+        }
     }
 
     override fun onLocationUpdate(location: Location) {
@@ -286,14 +336,66 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         notificationManager.notificationsOnExactZoneEntry(value)
     }
 
-    fun reset(sdkId: String, sdkKey: String, customID: String) {
-        sessionHolder.reset()
-        HerowDatabaseHelper.deleteDatabase(context)
+    private fun resetForCustomURL(isPreprod: Boolean, newURL: String) {
+        val identifiers: Map<String, String> =
+            mapOf(
+                Pair(if (isPreprod) Constants.CUSTOM_PRE_PROD_URL else Constants.CUSTOM_PROD_URL, newURL)
+            )
 
-        configureAfterReset(sdkId, sdkKey, customID)
+        configureAfterCustomURLChange(
+            identifiers,
+            isPreprod
+        )
     }
 
-    private fun configureAfterReset(sdkId: String, sdkKey: String, customID: String) {
+    private fun configureAfterCustomURLChange(
+        identifiers: Map<String, String>,
+        preprod: Boolean
+    ) {
+        sessionHolder.resetForCustomURL()
+        if (preprod) sessionHolder.saveCustomPreProdURL(identifiers[Constants.CUSTOM_PRE_PROD_URL]!!) else sessionHolder.saveCustomProdURL(
+            identifiers[Constants.CUSTOM_PROD_URL]!!
+        )
+
+        clearAllTablesForCustomURL(preprod)
+    }
+
+    fun resetForAccount(sdkId: String, sdkKey: String, customID: String) {
+        reset()
+        clearAllTables(sdkId, sdkKey, customID)
+    }
+
+    // Public method used in test
+    fun reset() = sessionHolder.reset()
+
+    private fun clearAllTablesForCustomURL(isPreprod: Boolean) {
+        applicationScope.launch {
+            herowDatabase.clearAllTables()
+            configureAfterResetForCustomURL(isPreprod)
+        }
+    }
+
+    private fun clearAllTables(sdkId: String, sdkKey: String, customID: String) {
+        applicationScope.launch {
+            herowDatabase.clearAllTables()
+            configureAfterResetForAccount(sdkId, sdkKey, customID)
+        }
+    }
+
+    private fun configureAfterResetForCustomURL(isPreprod: Boolean) {
+        val sdkID = sessionHolder.getSDKID()
+        val sdkKey = sessionHolder.getSdkKey()
+        val customID = sessionHolder.getCustomID()
+
+        this.loadIdentifiers(context)
+        this.configPlatform(if (isPreprod) HerowPlatform.PRE_PROD else HerowPlatform.PROD)
+        this.configApp(sdkID, sdkKey)
+        this.setCustomId(customID)
+        this.acceptOptin()
+        this.synchronize()
+    }
+
+    private fun configureAfterResetForAccount(sdkId: String, sdkKey: String, customID: String) {
         this.loadIdentifiers(context)
         this.configPlatform(HerowPlatform.PRE_PROD)
         this.configApp(sdkId, sdkKey)
@@ -301,4 +403,10 @@ class HerowInitializer private constructor(val context: Context) : LocationListe
         this.acceptOptin()
         this.synchronize()
     }
+
+    fun getSDKVersion(): String = BuildConfig.SDK_VERSION
+
+    fun getGeoHash(): String = sessionHolder.getGeohash()
+
+    fun testPermissionStatus() = PermissionLocationHelper.treatActualPermissions(context)
 }

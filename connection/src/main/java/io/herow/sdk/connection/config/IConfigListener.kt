@@ -1,5 +1,5 @@
 package io.herow.sdk.connection.config
 
-interface ConfigListener {
+interface IConfigListener {
     fun onConfigResult(configResult: ConfigResult)
 }

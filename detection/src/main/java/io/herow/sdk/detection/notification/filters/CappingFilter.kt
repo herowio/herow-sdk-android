@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.math.max
 
-object CappingFilter : NotificationFilter {
+object CappingFilter : INotificationFilter {
 
     override fun createNotification(campaign: Campaign, sessionHolder: SessionHolder): Boolean {
         val currentLocalDateTime = TimeHelper.getCurrentLocalDateTime()
@@ -29,8 +29,8 @@ object CappingFilter : NotificationFilter {
         var startMinutes: Int? = null
         val startFromCampaign: String? = campaign.startHour
 
-        if (startFromCampaign != null || startFromCampaign != "") {
-            val startComponents = startFromCampaign!!.split(":")
+        if (!startFromCampaign.isNullOrEmpty()) {
+            val startComponents = startFromCampaign.split(":")
 
             if (startComponents.count() == 2) {
                 startHour = startComponents[0].toInt()
@@ -40,7 +40,10 @@ object CappingFilter : NotificationFilter {
 
         GlobalLogger.shared.info(null, "Campaign is: $campaign")
         GlobalLogger.shared.info(null, "Reset delay is: $resetDelay")
-        GlobalLogger.shared.info(null, "Start hour is: $startHour && start minutes is: $startMinutes")
+        GlobalLogger.shared.info(
+            null,
+            "Start hour is: $startHour && start minutes is: $startMinutes"
+        )
 
         val firstRazDate: LocalDateTime =
             if (resetDelay > oneDayInMillisSecond) {
@@ -54,45 +57,48 @@ object CappingFilter : NotificationFilter {
 
         GlobalLogger.shared.info(null, "First raz date is: $firstRazDate")
 
-        val herowCapping = getHerowCapping(sessionHolder, campaign, TimeHelper.convertLocalDateTimeToTimestamp(firstRazDate))
-        val razDateConvertedInLocalDateTime = TimeHelper.convertTimestampToLocalDateTime(herowCapping.razDate)
+        val herowCapping = getHerowCapping(sessionHolder, campaign)
+        val razDateConvertedInLocalDateTime =
+            TimeHelper.convertTimestampToLocalDateTime(herowCapping.razDate)
         val count = if (currentLocalDateTime < razDateConvertedInLocalDateTime) {
             herowCapping.count
         } else {
-            val nextRazDate = razDateConvertedInLocalDateTime.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
-            val localDateTimeToConvert = nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
-            herowCapping.razDate = TimeHelper.convertLocalDateTimeToTimestamp(localDateTimeToConvert)
+            val nextRazDate =
+                razDateConvertedInLocalDateTime.plus(resetDelay.toLong(), ChronoUnit.MILLIS)
+            val localDateTimeToConvert =
+                nextRazDate.withHour(startHour ?: 0).withMinute(startMinutes ?: 0)
+            herowCapping.razDate =
+                TimeHelper.convertLocalDateTimeToTimestamp(localDateTimeToConvert)
             0
         }
-
-
 
         herowCapping.count = count + 1
         GlobalLogger.shared.info(null, "CappingFilter Count is: $count")
         GlobalLogger.shared.info(null, "CappingFilter HerowCapping  is: $herowCapping")
         saveHerowCapping(herowCapping, sessionHolder)
-        val result =  maxCapping?.let { count < it } ?: true
-        GlobalLogger.shared.debug(null,"CappingFilter will display: $result for campaign $campaign")
+        val result = maxCapping?.let { count < it } ?: true
+        GlobalLogger.shared.debug(
+            null,
+            "CappingFilter will display: $result for campaign $campaign"
+        )
         return result
     }
 
     private fun getHerowCapping(
         sessionHolder: SessionHolder,
-        campaign: Campaign,
-        firstRazDate: Long
+        campaign: Campaign
     ): HerowCapping {
-        return sessionHolder.getHerowCapping(campaign) ?: HerowCapping(
-            campaignId = campaign.id!!,
-            razDate = firstRazDate,
-            count = 0
-        )
 
+        val herowCapping: HerowCapping = sessionHolder.getHerowCapping(campaign)
+        GlobalLogger.shared.info(null, "Herow is: $herowCapping")
+
+        return herowCapping
     }
-    
+
     private fun saveHerowCapping(herowCapping: HerowCapping, sessionHolder: SessionHolder) {
         GlobalLogger.shared.info(null, "HerowCapping exists")
         val herowCappingToString = GsonProvider.toJson(herowCapping, HerowCapping::class.java)
         GlobalLogger.shared.info(null, "HerowCapping crash?")
-        sessionHolder.saveHerowCapping(herowCapping.campaignId,herowCappingToString)
+        sessionHolder.saveHerowCapping(herowCapping.campaignId, herowCappingToString)
     }
 }

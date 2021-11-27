@@ -1,4 +1,4 @@
-package io.herow.sdk.connection
+package io.herow.sdk.detection.helpers
 
 import io.herow.sdk.connection.cache.model.CacheResult
 import retrofit2.Call

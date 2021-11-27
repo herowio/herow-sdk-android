@@ -16,14 +16,25 @@ class Converters {
             return Collections.emptyList()
         }
 
-        val listType: Type = object : TypeToken<List<Campaign?>?>() {}.type
+        val listType: Type = object : TypeToken<List<Campaign>?>() {}.type
         return Gson().fromJson<List<Campaign>?>(data, listType)
     }
 
     @TypeConverter
-    fun listCampaignToString(someobjects: List<Campaign>?): String? {
-        return Gson().toJson(someobjects)
+    fun listCampaignToString(someobjects: List<Campaign>?): String? = Gson().toJson(someobjects)
+
+    @TypeConverter
+    fun stringToListHerowNotifications(data: String?): List<HerowNotification>? {
+        if (data == null) {
+            return Collections.emptyList()
+        }
+
+        val listType: Type = object : TypeToken<List<HerowNotification>?>() {}.type
+        return Gson().fromJson<List<HerowNotification>?>(data, listType)
     }
+
+    @TypeConverter
+    fun listHerowNotificationToString(someObjects: List<HerowNotification>?): String? = Gson().toJson(someObjects)
 
     @TypeConverter
     fun stringToListString(data: String?): List<String>? {
@@ -36,14 +47,10 @@ class Converters {
     }
 
     @TypeConverter
-    fun listStringToString(someObjects: List<String>?): String? {
-        return Gson().toJson(someObjects)
-    }
+    fun listStringToString(someObjects: List<String>?): String? = Gson().toJson(someObjects)
 
     @TypeConverter
-    fun arrayListStringToString(someObjects: ArrayList<String>?): String? {
-        return Gson().toJson(someObjects)
-    }
+    fun arrayListStringToString(someObjects: ArrayList<String>?): String? = Gson().toJson(someObjects)
 
     @TypeConverter
     fun stringToArrayListString(data: String?): ArrayList<String>? {
@@ -68,16 +75,19 @@ class Converters {
     fun accessToString(access: Access): String = Gson().toJson(access)
 
     @TypeConverter
-    fun stringToCapping(string: String?): Capping? = Gson().fromJson(string, Capping::class.java) ?: null
+    fun stringToCapping(string: String?): Capping? =
+        Gson().fromJson(string, Capping::class.java) ?: null
 
     @TypeConverter
     fun cappingToString(capping: Capping?): String = Gson().toJson(capping) ?: ""
 
     @TypeConverter
-    fun stringToNotification(string: String): Notification = Gson().fromJson(string, Notification::class.java)
+    fun stringToNotification(string: String): HerowNotification =
+        Gson().fromJson(string, HerowNotification::class.java)
 
     @TypeConverter
-    fun notificationToString(notification: Notification?): String = Gson().toJson(notification) ?: ""
+    fun notificationToString(notification: HerowNotification?): String =
+        Gson().toJson(notification) ?: ""
 
     @TypeConverter
     fun stringToPoi(string: String): Poi = Gson().fromJson(string, Poi::class.java)
@@ -92,7 +102,8 @@ class Converters {
     fun zoneToString(zone: Zone): String = Gson().toJson(zone)
 
     @TypeConverter
-    fun stringToLocation(string: String?): Location? = Gson().fromJson(string, Location::class.java) ?: null
+    fun stringToLocation(string: String?): Location? =
+        Gson().fromJson(string, Location::class.java) ?: null
 
     @TypeConverter
     fun locationToString(location: Location?): String = Gson().toJson(location) ?: ""

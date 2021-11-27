@@ -4,29 +4,40 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.core.app.NotificationCompat
-import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Zone
-import io.herow.sdk.connection.database.HerowDatabaseHelper
+import io.herow.sdk.connection.cache.repository.CampaignRepository
+import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.detection.R
 import io.herow.sdk.detection.geofencing.GeofenceEvent
-import io.herow.sdk.detection.geofencing.GeofenceListener
 import io.herow.sdk.detection.geofencing.GeofenceType
+import io.herow.sdk.detection.geofencing.IGeofenceListener
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.notification.filters.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.core.component.inject
 
-class NotificationManager(private val context: Context, private val sessionHolder: SessionHolder) :
-    GeofenceListener {
+class NotificationManager(
+    private val context: Context
+) :
+    IGeofenceListener, ICustomKoinComponent {
 
-    private val filterList: ArrayList<NotificationFilter> = arrayListOf()
-    private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
-    private val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
+    private val filterList: ArrayList<INotificationFilter> = arrayListOf()
+    private val zoneRepository: ZoneRepository by inject()
+    private val campaignRepository: CampaignRepository by inject()
     private var notificationOnExactEntry = false
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val sessionHolder: SessionHolder by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
+
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000
         const val ID_ZONE: String = "idZone"
@@ -40,9 +51,8 @@ class NotificationManager(private val context: Context, private val sessionHolde
         addFilter(CappingFilter)
     }
 
-    private fun addFilter(filter: NotificationFilter) {
+    private fun addFilter(filter: INotificationFilter) {
         if (!filterList.contains(filter)) filterList.add(filter)
-        println("Filter list is $filterList")
     }
 
     private fun canCreateNotification(campaign: Campaign): Boolean {
@@ -68,30 +78,34 @@ class NotificationManager(private val context: Context, private val sessionHolde
                 GlobalLogger.shared.info(context, "Geofence type is: ${event.type}")
                 GlobalLogger.shared.info(context, "GeofenceEvents trigger is: $trigger")
                 if (event.type == trigger) {
-                    GlobalLogger.shared.info(context, "GeofenceEvents selected trigger is: $trigger")
-                    runBlocking {
-                        withContext(Dispatchers.IO) {
-                            val campaigns = fetchCampaignInDatabase(event.zone)
-                            val zoneName = if ( event.zone.access?.name != null)  event.zone.access?.name else "non name"
-                            val campaignNames = campaigns.map { it.notification?.title }
-                            GlobalLogger.shared.info(context, "zone name: $zoneName campagnsName: $campaignNames")
+                    GlobalLogger.shared.info(
+                        context,
+                        "GeofenceEvents selected trigger is: $trigger"
+                    )
 
+                    applicationScope.launch {
+                        val campaigns = fetchCampaignInDatabase(event.zone)
+                        val zoneName = if (event.zone.access?.name != null) event.zone.access?.name else "non name"
+                        val campaignNames = campaigns.map { it.notification?.title }
+                        GlobalLogger.shared.info(
+                            context,
+                            "zone name: $zoneName campagnsName: $campaignNames"
+                        )
 
-                            if (campaigns.isNotEmpty()) {
-                                for (campaign in campaigns) {
-                                    GlobalLogger.shared.info(context, "Campaign are: $campaign")
-                                    if (canCreateNotification(campaign)) {
-                                        createNotification(context, event, campaign)
-                                    } else {
-                                        GlobalLogger.shared.info(
-                                            context,
-                                            "Campaign: $campaign not displayed"
-                                        )
-                                    }
+                        if (campaigns.isNotEmpty()) {
+                            for (campaign in campaigns) {
+                                GlobalLogger.shared.info(context, "Campaign are: $campaign")
+                                if (canCreateNotification(campaign)) {
+                                    createNotification(context, event, campaign)
+                                } else {
+                                    GlobalLogger.shared.info(
+                                        context,
+                                        "Campaign: $campaign not displayed"
+                                    )
                                 }
-                            } else {
-                                GlobalLogger.shared.info(context, "no Campaign")
                             }
+                        } else {
+                            GlobalLogger.shared.info(context, "no Campaign")
                         }
                     }
                 }
@@ -116,7 +130,6 @@ class NotificationManager(private val context: Context, private val sessionHolde
         return campaigns
     }
 
-
     private fun createNotification(context: Context, event: GeofenceEvent, campaign: Campaign) {
         GlobalLogger.shared.info(context, "Creating notification for $campaign")
         val notifManager = NotificationHelper.setUpNotificationChannel(context)
@@ -136,6 +149,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
             sessionHolder
         )
         GlobalLogger.shared.info(context, "Creating notification for $title $description")
+
         val builder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(description)
@@ -146,8 +160,11 @@ class NotificationManager(private val context: Context, private val sessionHolde
             }
 
         with(notifManager) {
-            notify(NotificationHelper.hashCode(event.zone.hash + event.type + campaign.campaignID), builder.build())
-            NotificationDispatcher.dispatchNotification(event, campaign)
+            notify(
+                NotificationHelper.hashCode(event.zone.hash + event.type + campaign.campaignID),
+                builder.build()
+            )
+            NotificationDispatcher.dispatchNotification(event, campaign, title, description)
         }
 
         GlobalLogger.shared.info(context, "Dispatching notification for $event")
@@ -163,10 +180,10 @@ class NotificationManager(private val context: Context, private val sessionHolde
         intent.putExtra(ID_ZONE, hash)
         intent.putExtra(ID_CAMPAIGN, idCampaign)
 
-        val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
-            PendingIntent.FLAG_CANCEL_CURRENT
-        } else {
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_CANCEL_CURRENT
         }
 
         return PendingIntent.getBroadcast(
@@ -179,7 +196,9 @@ class NotificationManager(private val context: Context, private val sessionHolde
 
     fun notificationsOnExactZoneEntry(value: Boolean) {
         notificationOnExactEntry = value
-        GlobalLogger.shared.info(context, "NotificationManager  exact entry: $notificationOnExactEntry")
-
+        GlobalLogger.shared.info(
+            context,
+            "NotificationManager  exact entry: $notificationOnExactEntry"
+        )
     }
 }

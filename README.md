@@ -39,14 +39,14 @@ maven {
 }
 ```
 
-Replace YOUR_GITHUB_USERNAME with the username you usually use to connect to Github.
-Replace YOUR_GITHUB_TOKEN by your single-use token.
+Replace YOUR_GITHUB_USERNAME with the username you usually used to connect to Github.
+Replace YOUR_GITHUB_TOKEN by the generated token that you can only see once.
 
 - Sync your project
 - Go to your build.gradle (app level) and in your dependencies add the following code:
 
 ``` 
-implementation 'io.herow.sdk:detection:7.1.0'
+implementation 'io.herow.sdk:detection:7.2.0'
 ```
 
 - Sync your project
@@ -111,7 +111,6 @@ Use these methods:
 `herowInitializer.refuseOptin()` // Opt-in refused
 
 Note: The HEROW SDK will only work if the GDPR opt-ins are given by the end-users.
-
 
 # Location permissions
 
@@ -207,7 +206,7 @@ You can stop this mode with this command:
 
 `GlobalLogger.shared.stopDebug()`
 
-If you want to save this logs locally or on remote storage system, you can by implementing this interface: **ILogger** and register it on the GlobalLogger.
+If you want to save these logs locally or on remote storage system, you can by implementing this interface: **ILogger** and register it on the GlobalLogger.
 In this exemple HerowLogger is a class which implements the ILogger interface:
 
 `GlobalLogger.shared.registerLogger(HerowLogger())`

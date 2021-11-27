@@ -1,5 +1,6 @@
 package io.herow.sdk.connection
 
+import androidx.annotation.Keep
 import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.token.TokenResult
@@ -7,10 +8,10 @@ import io.herow.sdk.connection.userinfo.UserInfoResult
 import retrofit2.Response
 import retrofit2.http.*
 
-interface HerowAPI {
+@Keep
+interface IHerowAPI {
+
     companion object {
-        const val PRE_PROD_BASE_URL = "https://sdk7-preprod.herow.io"
-        const val PROD_BASE_URL = "https://sdk7.herow.io"
         const val TEST_BASE_URL = "https://herow-sdk-backend-poc.ew.r.appspot.com"
     }
 

@@ -15,11 +15,11 @@ object RandomGenerator {
     }
 
     fun lat(): Double {
-        return Math.random() * 180.0 - 90.0
+        return Math.random() * 180.0 - 90.0 //NOSONAR
     }
 
     fun lng(): Double {
-        return Math.random() * 360.0 - 180.0
+        return Math.random() * 360.0 - 180.0 //NOSONAR
     }
 
     fun alphanumericalString(length: Int = 12): String {
@@ -29,8 +29,10 @@ object RandomGenerator {
             .joinToString("")
     }
 
-    fun randomInt(min: Int = 100,
-                  max: Int = 10_000): Int {
+    fun randomInt(
+        min: Int = 100,
+        max: Int = 10_000
+    ): Int {
         return (min..max).random()
     }
 }

@@ -1,66 +1,68 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import androidx.annotation.Keep
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
-import io.herow.sdk.connection.HerowAPI
 import io.herow.sdk.connection.HerowHeaders
+import io.herow.sdk.connection.IHerowAPI
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.detection.helpers.DateHelper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.core.component.inject
 
 /**
- * @see HerowAPI#config()
+ * @see IHerowAPI#config()
  */
+@Keep
 class ConfigWorker(
     context: Context,
     workerParameters: WorkerParameters
-) : CoroutineWorker(context, workerParameters) {
+) : CoroutineWorker(context, workerParameters), ICustomKoinComponent {
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    private val sessionHolder: SessionHolder by inject()
+    var testing = false
 
     override suspend fun doWork(): Result {
-        val sessionHolder = SessionHolder(DataHolder(applicationContext))
-        GlobalLogger.shared.info(applicationContext, "DoWork is called")
+        val authRequest = AuthRequests(inputData)
 
-        val authRequest = AuthRequests(sessionHolder, inputData)
-        authRequest.execute {
-            GlobalLogger.shared.info(applicationContext, "Launching configRequest")
-            launchConfigRequest(sessionHolder, authRequest.getHerowAPI())
+        applicationScope.launch {
+            authRequest.execute {
+                launchConfigRequest(authRequest.getHerowAPI())
+            }
         }
 
         return Result.success()
     }
 
-    private suspend fun launchConfigRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI) {
-        GlobalLogger.shared.info(
-            applicationContext,
-            "Should launch: ${shouldLaunchConfigRequest(sessionHolder)}"
-        )
+    private suspend fun launchConfigRequest(herowAPI: IHerowAPI) {
+        GlobalLogger.shared.info(applicationContext, "Should launch: ${shouldLaunchConfigRequest()}")
+
         val configResponse = herowAPI.config()
-        GlobalLogger.shared.info(
-            applicationContext,
-            "Thread in launchConfig is: ${Thread.currentThread().name}"
-        )
         GlobalLogger.shared.info(applicationContext, "ConfigResponse: $configResponse")
+
         if (configResponse.isSuccessful) {
             configResponse.body()?.let { configResult: ConfigResult ->
-                GlobalLogger.shared.info(applicationContext, "ConfigResponse is successful")
-
                 ConfigDispatcher.dispatchConfigResult(configResult)
-                GlobalLogger.shared.info(applicationContext, "Dispatcher method has been called")
 
                 sessionHolder.saveRepeatInterval(configResult.configInterval)
                 sessionHolder.saveConfig(configResult)
 
                 val headers = configResponse.headers()
+                GlobalLogger.shared.info(context = null, "Headers in ConfigWorker are: $headers")
+
                 headers[HerowHeaders.LAST_TIME_CACHE_MODIFIED]?.let { remoteCachedTime: String ->
-                    defineCacheStatus(
-                        sessionHolder,
-                        remoteCachedTime
-                    )
+                    defineCacheStatus(remoteCachedTime)
                 }
 
                 GlobalLogger.shared.info(context = null, "Headers are: $headers")
@@ -74,11 +76,10 @@ class ConfigWorker(
      * Check if cache time has already been saved into SP
      */
     private fun defineCacheStatus(
-        sessionHolder: SessionHolder,
         remoteCachedTime: String
     ) {
         if (!sessionHolder.hasNoCacheTimeSaved()) {
-            if (shouldCacheBeUpdated(remoteCachedTime, sessionHolder)) {
+            if (shouldCacheBeUpdated(remoteCachedTime)) {
                 sessionHolder.updateCache(true)
             } else {
                 sessionHolder.updateCache(false)
@@ -95,14 +96,17 @@ class ConfigWorker(
      * in order to compare them
      */
     private fun shouldCacheBeUpdated(
-        remoteCachedTime: String,
-        sessionHolder: SessionHolder
+        remoteCachedTime: String
     ): Boolean {
         val savedTimeStamp =
             DateHelper.convertStringToTimeStampInMilliSeconds(sessionHolder.getLastSavedModifiedDateTimeCache())
-        val remoteCachedTimeToLong = DateHelper.convertStringToTimeStampInMilliSeconds(remoteCachedTime)
+        val remoteCachedTimeToLong =
+            DateHelper.convertStringToTimeStampInMilliSeconds(remoteCachedTime)
 
-        GlobalLogger.shared.info(null, "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp")
+        GlobalLogger.shared.info(
+            null,
+            "Remote cache $remoteCachedTimeToLong && Saved time $savedTimeStamp"
+        )
 
         return remoteCachedTimeToLong > savedTimeStamp
     }
@@ -111,7 +115,7 @@ class ConfigWorker(
      * To avoid lauching Config request too early
      * we need to make sure the repeat interval value is respected
      */
-    private fun shouldLaunchConfigRequest(sessionHolder: SessionHolder): Boolean {
+    private fun shouldLaunchConfigRequest(): Boolean {
         if (sessionHolder.firstTimeLaunchingConfig()) {
             return true
         }

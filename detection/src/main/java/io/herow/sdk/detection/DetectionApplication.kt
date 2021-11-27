@@ -1,11 +1,18 @@
 package io.herow.sdk.detection
 
 import android.app.Application
+import android.util.Log
 import androidx.work.Configuration
+import org.koin.core.context.stopKoin
 
-class DetectionApplication(): Application(), Configuration.Provider {
+open class DetectionApplication : Application(), Configuration.Provider {
 
     override fun getWorkManagerConfiguration(): Configuration = Configuration.Builder()
-            .setMinimumLoggingLevel(android.util.Log.INFO)
-            .build()
+        .setMinimumLoggingLevel(Log.INFO)
+        .build()
+
+    override fun onTerminate() {
+        super.onTerminate()
+        stopKoin()
+    }
 }

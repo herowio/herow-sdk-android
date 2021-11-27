@@ -11,6 +11,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
 class GeoHashHelperTest {
+
     private val expectedEncodedGeoHash = "u4pruydqqvj8"
     private lateinit var locationToEncode: Location
 

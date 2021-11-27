@@ -1,4 +1,4 @@
-package io.herow.sdk.connection
+package io.herow.sdk
 
 import android.content.Context
 import androidx.room.Room
@@ -18,14 +18,12 @@ import io.herow.sdk.connection.database.HerowDatabase
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
-import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.IOException
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
@@ -172,9 +170,9 @@ class HerowDatabaseTest {
         assertThat(zone.access!!.name, equalTo("Home"))
     }
 
-    @After
+    /* @After
     @Throws(IOException::class)
     fun closeDB() {
         db.close()
-    }
+    } */
 }

@@ -5,14 +5,18 @@ import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.mapper.PoiMapper
 import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
 import io.herow.sdk.detection.geofencing.model.LocationMapper
+import io.herow.sdk.detection.koin.ICustomKoinComponent
+import org.koin.core.component.inject
 
 class HerowLogContext(
-    sessionHolder: SessionHolder,
     appState: String,
     location: Location,
     nearbyPois: List<PoiMapper> = ArrayList(),
     nearbyPlaces: List<ZoneMapper> = ArrayList()
-) : HerowLogData() {
+) : HerowLogData(), ICustomKoinComponent {
+
+    private val sessionHolder: SessionHolder by inject()
+
     companion object {
         const val LOCATION = "lastLocation"
         const val NEAR_BY_POIS = "nearbyPois"

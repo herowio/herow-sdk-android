@@ -1,13 +1,17 @@
 package io.herow.sdk.common.json
 
 import android.location.Location
+import androidx.annotation.Keep
 import com.google.gson.*
 import java.lang.reflect.Type
 
-class LocationAdapter: JsonSerializer<Location>, JsonDeserializer<Location> {
-    override fun serialize(location: Location?,
-                           typeOfSrc: Type?,
-                           context: JsonSerializationContext?): JsonElement {
+@Keep
+class LocationAdapter : JsonSerializer<Location>, JsonDeserializer<Location> {
+    override fun serialize(
+        location: Location?,
+        typeOfSrc: Type?,
+        context: JsonSerializationContext?
+    ): JsonElement {
         val jsonObject = JsonObject()
         location?.let {
             jsonObject.addProperty("lat", location.latitude)
@@ -27,7 +31,11 @@ class LocationAdapter: JsonSerializer<Location>, JsonDeserializer<Location> {
         return jsonObject
     }
 
-    override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): Location {
+    override fun deserialize(
+        json: JsonElement?,
+        typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ): Location {
         val jsonObject: JsonObject? = json as? JsonObject
         val location = Location(jsonObject?.get("provider")?.asString ?: "unknown")
         jsonObject?.let {

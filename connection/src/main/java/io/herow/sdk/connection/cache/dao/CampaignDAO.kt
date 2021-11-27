@@ -12,6 +12,7 @@ interface CampaignDAO {
     @Update
     fun updateCampaign(campaign: Campaign)
 
+    @Transaction
     @Query("SELECT * FROM Campaign WHERE id = :id")
     fun getCampaignByID(id: String): Campaign?
 

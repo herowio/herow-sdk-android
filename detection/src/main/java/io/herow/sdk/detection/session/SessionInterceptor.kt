@@ -1,8 +1,14 @@
-package io.herow.sdk.connection
+package io.herow.sdk.detection.session
 
+import androidx.annotation.Keep
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.connection.HerowHeaders
+import io.herow.sdk.connection.SessionHolder
+import io.herow.sdk.detection.BuildConfig
+import io.herow.sdk.detection.koin.ICustomKoinComponent
 import okhttp3.Interceptor
 import okhttp3.Response
+import org.koin.core.component.inject
 
 /**
  * Allow us to add necessary headers to request as soon as we have saved them in SharedPreferences
@@ -10,14 +16,20 @@ import okhttp3.Response
  * @see Interceptor
  * @see DataHolder
  */
-class SessionInterceptor(private val sessionHolder: SessionHolder): Interceptor {
+@Keep
+class SessionInterceptor: Interceptor, ICustomKoinComponent {
+
+    private val sessionHolder: SessionHolder by inject()
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val requestBuilder = chain.request().newBuilder()
         requestBuilder.addHeader(HerowHeaders.SDK_VERSION_HEADER, BuildConfig.SDK_VERSION)
         val sdkID = sessionHolder.getSDKID()
+
         if (sdkID.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.SDK_HEADER, sdkID)
         }
+
         val accessToken = sessionHolder.getAccessToken()
         if (accessToken.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.AUTHORIZATION_HEADER, accessToken)
@@ -32,7 +44,7 @@ class SessionInterceptor(private val sessionHolder: SessionHolder): Interceptor 
         if (deviceId.isNotEmpty()) {
             requestBuilder.addHeader(HerowHeaders.DEVICE_ID_HEADER, deviceId)
         }
-        
+
         return chain.proceed(requestBuilder.build())
     }
 }

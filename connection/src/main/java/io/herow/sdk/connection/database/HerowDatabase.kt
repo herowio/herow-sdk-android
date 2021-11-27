@@ -15,11 +15,11 @@ import io.herow.sdk.connection.cache.utils.Converters
 
 @Database(
     entities = [Campaign::class, Poi::class, Zone::class],
-    version = 3,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
-abstract class HerowDatabase: RoomDatabase() {
+abstract class HerowDatabase : RoomDatabase() {
 
     abstract fun campaignDAO(): CampaignDAO
     abstract fun zoneDAO(): ZoneDAO
@@ -35,6 +35,18 @@ abstract class HerowDatabase: RoomDatabase() {
                 HerowDatabase::class.java,
                 "herow_BDD"
             ).fallbackToDestructiveMigration()
+                .build()
+
+            INSTANCE = instance
+            instance
+        }
+
+        fun getDatabaseTest(context: Context): HerowDatabase = INSTANCE ?: synchronized(this) {
+            val instance = Room.inMemoryDatabaseBuilder(
+                context,
+                HerowDatabase::class.java
+            )
+                .fallbackToDestructiveMigration()
                 .build()
 
             INSTANCE = instance

@@ -3,6 +3,8 @@ package io.herow.sdk.connection
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.helpers.Constants
+import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Campaign
@@ -13,12 +15,15 @@ import io.herow.sdk.connection.userinfo.UserInfo
 import java.lang.reflect.Type
 
 class SessionHolder(private val dataHolder: DataHolder) {
+
     companion object {
         private const val KEY_ACCESS_TOKEN = "common.access_token"
         private const val KEY_HEROW_ID = "common.herow_id"
         private const val KEY_SDK_KEY = "common.sdk_key"
         private const val KEY_DEVICE_ID = "common.device_id"
         private const val KEY_CUSTOM_ID = "common.custom_id"
+        private const val KEY_CUSTOM_PREPROD_URL = "common.custom_preprod_url"
+        private const val KEY_CUSTOM_PROD_URL = "common.custom_prod_url"
         private const val KEY_PLATFORM_NAME = "common.platform_name"
         private const val KEY_ADVERTISER_ID = "detection.ad_id"
         private const val KEY_TOKEN_TIMEOUT = "common.timeout_token"
@@ -42,6 +47,8 @@ class SessionHolder(private val dataHolder: DataHolder) {
     }
 
     fun getAll(): Int = dataHolder.getAll()
+
+    fun getAllElements(): MutableMap<String, *> = dataHolder.getAllElements()
 
     fun getDeviceId(): String = dataHolder[KEY_DEVICE_ID]
 
@@ -80,6 +87,12 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun getAccessToken(): String = dataHolder[KEY_ACCESS_TOKEN]
 
+    fun removeAccessToken() {
+        if (dataHolder.containsKey(KEY_ACCESS_TOKEN)) {
+            dataHolder.removeKey(KEY_ACCESS_TOKEN)
+        }
+    }
+
     fun saveAccessToken(accessToken: String) {
         if (accessToken.isNotEmpty()) {
             dataHolder[KEY_ACCESS_TOKEN] = accessToken
@@ -109,21 +122,78 @@ class SessionHolder(private val dataHolder: DataHolder) {
         dataHolder[KEY_PLATFORM_NAME] = Gson().toJson(platform)
     }
 
-    fun getCustomID(): String {
-        val customID = dataHolder.get<String>(KEY_CUSTOM_ID)
-        if (customID.isNotEmpty()) {
-            return customID
+    fun getCustomID(): String =
+        if (dataHolder.containsKey(KEY_CUSTOM_ID)) {
+            dataHolder[KEY_CUSTOM_ID]
+        } else {
+            ""
         }
-        return ""
-    }
 
-    fun removeCustomID()  {
+    fun removeCustomID() {
         dataHolder[KEY_CUSTOM_ID] = ""
     }
 
     fun saveCustomID(customID: String) {
         if (customID.isNotEmpty()) {
             dataHolder[KEY_CUSTOM_ID] = customID
+        }
+    }
+
+    fun saveCustomPreProdURL(preProdURL: String) {
+        dataHolder[KEY_CUSTOM_PREPROD_URL] = preProdURL
+    }
+
+    fun getCustomPreProdURL(): String =
+        if (!dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
+            Constants.DEFAULT_PRE_PROD_URL
+        } else {
+            if (dataHolder[KEY_CUSTOM_PREPROD_URL, ""].isBlank() || dataHolder[KEY_CUSTOM_PREPROD_URL, ""].isEmpty()) {
+                Constants.DEFAULT_PRE_PROD_URL
+            } else {
+                dataHolder[KEY_CUSTOM_PREPROD_URL]
+            }
+        }
+
+
+    fun getCustomProdURL(): String =
+        if (!dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
+            Constants.DEFAULT_PROD_URL
+        } else {
+            if (dataHolder[KEY_CUSTOM_PROD_URL, ""].isBlank() || dataHolder[KEY_CUSTOM_PROD_URL, ""].isEmpty()) {
+                Constants.DEFAULT_PROD_URL
+            } else {
+                dataHolder[KEY_CUSTOM_PROD_URL]
+            }
+        }
+
+    fun saveCustomProdURL(prodURL: String) {
+        print("Saving prodURL: $prodURL")
+        dataHolder[KEY_CUSTOM_PROD_URL] = prodURL
+    }
+
+    fun getCurrentURL(): String = when (getPlatformName()) {
+        HerowPlatform.PRE_PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
+            dataHolder[KEY_CUSTOM_PREPROD_URL]
+        } else {
+            ""
+        }
+        HerowPlatform.PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
+            dataHolder[KEY_CUSTOM_PROD_URL]
+        } else {
+            ""
+        }
+        else -> ""
+    }
+
+    fun removeCustomURL() {
+        when (getPlatformName()) {
+            HerowPlatform.PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PROD_URL)) {
+                dataHolder[KEY_CUSTOM_PROD_URL] = ""
+            }
+            HerowPlatform.PRE_PROD -> if (dataHolder.containsKey(KEY_CUSTOM_PREPROD_URL)) {
+                dataHolder[KEY_CUSTOM_PREPROD_URL] = ""
+            }
+            else -> println("Platform name not recognized")
         }
     }
 
@@ -162,7 +232,6 @@ class SessionHolder(private val dataHolder: DataHolder) {
         } else {
             dataHolder[KEY_CACHE_TIMEOUT]
         }
-
 
     fun updateCache(update: Boolean) {
         dataHolder[KEY_UPDATE_CACHE] = update
@@ -239,13 +308,13 @@ class SessionHolder(private val dataHolder: DataHolder) {
     fun removeSavedHerowCapping() = dataHolder.removeKey(KEY_HEROW_CAPPING)
 
     fun saveHerowCapping(campaignId: String, herowCapping: String) {
-        var cappings = getHerowCappings()
+        val cappings = getHerowCappings()
         cappings[campaignId] = herowCapping
         val mapString = GsonProvider.toJson(cappings, HashMap::class.java)
         dataHolder[KEY_HEROW_CAPPINGS] = mapString
     }
 
-
+    @Suppress("UNCHECKED_CAST")
     private fun getHerowCappings(): HashMap<String, String> {
         if (!dataHolder.containsKey(KEY_HEROW_CAPPINGS)) {
             val emptyMap = emptyMap<String, String>()
@@ -263,7 +332,17 @@ class SessionHolder(private val dataHolder: DataHolder) {
 
     fun getHerowCapping(campaign: Campaign): HerowCapping {
         val string = getHerowCappings()[campaign.id] ?: ""
-        val result = GsonProvider.fromJson(string, HerowCapping::class.java)
+
+        val result = if (string.isEmpty()) {
+            HerowCapping().apply {
+                count = 0
+                razDate = TimeHelper.getCurrentTime()
+                campaignId = campaign.id!!
+            }
+        } else {
+            GsonProvider.fromJson(string, HerowCapping::class.java)
+        }
+
         GlobalLogger.shared.info(null, "All Cappings = $result")
         return result
     }
@@ -317,4 +396,42 @@ class SessionHolder(private val dataHolder: DataHolder) {
     )
 
     fun reset() = dataHolder.removeAll()
+
+    fun resetForCustomURL() {
+        if (dataHolder.containsKey(KEY_ACCESS_TOKEN)) {
+            dataHolder.removeKey(KEY_ACCESS_TOKEN)
+        }
+
+        if (dataHolder.containsKey(KEY_TOKEN_TIMEOUT)) {
+            dataHolder.removeKey(KEY_TOKEN_TIMEOUT)
+        }
+
+        if (dataHolder.containsKey(KEY_USER_INFO)) {
+            dataHolder.removeKey(KEY_USER_INFO)
+        }
+
+        if (dataHolder.containsKey(KEY_LAST_USER_INFO_LAUNCH)) {
+            dataHolder.removeKey(KEY_LAST_USER_INFO_LAUNCH)
+        }
+
+        if (dataHolder.containsKey(KEY_LAST_LAUNCH_CACHE)) {
+            dataHolder.removeKey(KEY_LAST_LAUNCH_CACHE)
+        }
+
+        if (dataHolder.containsKey(KEY_HEROW_CONFIG)) {
+            dataHolder.removeKey(KEY_HEROW_CONFIG)
+        }
+
+        if (dataHolder.containsKey(KEY_LAUNCH_CONFIG)) {
+            dataHolder.removeKey(KEY_LAUNCH_CONFIG)
+        }
+
+        if (dataHolder.containsKey(KEY_SAVED_PREVIOUS_ZONES)) {
+            dataHolder.removeKey(KEY_SAVED_PREVIOUS_ZONES)
+        }
+
+        if (dataHolder.containsKey(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)) {
+            dataHolder.removeKey(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
+        }
+    }
 }

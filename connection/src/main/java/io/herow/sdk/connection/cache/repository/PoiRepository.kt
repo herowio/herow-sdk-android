@@ -3,7 +3,7 @@ package io.herow.sdk.connection.cache.repository
 import io.herow.sdk.connection.cache.dao.PoiDAO
 import io.herow.sdk.connection.cache.model.Poi
 
-class PoiRepository constructor(
+class PoiRepository(
     private val poiDAO: PoiDAO
 ) :
     IPoiRepository {

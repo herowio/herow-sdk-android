@@ -39,18 +39,18 @@ data class Zone(
         return zoneLocation.distanceTo(userLocation).toDouble()
     }
 
-    fun toLocation(): Location {
+    private fun toLocation(): Location {
         return Location(hash).apply {
             latitude = lat!!
             longitude = lng!!
         }
     }
 
-    fun isIn( location: Location, scale :Double = 1.0): Boolean {
+    fun isIn(location: Location, scale: Double = 1.0): Boolean {
         val zoneLocation = toLocation()
         val distanceToCenterOfZone = location.distanceTo(zoneLocation)
 
         val limit = radius!! * scale
-        return distanceToCenterOfZone <=  limit
+        return distanceToCenterOfZone <= limit
     }
 }

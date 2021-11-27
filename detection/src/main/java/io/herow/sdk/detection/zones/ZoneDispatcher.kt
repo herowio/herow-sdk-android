@@ -6,13 +6,15 @@ import io.herow.sdk.connection.cache.model.Zone
 import java.util.concurrent.CopyOnWriteArrayList
 
 object ZoneDispatcher {
-    fun addZoneListener(zoneListener: ZoneListener) {
+
+    fun addZoneListener(zoneListener: IZoneListener) {
         zoneListeners.add(zoneListener)
     }
-    private val zoneListeners = CopyOnWriteArrayList<ZoneListener>()
+
+    private val zoneListeners = CopyOnWriteArrayList<IZoneListener>()
 
     fun dispatchDetectedZones(zones: List<Zone>, location: Location) {
-        GlobalLogger.shared.info(null,"Dispatching zones: $zones, and location: $location")
+        GlobalLogger.shared.info(null, "Dispatching zones: $zones, and location: $location")
 
         for (zoneListener in zoneListeners) {
             zoneListener.detectedZones(zones, location)
@@ -20,7 +22,7 @@ object ZoneDispatcher {
     }
 
     fun dispatchDetectedZonesForNotification(zonesForNotification: List<Zone>, location: Location) {
-        GlobalLogger.shared.info(null,"Dispatching zones for notification: $zonesForNotification")
+        GlobalLogger.shared.info(null, "Dispatching zones for notification: $zonesForNotification")
 
         for (zoneListener in zoneListeners) {
             zoneListener.detectedNotificationZones(zonesForNotification, location)

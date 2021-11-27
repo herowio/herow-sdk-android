@@ -2,7 +2,6 @@ package io.herow.sdk.detection.helpers
 
 import android.content.Context
 import android.location.Location
-import io.herow.sdk.common.DataHolder
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Access
@@ -14,8 +13,12 @@ import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.connection.logs.Logs
 import io.herow.sdk.detection.analytics.ApplicationData
 import io.herow.sdk.detection.analytics.model.HerowLogContext
+import io.herow.sdk.detection.koin.ICustomKoinComponent
+import org.koin.core.component.inject
 
-class LogsHelper(val sessionHolder: SessionHolder) {
+class LogsHelper: ICustomKoinComponent {
+    private val sessionHolder: SessionHolder by inject()
+
     fun createTestLogs(context: Context): String {
         val location = Location("tus")
         location.latitude = 48.875516
@@ -55,7 +58,6 @@ class LogsHelper(val sessionHolder: SessionHolder) {
 
         val herowLogContext =
             HerowLogContext(
-                sessionHolder,
                 "fg",
                 location,
                 arrayListOf(
@@ -71,9 +73,7 @@ class LogsHelper(val sessionHolder: SessionHolder) {
                 )
             )
         herowLogContext.enrich(
-            ApplicationData(context), SessionHolder(
-                DataHolder(context)
-            )
+            ApplicationData(context), sessionHolder
         )
 
         val listOfLogs = listOf(Log(herowLogContext))

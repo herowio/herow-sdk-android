@@ -1,32 +1,42 @@
 package io.herow.sdk.detection.geofencing
 
 import android.content.Context
-import androidx.test.core.app.ApplicationProvider
-import io.herow.sdk.common.DataHolder
+import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Zone
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.MockLocation
+import io.herow.sdk.detection.koin.HerowKoinTestContext
+import io.herow.sdk.detection.koin.ICustomKoinTestComponent
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.component.inject
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class GeofenceEventGeneratorTest {
+class GeofenceEventGeneratorTest: ICustomKoinTestComponent {
+    private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
+    private val sessionHolder: SessionHolder by inject()
+
     private val herowGeofenceListener = HerowGeofenceListener()
     private lateinit var geofenceEventGenerator: GeofenceEventGenerator
 
-    private lateinit var context: Context
     private val mockLocation = MockLocation()
 
     @Before
     fun setUp() {
+        HerowInitializer.setStaticTesting(true)
+        HerowKoinTestContext.init(context)
+
+        sessionHolder.reset()
+
         GeofenceDispatcher.reset()
-        context = ApplicationProvider.getApplicationContext()
-        geofenceEventGenerator = GeofenceEventGenerator(SessionHolder(DataHolder(context)))
+        geofenceEventGenerator = GeofenceEventGenerator()
         GeofenceDispatcher.addGeofenceListener(herowGeofenceListener)
     }
 
@@ -80,11 +90,16 @@ class GeofenceEventGeneratorTest {
         Assert.assertEquals(GeofenceType.EXIT, herowGeofenceListener.lastEvents[0].type)
     }
 
-    class HerowGeofenceListener : GeofenceListener {
-        var lastEvents: List<GeofenceEvent> = ArrayList()
+    @After
+    fun cleanUp() {
+        GeofenceDispatcher.unregisterGeofenceListener(herowGeofenceListener)
+    }
+}
 
-        override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
-            lastEvents = geofenceEvents
-        }
+class HerowGeofenceListener : IGeofenceListener {
+    var lastEvents: List<GeofenceEvent> = ArrayList()
+
+    override fun onGeofenceEvent(geofenceEvents: List<GeofenceEvent>) {
+        lastEvents = geofenceEvents
     }
 }

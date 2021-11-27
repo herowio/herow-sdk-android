@@ -5,11 +5,12 @@ import io.herow.sdk.connection.cache.model.mapper.ZoneMapper
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.model.LocationMapper
 
-class HerowLogNotification (
+class HerowLogNotification(
     appState: String,
     geofenceEvent: GeofenceEvent,
     campaign: Campaign? = null
-): HerowLogData() {
+) : HerowLogData() {
+
     companion object {
         const val LOCATION = "lastLocation"
         const val PLACE = "place"

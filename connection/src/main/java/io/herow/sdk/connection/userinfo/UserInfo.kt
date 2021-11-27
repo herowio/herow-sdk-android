@@ -6,6 +6,8 @@ data class UserInfo(
     private val optins: ArrayList<Optin>,
     @SerializedName("adId")
     private val advertiserId: String?,
-    private val customId: String
+    private val customId: String,
+    @SerializedName("location")
+    private val permissionLocation: PermissionLocation
 )
 
