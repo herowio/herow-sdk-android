@@ -46,7 +46,7 @@ Replace YOUR_GITHUB_TOKEN by the generated token that you can only see once.
 - Go to your build.gradle (app level) and in your dependencies add the following code:
 
 ``` 
-implementation 'io.herow.sdk:detection:7.2.0'
+implementation 'io.herow.sdk:detection:7.1.0'
 ```
 
 - Sync your project
