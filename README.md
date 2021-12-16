@@ -163,6 +163,20 @@ If the user logs out, you can use the removeCustomID() method.
 >
 >**Setting a customID is crucial if you want to reconcile your HEROW user data in your backend or with third-party partners**. The customID is used as cross-solution identification system.
 
+# Setting a CustomUrl
+
+To set a CustomUrl, make the following call.
+
+`HerowInitializer.getInstance(context).setProdCustomURL("YOUR_CUSTOM_PROD_URL")`
+`HerowInitializer.getInstance(context).setPreProdCustomURL("YOUR_CUSTOM_PREPROD_URL")`
+
+To remove the custom url. 
+
+`HerowInitializer.getInstance(context).removeCustomURL()`
+
+To check the current url. 
+
+`HerowInitializer.getInstance(context).getCurrentURL()`
 
 # ClickAndCollect
 
