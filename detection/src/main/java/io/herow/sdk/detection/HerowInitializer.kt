@@ -31,6 +31,8 @@ import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.IGeofenceListener
 import io.herow.sdk.detection.helpers.PermissionLocationHelper
 import io.herow.sdk.detection.helpers.WorkHelper
+import io.herow.sdk.detection.koin.HerowKoinContext
+import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.location.LocationDispatcher
@@ -93,9 +95,19 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         fun getInstance(context: Context, testingStatus: Boolean = false): HerowInitializer {
             setStaticTesting(testingStatus)
             if (!::herowInitializer.isInitialized) {
+                if (testingStatus) {
+                    HerowKoinTestContext.init(context)
+                } else {
+                    HerowKoinContext.init(context)
+                }
                 herowInitializer = HerowInitializer(context)
             }
             return herowInitializer
+        }
+
+        @JvmStatic
+        fun getInstance(context: Context): HerowInitializer {
+           return getInstance(context, false)
         }
     }
 
