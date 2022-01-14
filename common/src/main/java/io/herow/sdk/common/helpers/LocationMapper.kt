@@ -1,4 +1,4 @@
-package io.herow.sdk.detection.geofencing.model
+package io.herow.sdk.common.helpers
 
 import android.location.Location
 

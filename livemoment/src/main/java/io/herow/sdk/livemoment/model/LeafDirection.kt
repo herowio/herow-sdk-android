@@ -1,0 +1,9 @@
+package io.herow.sdk.livemoment.model
+
+enum class LeafDirection(val value: String) {
+    ROOT("0"),
+    NW("1"),
+    NE("2"),
+    SW("3"),
+    SE("4")
+}
