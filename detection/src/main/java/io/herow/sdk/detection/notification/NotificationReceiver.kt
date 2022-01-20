@@ -24,10 +24,26 @@ class NotificationReceiver : BroadcastReceiver() {
         val hashZone: String? = intent.getStringExtra(NotificationManager.ID_ZONE)
         val idCampaign: String? = intent.getStringExtra(NotificationManager.ID_CAMPAIGN)
 
+        launchDeepLinkIntent(intent, context)
+
         val redirectLog = LogRedirect(hashZone!!, idCampaign!!)
         redirectLog.enrich(applicationData, sessionHolder)
 
         LogsDispatcher.dispatchLogsResult(arrayListOf(Log(redirectLog)))
         GlobalLogger.shared.info(context, "Dispatching Log created when Notification is clicked")
+    }
+
+    private fun launchDeepLinkIntent(intent: Intent, context: Context) {
+        val deepLinkIntent = Intent(Intent.ACTION_VIEW, intent.data)
+        deepLinkIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+        val component = deepLinkIntent.resolveActivity(context.packageManager)
+
+        component?.let { context.startActivity(deepLinkIntent) } ?: run {
+            android.util.Log.i(
+                "XXX",
+                "No application can handle the link"
+            )
+        }
     }
 }

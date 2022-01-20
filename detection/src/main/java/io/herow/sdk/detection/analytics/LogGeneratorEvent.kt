@@ -26,6 +26,7 @@ import io.herow.sdk.detection.notification.NotificationListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT, VISIT or GEOFENCE_ZONE_NOTIFICATION) by listening to different
@@ -93,22 +94,31 @@ class LogGeneratorEvent(
         val closestPois: MutableList<PoiMapper> = ArrayList()
         GlobalLogger.shared.info(context, "CachePois are: $cachePois")
 
-        for (cachePoi in cachePois) {
-            cachePoi.distance = cachePoi.updateDistance(location)
+        val cachePoisCopied = CopyOnWriteArrayList(cachePois)
 
-            GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
-            GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
+        if (cachePoisCopied.isNotEmpty()) {
+            val iterator = cachePoisCopied.iterator()
 
-            if (cachePoi.distance <= DISTANCE_MAX) {
-                closestPois.add(
-                    PoiMapper(
-                        cachePoi.id,
-                        cachePoi.distance,
-                        cachePoi.tags
+            while (iterator.hasNext()) {
+                val cachePoi = iterator.next()
+
+                cachePoi.distance = cachePoi.updateDistance(location)
+
+                GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
+                GlobalLogger.shared.info(context, "CachePoi distance is: ${cachePoi.distance}")
+
+                if (cachePoi.distance <= DISTANCE_MAX) {
+                    closestPois.add(
+                        PoiMapper(
+                            cachePoi.id,
+                            cachePoi.distance,
+                            cachePoi.tags
+                        )
                     )
-                )
+                }
             }
         }
+
         closestPois.sortBy {
             it.distance
         }
@@ -119,23 +129,30 @@ class LogGeneratorEvent(
 
     private fun computeNearbyPlaces(location: Location): List<ZoneMapper> {
         val closestZones: MutableList<ZoneMapper> = ArrayList()
-
         GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
 
-        for (cacheZone in cacheZones) {
-            cacheZone.distance = cacheZone.updateDistance(location)
-            GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
+        val cacheZoneCopied = CopyOnWriteArrayList(cacheZones)
 
-            if (cacheZone.distance <= DISTANCE_MAX) {
-                closestZones.add(
-                    ZoneMapper(
-                        cacheZone.lng,
-                        cacheZone.lat,
-                        cacheZone.hash,
-                        cacheZone.distance,
-                        cacheZone.radius
+        if (cacheZoneCopied.isNotEmpty()) {
+            val iterator = cacheZoneCopied.iterator()
+
+            while (iterator.hasNext()) {
+                val cacheZone = iterator.next()
+
+                cacheZone.distance = cacheZone.updateDistance(location)
+                GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
+
+                if (cacheZone.distance <= DISTANCE_MAX) {
+                    closestZones.add(
+                        ZoneMapper(
+                            cacheZone.lng,
+                            cacheZone.lat,
+                            cacheZone.hash,
+                            cacheZone.distance,
+                            cacheZone.radius
+                        )
                     )
-                )
+                }
             }
         }
 

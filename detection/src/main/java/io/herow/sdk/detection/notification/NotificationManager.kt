@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
@@ -27,6 +29,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
     private val zoneRepository = HerowDatabaseHelper.getZoneRepository(context)
     private val campaignRepository = HerowDatabaseHelper.getCampaignRepository(context)
     private var notificationOnExactEntry = false
+
     companion object {
         private const val NOTIFICATION_REQUEST_CODE = 2000
         const val ID_ZONE: String = "idZone"
@@ -72,7 +75,7 @@ class NotificationManager(private val context: Context, private val sessionHolde
                     runBlocking {
                         withContext(Dispatchers.IO) {
                             val campaigns = fetchCampaignInDatabase(event.zone)
-                            val zoneName = if ( event.zone.access?.name != null)  event.zone.access?.name else "non name"
+                            val zoneName = if (event.zone.access?.name != null) event.zone.access?.name else "non name"
                             val campaignNames = campaigns.map { it.notification?.title }
                             GlobalLogger.shared.info(context, "zone name: $zoneName campagnsName: $campaignNames")
 
@@ -116,13 +119,17 @@ class NotificationManager(private val context: Context, private val sessionHolde
         return campaigns
     }
 
-
     private fun createNotification(context: Context, event: GeofenceEvent, campaign: Campaign) {
         GlobalLogger.shared.info(context, "Creating notification for $campaign")
         val notifManager = NotificationHelper.setUpNotificationChannel(context)
 
-        val notificationPendingIntent =
-            createNotificationPendingIntent(context, event.zone.hash, campaign.id!!)
+        val uri = Uri.parse(
+            NotificationHelper.computeDynamicContent(
+                campaign.notification?.uri ?: "",
+                event.zone,
+                sessionHolder
+            )
+        )
 
         val title = NotificationHelper.computeDynamicContent(
             campaign.notification!!.title!!,
@@ -136,6 +143,10 @@ class NotificationManager(private val context: Context, private val sessionHolde
             sessionHolder
         )
         GlobalLogger.shared.info(context, "Creating notification for $title $description")
+
+        val notificationPendingIntent =
+            createNotificationPendingIntent(context, event.zone.hash, campaign.id!!, uri)
+
         val builder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(description)
@@ -157,11 +168,17 @@ class NotificationManager(private val context: Context, private val sessionHolde
     private fun createNotificationPendingIntent(
         context: Context,
         hash: String,
-        idCampaign: String
+        idCampaign: String,
+        uri: Uri?
     ): PendingIntent {
         val intent = Intent(context, NotificationReceiver::class.java)
         intent.putExtra(ID_ZONE, hash)
         intent.putExtra(ID_CAMPAIGN, idCampaign)
+
+        uri?.let {
+            Log.i("XXX", "Uri recorded is: $uri")
+            intent.data = uri
+        }
 
         val pendingIntent = if (DeviceHelper.getCurrentAndroidVersion() < 30) {
             PendingIntent.FLAG_CANCEL_CURRENT
@@ -180,6 +197,5 @@ class NotificationManager(private val context: Context, private val sessionHolde
     fun notificationsOnExactZoneEntry(value: Boolean) {
         notificationOnExactEntry = value
         GlobalLogger.shared.info(context, "NotificationManager  exact entry: $notificationOnExactEntry")
-
     }
 }

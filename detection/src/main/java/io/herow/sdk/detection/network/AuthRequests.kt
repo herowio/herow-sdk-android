@@ -47,21 +47,21 @@ class AuthRequests(
     fun getHerowAPI(): HerowAPI = herowAPI
 
     private suspend fun authenticationWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
-        GlobalLogger.shared.info(null,"flow: authenticatoinWorkFlow")
-        if (!isTokenUsable(sessionHolder) ) {
-            GlobalLogger.shared.info(null,"Token is not usable")
+        GlobalLogger.shared.info(null, "flow: authenticationWorkFlow")
+        if (!isTokenUsable(sessionHolder)) {
+            GlobalLogger.shared.info(null, "Token is not usable")
 
             withContext(Dispatchers.IO) {
                 launchTokenRequest(sessionHolder, platform, herowAPI, request)
             }
         } else {
-            GlobalLogger.shared.info(null,"Token is usable or isWorking")
+            GlobalLogger.shared.info(null, "Token is usable or isWorking")
             request(herowAPI)
         }
     }
 
     private suspend fun userInfoWorkFlow(request: suspend (herowAPI: HerowAPI) -> Unit) {
-        GlobalLogger.shared.info(null,"flow :userInfoWorkFlow")
+        GlobalLogger.shared.info(null, "flow :userInfoWorkFlow")
 
         if (needUserInfo(sessionHolder)) {
             launchUserInfoRequest(sessionHolder, herowAPI, request)
@@ -72,12 +72,12 @@ class AuthRequests(
 
     private fun needUserInfo(sessionHolder: SessionHolder): Boolean {
         if (sessionHolder.hasNoUserInfoSaved()) {
-            GlobalLogger.shared.info(null,"User info has not been saved yet")
+            GlobalLogger.shared.info(null, "User info has not been saved yet")
             return true
         }
 
         if (!isUserInfoUpToDate()) {
-            GlobalLogger.shared.info(null,"User info is not up to date")
+            GlobalLogger.shared.info(null, "User info is not up to date")
             return true
         }
 
@@ -87,7 +87,7 @@ class AuthRequests(
             GlobalLogger.shared.info(null, "User Info last launch is: $lastUserInfoLaunch")
 
             if (lastUserInfoLaunch + 86400000 < TimeHelper.getCurrentTime()) {
-                GlobalLogger.shared.info(null,"User info has not been updated in 24 hours")
+                GlobalLogger.shared.info(null, "User info has not been updated in 24 hours")
                 return true
             }
         }
@@ -95,17 +95,17 @@ class AuthRequests(
         return false
     }
 
-     fun getUserInfoIfNeeded() {
-         runBlocking {
-             withContext(Dispatchers.IO) {
-                 authenticationWorkFlow {
-                     userInfoWorkFlow {}
-                 }
-             }
-         }
-     }
-    
-    suspend fun execute(request:  suspend (herowAPI: HerowAPI) -> Unit = {} ) {
+    fun getUserInfoIfNeeded() {
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                authenticationWorkFlow {
+                    userInfoWorkFlow {}
+                }
+            }
+        }
+    }
+
+    suspend fun execute(request: suspend (herowAPI: HerowAPI) -> Unit = {}) {
         authenticationWorkFlow {
             userInfoWorkFlow {
                 request(herowAPI)
@@ -143,8 +143,8 @@ class AuthRequests(
      * Check if token is usable
      */
     private fun isTokenUsable(sessionHolder: SessionHolder): Boolean {
-        GlobalLogger.shared.info(null,"AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}")
-        GlobalLogger.shared.info(null,"AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}")
+        GlobalLogger.shared.info(null, "AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}")
+        GlobalLogger.shared.info(null, "AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}")
         return (sessionHolder.getAccessToken().isNotEmpty()
                 && isTokenValid(sessionHolder.getTimeOutTime()))
     }
@@ -166,8 +166,8 @@ class AuthRequests(
         val sdkId = data.getString(KEY_SDK_ID) ?: ""
         val sdkKey = data.getString(KEY_SDK_KEY) ?: ""
         GlobalLogger.shared.info(null, "AuthRequest isWorking = $isWorking")
-        GlobalLogger.shared.info(null,"SdkID is $sdkId")
-        GlobalLogger.shared.info(null,"SdkKey is $sdkKey")
+        GlobalLogger.shared.info(null, "SdkID is $sdkId")
+        GlobalLogger.shared.info(null, "SdkKey is $sdkKey")
 
         if (sdkId.isNotEmpty() && sdkKey.isNotEmpty()) {
             val platformData = PlatformData(platform)
@@ -183,11 +183,15 @@ class AuthRequests(
             val retrofitObjectString = Gson().toJson(retrofitObject, RetrofitConnectionObject::class.java)
             val tokenResponse = herowAPI.token(retrofitObjectString)
             isWorking = false
+
+            GlobalLogger.shared.info(context = null, "launchTokenRequest - retrofitObject: $retrofitObjectString")
+            GlobalLogger.shared.info(context = null, "launchTokenRequest - $tokenResponse")
+
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
                     sessionHolder.saveAccessToken(tokenResult.getToken())
                     sessionHolder.saveTimeOutTime(tokenResult.getTimeoutTime())
-                    GlobalLogger.shared.info(null,"SavedTimeOutTime = ${tokenResult.getTimeoutTime()}")
+                    GlobalLogger.shared.info(null, "SavedTimeOutTime = ${tokenResult.getTimeoutTime()}")
                     request(herowAPI)
                 }
             }
@@ -212,20 +216,24 @@ class AuthRequests(
 
     private fun isUserInfoUpToDate(): Boolean = getCurrentUserInfo() == getSavedUserInfo()
 
-    suspend fun launchUserInfoRequest(sessionHolder: SessionHolder, herowAPI: HerowAPI, request: suspend (herowAPI: HerowAPI) -> Unit = {}) {
+    suspend fun launchUserInfoRequest(
+        sessionHolder: SessionHolder,
+        herowAPI: HerowAPI,
+        request: suspend (herowAPI: HerowAPI) -> Unit = {}
+    ) {
         val userInfo = getCurrentUserInfo()
         val jsonString = GsonProvider.toJson(userInfo, UserInfo::class.java)
         sessionHolder.saveStringUserInfo(jsonString)
 
-        GlobalLogger.shared.info(null,"UserInfo string is $jsonString")
+        GlobalLogger.shared.info(null, "UserInfo string is $jsonString")
         val userInfoResponse = herowAPI.userInfo(jsonString)
-        GlobalLogger.shared.info(null,"UserInfoResponse is $userInfoResponse")
+        GlobalLogger.shared.info(null, "UserInfoResponse is $userInfoResponse")
 
         if (userInfoResponse.isSuccessful) {
             sessionHolder.saveLastTimeUserInfoLaunch(TimeHelper.getCurrentTime())
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
                 sessionHolder.saveHerowId(userInfoResult.herowId)
-                GlobalLogger.shared.info(null,"UserInfoResponse is successful")
+                GlobalLogger.shared.info(null, "UserInfoResponse is successful")
                 request(herowAPI)
             }
         }

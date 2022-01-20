@@ -1,6 +1,7 @@
 package io.herow.sdk.detection.network
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.DataHolder
@@ -21,7 +22,6 @@ import io.herow.sdk.detection.zones.ZoneManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
 
 /**
  * Allow user to receive the zones to monitor and the pois to add in the HerowLogContext from the
