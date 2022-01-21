@@ -4,8 +4,11 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
@@ -134,8 +137,13 @@ class NotificationManager(
         GlobalLogger.shared.info(context, "Creating notification for $campaign")
         val notifManager = NotificationHelper.setUpNotificationChannel(context)
 
-        val notificationPendingIntent =
-            createNotificationPendingIntent(context, event.zone.hash, campaign.id!!)
+        val uri = Uri.parse(
+            NotificationHelper.computeDynamicContent(
+                campaign.notification?.uri ?: "",
+                event.zone,
+                sessionHolder
+            )
+        )
 
         val title = NotificationHelper.computeDynamicContent(
             campaign.notification!!.title!!,
@@ -149,6 +157,9 @@ class NotificationManager(
             sessionHolder
         )
         GlobalLogger.shared.info(context, "Creating notification for $title $description")
+
+        val notificationPendingIntent =
+            createNotificationPendingIntent(context, event.zone.hash, campaign.id!!, uri)
 
         val builder = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_ID)
             .setContentTitle(title)
@@ -174,11 +185,17 @@ class NotificationManager(
     private fun createNotificationPendingIntent(
         context: Context,
         hash: String,
-        idCampaign: String
+        idCampaign: String,
+        uri: Uri?
     ): PendingIntent {
         val intent = Intent(context, NotificationReceiver::class.java)
         intent.putExtra(ID_ZONE, hash)
         intent.putExtra(ID_CAMPAIGN, idCampaign)
+
+        uri?.let {
+            Log.i("XXX", "Uri recorded is: $uri")
+            intent.data = uri
+        }
 
         val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_IMMUTABLE

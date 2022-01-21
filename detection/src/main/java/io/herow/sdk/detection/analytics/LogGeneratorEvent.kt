@@ -21,12 +21,15 @@ import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.geofencing.GeofenceEvent
 import io.herow.sdk.detection.geofencing.GeofenceType
 import io.herow.sdk.detection.geofencing.IGeofenceListener
+import io.herow.sdk.detection.koin.HerowKoinContext.koin
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.notification.INotificationListener
 import io.herow.sdk.detection.notification.NotificationDispatcher
 import kotlinx.coroutines.*
 import org.koin.core.component.inject
+import kotlinx.coroutines.withContext
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Generate the followings logs (CONTEXT, GEOFENCE_ENTER/EXIT, VISIT or GEOFENCE_ZONE_NOTIFICATION) by listening to different
@@ -101,13 +104,18 @@ class LogGeneratorEvent(
 
     private fun computeNearbyPois(location: Location): List<PoiMapper> {
         val closestPois: MutableList<PoiMapper> = ArrayList()
+        GlobalLogger.shared.info(context, "CachePois are: $cachePois")
 
-        cachePois = retrievePois()
-        GlobalLogger.shared.info(context, "CachePois are -- 2 : $cachePois")
 
-        if (cachePois != null) {
-            if (cachePois!!.isNotEmpty()) {
-                for (cachePoi in ArrayList<Poi>(cachePois!!)) {
+        cachePois?.let {
+            val cachePoisCopied = CopyOnWriteArrayList(cachePois as ArrayList)
+
+            if (cachePoisCopied.isNotEmpty()) {
+                val iterator = cachePoisCopied.iterator()
+
+                while (iterator.hasNext()) {
+                    val cachePoi = iterator.next()
+
                     cachePoi.distance = cachePoi.updateDistance(location)
 
                     GlobalLogger.shared.info(context, "Distance POI is: $DISTANCE_MAX")
@@ -136,15 +144,17 @@ class LogGeneratorEvent(
 
     private fun computeNearbyPlaces(location: Location): List<ZoneMapper> {
         val closestZones: MutableList<ZoneMapper> = ArrayList()
+        GlobalLogger.shared.info(context, "CacheZones are: $cacheZones")
 
-        cacheZones = retrieveZones()
+        cacheZones?.let {
+            val cacheZoneCopied = CopyOnWriteArrayList(cacheZones as ArrayList)
 
-        if (cacheZones != null) {
-            if (cacheZones!!.isNotEmpty()) {
-                val iterator = cacheZones!!.iterator()
+            if (cacheZoneCopied.isNotEmpty()) {
+                val iterator = cacheZoneCopied.iterator()
 
                 while (iterator.hasNext()) {
                     val cacheZone = iterator.next()
+
                     cacheZone.distance = cacheZone.updateDistance(location)
                     GlobalLogger.shared.info(context, "CacheZone distance is: ${cacheZone.distance}")
 
