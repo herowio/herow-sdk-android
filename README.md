@@ -210,6 +210,10 @@ Call the following method to disable the background service:
 
 `HerowInitializer.getInstance(context).stopClickAndCollect()`
 
+# DeepLink
+To implement deeplink from campaigns please follow this: 
+[https://developer.android.com/training/app-links/deep-linking](https://developer.android.com/training/app-links/deep-linking)
+
 # Debug mode
 
 You can now follow the execution logs with this method.
