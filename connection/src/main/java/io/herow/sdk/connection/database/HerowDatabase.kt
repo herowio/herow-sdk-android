@@ -15,7 +15,7 @@ import io.herow.sdk.connection.cache.utils.Converters
 
 @Database(
     entities = [Campaign::class, Poi::class, Zone::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
