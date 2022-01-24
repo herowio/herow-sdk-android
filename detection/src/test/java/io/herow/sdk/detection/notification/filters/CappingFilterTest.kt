@@ -50,7 +50,7 @@ class CappingFilterTest {
         }
 
         herowCappingSaved.count = 7
-        herowCappingSaved.razDate = TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 7, 20, 0, 0, 0))
+        herowCappingSaved.razDate = TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2024, 7, 20, 0, 0, 0))
         sessionHolder.saveHerowCapping((campaign as Campaign).id!!, GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java))
 
         // We create a Campaign with a Capping - MaxNumberOfNotifications is 5
