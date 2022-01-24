@@ -151,8 +151,9 @@ class AuthRequests(
         )
         GlobalLogger.shared.info(
             null,
-            "AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}"
+            "AccessToken is not empty = ${sessionHolder.getAccessToken().isNotEmpty()}"
         )
+        GlobalLogger.shared.info(null, "AccessToken is valid = ${isTokenValid(sessionHolder.getTimeOutTime())}")
         return (sessionHolder.getAccessToken().isNotEmpty()
                 && isTokenValid(sessionHolder.getTimeOutTime()))
     }
@@ -191,6 +192,13 @@ class AuthRequests(
                 Gson().toJson(retrofitObject, RetrofitConnectionObject::class.java)
             val tokenResponse = herowAPI.token(retrofitObjectString)
             isWorking = false
+
+            GlobalLogger.shared.info(
+                context = null,
+                "launchTokenRequest - retrofitObject: $retrofitObjectString"
+            )
+            GlobalLogger.shared.info(context = null, "launchTokenRequest - $tokenResponse")
+
             if (tokenResponse.isSuccessful) {
                 tokenResponse.body()?.let { tokenResult: TokenResult ->
                     sessionHolder.saveAccessToken(tokenResult.getToken())

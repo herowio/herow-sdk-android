@@ -14,6 +14,5 @@ data class HerowNotification(
     var image: String? = "",
     @Ignore
     var thumbnail: String? = "",
-    @Ignore
     var uri: String? = ""
 )
