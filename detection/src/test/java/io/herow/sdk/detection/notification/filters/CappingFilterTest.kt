@@ -69,7 +69,7 @@ class CappingFilterTest: KoinTest, ICustomKoinTestComponent {
             Assert.assertTrue(CappingFilter.createNotification(campaign, sessionHolder))
 
             herowCappingSaved.razDate =
-                TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 4, 3, 12, 0, 0))
+                TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2024, 4, 3, 12, 0, 0))
             sessionHolder.saveHerowCapping(
                 campaign.id!!,
                 GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java)
