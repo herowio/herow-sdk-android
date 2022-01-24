@@ -57,19 +57,21 @@ class CappingFilterTest: KoinTest, ICustomKoinTestComponent {
 
             herowCappingSaved.count = 7
             herowCappingSaved.razDate =
-                TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2021, 7, 20, 0, 0, 0))
+                TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2024, 7, 20, 0, 0, 0))
             sessionHolder.saveHerowCapping(
                 campaign.id!!,
                 GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java)
             )
 
+            println("HerowCapping saved is: $herowCappingSaved")
+
             // We create a Campaign with a Capping - MaxNumberOfNotifications is 5
             // HerowCapping count is 7 - Saved razTime is superior to current time
             // We should not have a notification
-            Assert.assertTrue(CappingFilter.createNotification(campaign, sessionHolder))
+            Assert.assertFalse(CappingFilter.createNotification(campaign, sessionHolder))
 
             herowCappingSaved.razDate =
-                TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2024, 4, 3, 12, 0, 0))
+                TimeHelper.convertLocalDateTimeToTimestamp(LocalDateTime.of(2020, 4, 3, 12, 0, 0))
             sessionHolder.saveHerowCapping(
                 campaign.id!!,
                 GsonProvider.toJson(herowCappingSaved, HerowCapping::class.java)
