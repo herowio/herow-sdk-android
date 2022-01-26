@@ -8,11 +8,11 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import com.google.gson.Gson
 import io.herow.sdk.common.helpers.Constants
+import io.herow.sdk.common.helpers.toLocationMapper
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.MockLocation
-import io.herow.sdk.detection.geofencing.model.toLocationMapper
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import kotlinx.coroutines.ExperimentalCoroutinesApi

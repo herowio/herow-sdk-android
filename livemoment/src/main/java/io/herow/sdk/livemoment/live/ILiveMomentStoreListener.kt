@@ -9,7 +9,7 @@ interface ILiveMomentStoreListener {
     fun liveMomentStoreStartComputing()
     fun didCompute(
         rects: ArrayList<NodeDescription>?,
-        home: IQuadTreeNode,
+        home: IQuadTreeNode?,
         work: IQuadTreeNode?,
         school: IQuadTreeNode?,
         shoppings: ArrayList<IQuadTreeNode>?,
