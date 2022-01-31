@@ -60,8 +60,8 @@ class AuthRequests(
             GlobalLogger.shared.info(null, "Token is usable or isWorking")
             try {
                 request(herowAPI)
-            } catch (malformedException: MalformedURLException) {
-                println("YYY - Exception in URL, cause is: ${malformedException.cause} - ${malformedException.message}")
+            } catch (exception: Throwable) {
+                println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
             }
         }
     }
@@ -72,7 +72,11 @@ class AuthRequests(
         if (needUserInfo()) {
             launchUserInfoRequest(herowAPI, request)
         } else {
-            request(herowAPI)
+            try {
+                request(herowAPI)
+            } catch (exception: Throwable) {
+                println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
+            }
         }
     }
 
@@ -110,7 +114,11 @@ class AuthRequests(
     suspend fun execute(request: suspend (herowAPI: IHerowAPI) -> Unit = {}) {
         authenticationWorkFlow {
             userInfoWorkFlow {
-                request(herowAPI)
+                try {
+                    request(herowAPI)
+                } catch (exception: Throwable) {
+                    println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
+                }
             }
         }
     }
@@ -207,7 +215,11 @@ class AuthRequests(
                         null,
                         "SavedTimeOutTime = ${tokenResult.getTimeoutTime()}"
                     )
-                    request(herowAPI)
+                    try {
+                        request(herowAPI)
+                    } catch (exception: Throwable) {
+                        println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
+                    }
                 }
             }
         }
@@ -249,7 +261,11 @@ class AuthRequests(
             userInfoResponse.body()?.let { userInfoResult: UserInfoResult ->
                 sessionHolder.saveHerowId(userInfoResult.herowId)
                 GlobalLogger.shared.info(null, "UserInfoResponse is successful")
-                request(herowAPI)
+                try {
+                    request(herowAPI)
+                } catch (exception: Throwable) {
+                    println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
+                }
             }
         }
     }
