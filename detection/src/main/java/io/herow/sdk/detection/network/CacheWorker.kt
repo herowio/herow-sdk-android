@@ -76,7 +76,11 @@ class CacheWorker(
 
         applicationScope.launch {
             authRequest.execute {
-                launchCacheRequest(authRequest.getHerowAPI(), locationMapper)
+                try {
+                    launchCacheRequest(authRequest.getHerowAPI(), locationMapper)
+                } catch (exception: Throwable) {
+                    println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
+                }
             }
         }
 

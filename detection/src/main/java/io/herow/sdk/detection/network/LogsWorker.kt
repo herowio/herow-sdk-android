@@ -41,7 +41,11 @@ class LogsWorker(
 
         applicationScope.launch {
             authRequests.execute {
-                launchLogsRequest(authRequests.getHerowAPI())
+                try {
+                    launchLogsRequest(authRequests.getHerowAPI())
+                } catch (exception: Throwable) {
+                    println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
+                }
             }
         }
 

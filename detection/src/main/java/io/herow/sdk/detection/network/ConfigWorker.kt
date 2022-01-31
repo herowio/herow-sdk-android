@@ -38,7 +38,11 @@ class ConfigWorker(
 
         applicationScope.launch {
             authRequest.execute {
-                launchConfigRequest(authRequest.getHerowAPI())
+                try {
+                     launchConfigRequest(authRequest.getHerowAPI())
+                } catch (exception: Throwable) {
+                    println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
+                }
             }
         }
 
