@@ -60,8 +60,8 @@ class AuthRequests(
             GlobalLogger.shared.info(null, "Token is usable or isWorking")
             try {
                 request(herowAPI)
-            } catch (malformedException: MalformedURLException) {
-                println("YYY - Exception in URL, cause is: ${malformedException.cause} - ${malformedException.message}")
+            } catch (exception: Throwable) {
+                println("YYY - Exception in URL, cause is: ${exception.cause} - ${exception.message}")
             }
         }
     }
