@@ -50,13 +50,12 @@ class SessionInterceptor: Interceptor, ICustomKoinComponent {
 
             return chain.proceed(requestBuilder.build())
         } catch ( e: Throwable) {
-
                 return Response.Builder()
                     .request(chain.request())
                     .protocol(Protocol.HTTP_1_1)
                     .code(400)
-                    .message("somethind went wrong")
-                    .body("client config invalid".toResponseBody(null))
+                    .message("Something went wrong")
+                    .body("Something went wrong".toResponseBody(null))
                     .build()
         }
     }
