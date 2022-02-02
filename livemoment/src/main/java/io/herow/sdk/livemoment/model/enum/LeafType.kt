@@ -1,4 +1,4 @@
-package io.herow.sdk.livemoment.model
+package io.herow.sdk.livemoment.model.enum
 
 enum class LeafType(val type: Int) {
     ROOT(0),

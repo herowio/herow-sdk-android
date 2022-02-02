@@ -1,4 +1,4 @@
-package io.herow.sdk.livemoment.model
+package io.herow.sdk.livemoment.model.enum
 
 enum class LeafDirection(val value: String) {
     ROOT("0"),

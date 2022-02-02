@@ -1,6 +1,9 @@
 package io.herow.sdk.common.helpers
 
+import android.location.Location
+import io.herow.sdk.common.data.LocationPattern
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.Month
 import java.util.*
@@ -9,7 +12,7 @@ import java.util.*
  * ********** EXTENSIONS ***********
  */
 
-fun Date.isHomeCompliant(): Boolean {
+fun LocalDate.isHomeCompliant(): Boolean {
     val evening2000 = LocalTime.of(20, 0)
     val evening2359 = LocalTime.of(23, 59)
     val morning0000 = LocalTime.of(0, 0)
@@ -21,7 +24,7 @@ fun Date.isHomeCompliant(): Boolean {
     return (evening || morning)
 }
 
-fun Date.isSchoolCompliant(): Boolean {
+fun LocalDate.isSchoolCompliant(): Boolean {
     val morning0840 = LocalTime.of(8, 40)
     val morning0850 = LocalTime.of(8, 50)
     val morning1130 = LocalTime.of(11, 30)
@@ -45,7 +48,7 @@ fun Date.isSchoolCompliant(): Boolean {
     return (morningEntry || morningExit || afterEntry || afterExit) && isNotDayOff && isNotMonthOff
 }
 
-fun Date.isWorkCompliant(): Boolean {
+fun LocalDate.isWorkCompliant(): Boolean {
     val work0900 = LocalTime.of(9, 0)
     val work12000 = LocalTime.of(12, 0)
     val work1400 = LocalTime.of(14, 0)
@@ -59,4 +62,19 @@ fun Date.isWorkCompliant(): Boolean {
         currentDate.dayOfWeek != DayOfWeek.SATURDAY && currentDate.dayOfWeek != DayOfWeek.SUNDAY
 
     return (afternoon || morning) && isNotWeekEnd && !isSchoolCompliant()
+}
+
+fun LocationPattern.filtered(locationPattern: LocationPattern): LocationPattern =
+    locationPattern.filter { it.value > 0.1 } as LocationPattern
+
+fun LocationMapper.toLocation(locationMapper: LocationMapper): Location {
+    val location = Location("")
+
+    return location.apply {
+        speed = locationMapper.speed
+        horizontalAccuracy = locationMapper.horizontalAccuracy
+        longitude = locationMapper.lng
+        latitude = locationMapper.lat
+        time = locationMapper.timestamp
+    }
 }

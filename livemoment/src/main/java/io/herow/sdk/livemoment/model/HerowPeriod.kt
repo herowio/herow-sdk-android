@@ -2,16 +2,20 @@ package io.herow.sdk.livemoment.model
 
 import io.herow.sdk.livemoment.IPeriod
 import io.herow.sdk.livemoment.quadtree.IQuadTreeLocation
-import java.util.*
+import java.time.LocalDate
+import kotlin.collections.ArrayList
 
 class HerowPeriod(
-    var workLocations: ArrayList<IQuadTreeLocation>,
-    var homeLocations: ArrayList<IQuadTreeLocation>,
-    var schoolLocations: ArrayList<IQuadTreeLocation>,
     var otherLocations: ArrayList<IQuadTreeLocation>,
     var poiLocations: ArrayList<IQuadTreeLocation>,
-    var start: Date,
-    var end: Date
+    override var end: LocalDate,
+    override var start: LocalDate,
+    override var homeLocations: ArrayList<IQuadTreeLocation>,
+    override var workLocations: ArrayList<IQuadTreeLocation>,
+    override var schoolLocations: ArrayList<IQuadTreeLocation>,
+    override var shoppingLocations: ArrayList<IQuadTreeLocation>,
+    override var othersLocations: ArrayList<IQuadTreeLocation>,
+    override var poisLocations: ArrayList<IQuadTreeLocation>
 ) :
     IPeriod {
 

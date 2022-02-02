@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.connection.HerowHeaders
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.livemoment.HerowInitializer
 import io.herow.sdk.detection.helpers.FakeAPI
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinComponent
@@ -32,7 +32,7 @@ class SessionInterceptorTest : KoinTest, ICustomKoinComponent {
 
     @Before
     fun setUp() {
-        HerowInitializer.setStaticTesting(true)
+        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
 

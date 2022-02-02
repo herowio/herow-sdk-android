@@ -141,6 +141,10 @@ subprojects {
         implementation "io.insert-koin:koin-android:$koin_version"
         testImplementation "io.insert-koin:koin-test:$koin_version"
         testImplementation "io.insert-koin:koin-test-junit4:$koin_version"
+
+        // WorkerManager with coroutine support
+        implementation "androidx.work:work-runtime:$worker_version"
+        implementation "androidx.work:work-runtime-ktx:$worker_version"
     }
 }
 

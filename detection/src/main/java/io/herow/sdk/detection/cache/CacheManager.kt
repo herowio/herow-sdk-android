@@ -6,9 +6,9 @@ import androidx.annotation.Keep
 import androidx.work.*
 import com.google.gson.Gson
 import io.herow.sdk.common.helpers.Constants
+import io.herow.sdk.common.helpers.toLocationMapper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.geofencing.model.toLocationMapper
 import io.herow.sdk.detection.helpers.DateHelper
 import io.herow.sdk.detection.helpers.GeoHashHelper
 import io.herow.sdk.detection.helpers.WorkHelper

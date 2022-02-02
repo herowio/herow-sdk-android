@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.*
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import io.herow.sdk.common.data.LocationPattern
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
@@ -41,7 +42,12 @@ import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
+import io.herow.sdk.livemoment.moment.ILiveMomentStore
+import io.herow.sdk.livemoment.moment.LiveMomentStore
+import io.herow.sdk.livemoment.prediction.IPredictionStore
+import io.herow.sdk.livemoment.prediction.PredictionStore
 import kotlinx.coroutines.*
+import org.koin.android.BuildConfig
 import org.koin.core.component.inject
 import java.net.UnknownHostException
 
@@ -57,6 +63,8 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     private val workManager: WorkManager = WorkManager.getInstance(context)
     private var notificationManager: NotificationManager
     private val cacheManager: CacheManager = CacheManager(context)
+    private var liveMomentStore: ILiveMomentStore
+    private var predictionStore: IPredictionStore
 
     private lateinit var preprodURL: String
     private lateinit var prodURL: String
@@ -68,12 +76,13 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     private val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private val zoneRepository: ZoneRepository by inject()
 
-
     init {
         loadIdentifiers(context)
         locationManager = LocationManager(context, true)
         notificationManager = NotificationManager(context)
         registerListeners()
+        liveMomentStore = LiveMomentStore()
+        predictionStore = PredictionStore()
     }
 
     companion object {
@@ -94,7 +103,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         @JvmStatic
         fun getInstance(context: Context, testingStatus: Boolean = false): HerowInitializer {
             setStaticTesting(testingStatus)
-            if (!::herowInitializer.isInitialized) {
+            if (!Companion::herowInitializer.isInitialized) {
                 if (testingStatus) {
                     HerowKoinTestContext.init(context)
                 } else {
@@ -107,7 +116,7 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
 
         @JvmStatic
         fun getInstance(context: Context): HerowInitializer {
-           return getInstance(context, false)
+            return getInstance(context, false)
         }
     }
 
@@ -122,6 +131,9 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
         ConfigDispatcher.addConfigListener(locationManager)
         LogsDispatcher.addLogListener(logsManager)
         GeofenceDispatcher.addGeofenceListener(notificationManager)
+        CacheDispatcher.addCacheListener(liveMomentStore)
+        LocationDispatcher.addLocationListener(liveMomentStore)
+        liveMomentStore.registerLiveMomentStoreListener(predictionStore)
     }
 
     /**
@@ -421,4 +433,18 @@ class HerowInitializer private constructor(val context: Context) : ILocationList
     fun getGeoHash(): String = sessionHolder.getGeohash()
 
     fun testPermissionStatus() = PermissionLocationHelper.treatActualPermissions(context)
+
+    fun getPatternForId(id: String): LocationPattern? {
+        val lastZones = sessionHolder.getLastZonesPredictions()
+
+        return if (lastZones.isNotEmpty()) {
+            return lastZones.filter {
+                it.tag == id
+            }.map {
+                it.pattern
+            }.first()
+        } else {
+            null
+        }
+    }
 }

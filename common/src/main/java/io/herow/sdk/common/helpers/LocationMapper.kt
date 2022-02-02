@@ -17,16 +17,3 @@ fun toLocationMapper(location: Location): LocationMapper = LocationMapper(
     location.latitude,
     location.time
 )
-
-fun LocationMapper.toLocation(locationMapper: LocationMapper): Location {
-    val location = Location("")
-
-    return location.apply {
-        speed = locationMapper.speed
-        horizontalAccuracy = locationMapper.horizontalAccuracy
-        longitude = locationMapper.lng
-        latitude = locationMapper.lat
-        time = locationMapper.timestamp
-    }
-
-}

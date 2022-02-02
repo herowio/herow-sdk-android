@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
-import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.livemoment.HerowInitializer
 import io.herow.sdk.detection.MockDataInDatabase
 import io.herow.sdk.detection.helpers.DateHelper
 import io.herow.sdk.detection.koin.HerowKoinTestContext
@@ -33,7 +33,7 @@ class DayReccurencyFilterTest : KoinTest, ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        HerowInitializer.setStaticTesting(true)
+        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
     }

@@ -70,7 +70,8 @@ class LogsHelper: ICustomKoinComponent {
                 arrayListOf(
                     ZoneMapper(zone.lng, zone.lat, zone.hash, zone.distance, zone.radius),
                     ZoneMapper(zone2.lng, zone2.lat, zone2.hash, zone2.distance, zone2.radius)
-                )
+                ),
+                null
             )
         herowLogContext.enrich(
             ApplicationData(context), sessionHolder

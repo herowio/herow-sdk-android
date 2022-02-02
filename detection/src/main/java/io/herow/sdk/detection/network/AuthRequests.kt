@@ -212,6 +212,7 @@ class AuthRequests(
             sessionHolder.getAdvertiserId()
         }
 
+        //TODO - Add missing parameter to UserInfo
         return UserInfo(
             optins = arrayListOf(Optin(value = sessionHolder.getOptinValue())),
             advertiserId = adID,

@@ -47,7 +47,7 @@ class HerowInitializerTest : KoinTest, ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        HerowInitializer.setStaticTesting(true)
+        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
     }

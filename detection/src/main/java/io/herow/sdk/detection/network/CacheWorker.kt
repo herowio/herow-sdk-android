@@ -6,7 +6,9 @@ import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.herow.sdk.common.helpers.Constants
+import io.herow.sdk.common.helpers.LocationMapper
 import io.herow.sdk.common.helpers.TimeHelper
+import io.herow.sdk.common.helpers.toLocation
 import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.IHerowAPI
@@ -19,8 +21,6 @@ import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.detection.HerowInitializer
-import io.herow.sdk.detection.geofencing.model.LocationMapper
-import io.herow.sdk.detection.geofencing.model.toLocation
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.detection.zones.ZoneManager

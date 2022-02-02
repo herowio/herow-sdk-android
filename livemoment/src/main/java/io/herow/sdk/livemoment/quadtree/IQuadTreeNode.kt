@@ -1,16 +1,27 @@
 package io.herow.sdk.livemoment.quadtree
 
+import io.herow.sdk.common.data.LocationPattern
+import io.herow.sdk.common.helpers.filtered
 import io.herow.sdk.connection.cache.model.Poi
-import io.herow.sdk.livemoment.model.LeafType
 import io.herow.sdk.livemoment.model.LiveMomentResult
 import io.herow.sdk.livemoment.model.NodeDescription
-import io.herow.sdk.livemoment.model.NodeType
+import io.herow.sdk.livemoment.model.enum.LeafType
+import io.herow.sdk.livemoment.model.enum.NodeType
+import io.herow.sdk.livemoment.model.enum.RecurrencyDay
+import io.herow.sdk.livemoment.model.enum.RecurrencySlot
+import io.herow.sdk.livemoment.model.reccurencyDay
 import io.herow.sdk.livemoment.model.shape.Rect
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 interface IQuadTreeNode {
     var liveMomentTypes: java.util.ArrayList<NodeType>
         get() = arrayListOf()
-        set(value) { }
+        set(value) {}
+
+    var recurrencies: HashMap<RecurrencyDay, Int>
+        get() = hashMapOf()
+        set(value) {}
 
     fun findNodeWithId(id: String): IQuadTreeNode?
     fun getTreeId(): String
@@ -111,5 +122,48 @@ interface IQuadTreeNode {
         }
 
         return LiveMomentResult(homes, works, schools, shoppings)
+    }
+
+    fun getLocationPattern(): LocationPattern {
+        val location = getRawLocationPattern()
+        return location.filtered(location)
+    }
+
+    private fun getRawLocationPattern(): LocationPattern {
+        val count = getCount().toDouble()
+        val pattern = LocationPattern()
+
+        val decimalFormat = DecimalFormat("#.##")
+        decimalFormat.roundingMode = RoundingMode.CEILING
+
+        for (recurrency in recurrencies) {
+            pattern[recurrency.key.rawValue()] = (decimalFormat.format(recurrency.value.div(count))).toDouble()
+        }
+
+        return pattern
+    }
+
+    private fun getCount(): Int = getLocations().count()
+
+    fun resetReccurencies() {
+        for (loc in getLocations()) {
+            val day = loc.time.reccurencyDay(loc.time, RecurrencySlot.UNKNOWN)
+            var value: Int = recurrencies[day] ?: 0
+            value += 1
+
+            recurrencies[day] = value
+        }
+    }
+
+    fun createRecurrencies(): HashMap<String, Int> {
+        val rec = hashMapOf<String, Int>()
+
+        for (key in recurrencies.keys) {
+            val day = key.rawValue()
+            val value = recurrencies[key] ?: 0
+            rec[day] = value
+        }
+
+        return rec
     }
 }

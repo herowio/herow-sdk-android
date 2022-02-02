@@ -8,10 +8,11 @@ import io.herow.sdk.common.helpers.isWorkCompliant
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.livemoment.model.*
+import io.herow.sdk.livemoment.model.enum.LeafDirection
+import io.herow.sdk.livemoment.model.enum.LeafType
+import io.herow.sdk.livemoment.model.enum.LivingTag
+import io.herow.sdk.livemoment.model.enum.NodeType
 import io.herow.sdk.livemoment.model.shape.Rect
-import java.time.DayOfWeek
-import java.time.LocalTime
-import java.time.Month
 import java.util.*
 import kotlin.math.max
 
@@ -287,7 +288,6 @@ class HerowQuadTreeNode(
                 latitude = location.lat
                 longitude = location.lng
             })
-            // TODO Define shoppingMinRadius
             if (distance < shoppingMinRadius) {
                 poisForLocation.add(poi)
             }
@@ -413,7 +413,6 @@ class HerowQuadTreeNode(
                 latitude = location.lat
                 longitude = location.lng
             })
-            //TODO Define shoppingMinRadius
             if (distance < shoppingMinRadius) {
                 poisForLocation.add(poi)
             }

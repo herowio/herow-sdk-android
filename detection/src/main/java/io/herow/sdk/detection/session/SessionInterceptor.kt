@@ -8,6 +8,7 @@ import io.herow.sdk.detection.BuildConfig
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import okhttp3.Interceptor
 import okhttp3.Response
+import org.koin.android.BuildConfig
 import org.koin.core.component.inject
 
 /**

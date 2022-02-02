@@ -1,4 +1,4 @@
-package io.herow.sdk.livemoment.live
+package io.herow.sdk.livemoment.moment
 
 import android.location.Location
 import io.herow.sdk.connection.cache.ICacheListener

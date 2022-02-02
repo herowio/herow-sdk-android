@@ -7,7 +7,7 @@ import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.HerowCapping
-import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.livemoment.HerowInitializer
 import io.herow.sdk.detection.MockDataInDatabase
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
@@ -36,7 +36,7 @@ class CappingFilterTest: KoinTest, ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        HerowInitializer.setStaticTesting(true)
+        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
     }

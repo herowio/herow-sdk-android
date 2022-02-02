@@ -1,7 +1,7 @@
 package io.herow.sdk.livemoment.model.shape
 
 import android.location.Location
-import io.herow.sdk.livemoment.model.LeafType
+import io.herow.sdk.livemoment.model.enum.LeafType
 import io.herow.sdk.livemoment.quadtree.HerowQuadTreeNode
 import io.herow.sdk.livemoment.quadtree.IQuadTreeLocation
 

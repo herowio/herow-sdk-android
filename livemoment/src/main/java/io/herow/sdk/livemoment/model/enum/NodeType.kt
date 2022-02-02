@@ -1,4 +1,4 @@
-package io.herow.sdk.livemoment.model
+package io.herow.sdk.livemoment.model.enum
 
 enum class NodeType(val value: Int) {
     HOME(0),

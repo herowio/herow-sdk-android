@@ -8,7 +8,7 @@ import io.herow.sdk.connection.cache.model.Access
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.logs.Log
-import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.livemoment.HerowInitializer
 import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.analytics.model.HerowLogVisit
 import io.herow.sdk.detection.geofencing.GeofenceEvent
@@ -25,7 +25,6 @@ import org.koin.test.inject
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-//TODO This one fails - Expected 1 found 0
 @ExperimentalCoroutinesApi
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
@@ -45,7 +44,7 @@ class LogGeneratorEventTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        HerowInitializer.setStaticTesting(true)
+        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
 
         sessionHolder.reset()

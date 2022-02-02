@@ -13,7 +13,7 @@ import io.herow.sdk.connection.config.ConfigDispatcher
 import io.herow.sdk.connection.config.ConfigResult
 import io.herow.sdk.connection.config.IConfigListener
 import io.herow.sdk.connection.userinfo.*
-import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.livemoment.HerowInitializer
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import io.herow.sdk.detection.session.RetrofitBuilder
@@ -47,7 +47,7 @@ class ConfigWorkerTest : KoinTest, ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        HerowInitializer.setStaticTesting(true)
+        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
 

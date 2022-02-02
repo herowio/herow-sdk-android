@@ -9,7 +9,7 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.database.HerowDatabase
-import io.herow.sdk.detection.HerowInitializer
+import io.herow.sdk.livemoment.HerowInitializer
 import io.herow.sdk.detection.MockDataInDatabase
 import io.herow.sdk.detection.MockLocation
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
@@ -60,7 +60,7 @@ class NotificationManagerTest : AutoCloseKoinTest(), ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        HerowInitializer.setStaticTesting(true)
+        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
         notificationManager = NotificationManager(context)

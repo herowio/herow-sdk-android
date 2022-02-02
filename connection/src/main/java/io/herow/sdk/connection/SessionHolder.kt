@@ -3,6 +3,8 @@ package io.herow.sdk.connection
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.herow.sdk.common.DataHolder
+import io.herow.sdk.common.data.TagPrediction
+import io.herow.sdk.common.data.ZonePrediction
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.json.GsonProvider
@@ -11,6 +13,7 @@ import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.HerowCapping
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.config.ConfigResult
+import io.herow.sdk.connection.prediction.Prediction
 import io.herow.sdk.connection.userinfo.UserInfo
 import java.lang.reflect.Type
 
@@ -44,6 +47,9 @@ class SessionHolder(private val dataHolder: DataHolder) {
         private const val KEY_SAVED_PREVIOUS_ZONES = "detection.previous_zones"
         private const val KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION =
             "detection.previous_zones_for_notification"
+        private const val ZONES_PREDICTIONS = "livemoments.zones_predictions"
+        private const val TAGS_PREDICTIONS = "livemoments.tags_predictions"
+        private const val PREDICTIONS = "livemoments.predictions"
     }
 
     fun getAll(): Int = dataHolder.getAll()
@@ -433,5 +439,61 @@ class SessionHolder(private val dataHolder: DataHolder) {
         if (dataHolder.containsKey(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)) {
             dataHolder.removeKey(KEY_SAVED_PREVIOUS_ZONES_FOR_NOTIFICATION)
         }
+
+        if (dataHolder.containsKey(PREDICTIONS)) {
+            dataHolder.removeKey(PREDICTIONS)
+        }
+    }
+
+    fun didPredict(predictions: ArrayList<Prediction>) {
+        if (predictions.isNotEmpty()) {
+            savePredictions(predictions)
+        }
+    }
+
+    fun didZonePredict(predictions: ArrayList<ZonePrediction>) {
+        if (predictions.isNotEmpty()) {
+            saveZonesPredictions(predictions)
+        }
+    }
+
+    fun didPredictionsForTags(predictions: ArrayList<TagPrediction>) {
+        if (predictions.isNotEmpty()) {
+            saveTagsPredictions(predictions)
+        }
+    }
+
+    private fun saveZonesPredictions(zonesPrediction: ArrayList<ZonePrediction>) {
+        dataHolder[ZONES_PREDICTIONS] = Gson().toJson(zonesPrediction)
+    }
+
+    fun getLastZonesPredictions(): ArrayList<ZonePrediction> =
+        if (dataHolder.containsKey(ZONES_PREDICTIONS)) {
+            val savedPreviousZonesPredictions = dataHolder.get<String>(ZONES_PREDICTIONS)
+
+            val listType: Type = object :
+                TypeToken<ArrayList<ZonePrediction>?>() {}.type
+            Gson().fromJson(savedPreviousZonesPredictions, listType)
+        } else {
+            arrayListOf()
+        }
+
+    private fun saveTagsPredictions(tagsPredictions: ArrayList<TagPrediction>) {
+        dataHolder[TAGS_PREDICTIONS] = Gson().toJson(tagsPredictions)
+    }
+
+    fun getLastTagsPredictions(): ArrayList<TagPrediction> =
+        if (dataHolder.containsKey(TAGS_PREDICTIONS)) {
+            val savedPreviousTagsPredictions = dataHolder.get<String>(TAGS_PREDICTIONS)
+
+            val listType: Type = object :
+                TypeToken<ArrayList<TagPrediction>?>() {}.type
+            Gson().fromJson(savedPreviousTagsPredictions, listType)
+        } else {
+            arrayListOf()
+        }
+
+    private fun savePredictions(predictions: ArrayList<Prediction>) {
+        dataHolder[PREDICTIONS] = Gson().toJson(predictions)
     }
 }

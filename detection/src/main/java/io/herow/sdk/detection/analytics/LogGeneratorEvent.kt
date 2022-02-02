@@ -84,6 +84,7 @@ class LogGeneratorEvent(
                 nearbyPois = nearbyPois.subList(0, 10)
             }
 
+            //TODO Add missing parameter
             val herowLogContext = HerowLogContext(
                 appState,
                 location,

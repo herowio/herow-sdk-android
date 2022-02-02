@@ -1,4 +1,4 @@
-package io.herow.sdk.livemoment.live
+package io.herow.sdk.livemoment.moment
 
 import io.herow.sdk.livemoment.IPeriod
 import io.herow.sdk.livemoment.model.NodeDescription
@@ -17,7 +17,6 @@ interface ILiveMomentStoreListener {
         neighbours: ArrayList<IQuadTreeNode>?,
         periods: ArrayList<IPeriod>
     )
-
     fun didChangeNode(node: IQuadTreeNode)
     fun getFirstLiveMoments(
         home: IQuadTreeNode?,

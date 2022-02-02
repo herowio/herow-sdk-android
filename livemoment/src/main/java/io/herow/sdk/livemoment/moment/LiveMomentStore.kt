@@ -1,18 +1,18 @@
-package io.herow.sdk.livemoment.live
+package io.herow.sdk.livemoment.moment
 
 import android.location.Location
-import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.common.logger.GlobalLogger
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import io.herow.sdk.livemoment.IPeriod
-import io.herow.sdk.livemoment.model.LivingTag
 import io.herow.sdk.livemoment.model.NodeDescription
-import io.herow.sdk.livemoment.model.NodeType
+import io.herow.sdk.livemoment.model.enum.LivingTag
+import io.herow.sdk.livemoment.model.enum.NodeType
 import io.herow.sdk.livemoment.quadtree.HerowQuadTreeLocation
 import io.herow.sdk.livemoment.quadtree.IQuadTreeLocation
 import io.herow.sdk.livemoment.quadtree.IQuadTreeNode
-import kotlinx.coroutines.joinAll
-import java.util.*
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlin.collections.ArrayList
 
 class LiveMomentStore : ILiveMomentStore, ICustomKoinComponent {
@@ -46,7 +46,7 @@ class LiveMomentStore : ILiveMomentStore, ICustomKoinComponent {
     }
 
     override fun onLocationUpdate(location: Location) {
-        val now = Date()
+        val now = LocalDate.now()
         needGetPeriods = true
 
         if (periods.filter { it.end > now }.first() != null) {
@@ -72,7 +72,7 @@ class LiveMomentStore : ILiveMomentStore, ICustomKoinComponent {
         val quadLocation = HerowQuadTreeLocation(
             location.latitude,
             location.longitude,
-            Date(location.time)
+            Instant.ofEpochMilli(location.time).atZone(ZoneId.systemDefault()).toLocalDate()
         )
 
         val nodeToUse = currentNode ?: root

@@ -4,12 +4,12 @@ import io.herow.sdk.common.helpers.isHomeCompliant
 import io.herow.sdk.common.helpers.isSchoolCompliant
 import io.herow.sdk.common.helpers.isWorkCompliant
 import io.herow.sdk.livemoment.quadtree.IQuadTreeLocation
-import java.util.*
+import java.time.LocalDate
 import kotlin.collections.ArrayList
 
 interface IPeriod {
-    var end: Date
-    var start: Date
+    var end: LocalDate
+    var start: LocalDate
 
     var homeLocations: ArrayList<IQuadTreeLocation>
     var workLocations: ArrayList<IQuadTreeLocation>
