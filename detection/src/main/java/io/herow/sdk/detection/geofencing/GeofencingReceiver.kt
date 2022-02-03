@@ -12,15 +12,18 @@ class GeofencingReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent!!)
-        if (!geofencingEvent.hasError()) {
-            val location = geofencingEvent.triggeringLocation
-            LocationDispatcher.dispatchLocation(location)
-        } else {
-            val errorMessage: String =
-                GeofenceStatusCodes.getStatusCodeString(geofencingEvent.errorCode)
-            GlobalLogger.shared.error(context, "Error message is: $errorMessage")
-
-            println(errorMessage)
+        if (geofencingEvent != null) {
+            if (!geofencingEvent.hasError()) {
+                val location = geofencingEvent.triggeringLocation
+                if (location != null) {
+                    LocationDispatcher.dispatchLocation(location)
+                }
+            } else {
+                val errorMessage: String =
+                    GeofenceStatusCodes.getStatusCodeString(geofencingEvent.errorCode)
+                GlobalLogger.shared.error(context, "Error message is: $errorMessage")
+                println(errorMessage)
+            }
         }
     }
 }
