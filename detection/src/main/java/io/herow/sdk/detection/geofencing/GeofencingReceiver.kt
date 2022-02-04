@@ -28,7 +28,6 @@ class GeofencingReceiver : BroadcastReceiver() {
                 GlobalLogger.shared.error(context, "Error message is: $errorMessage")
                 println(errorMessage)
             }
-
         }
     }
 }
