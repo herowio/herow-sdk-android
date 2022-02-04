@@ -19,12 +19,12 @@ class GeofencingReceiver : BroadcastReceiver() {
 
    private fun treat(context: Context?, event: GeofencingEvent?) {
         event?.let {
-            if (!event.hasError()) {
-                val location = event.triggeringLocation
+            if (!it.hasError()) {
+                val location = it.triggeringLocation
                 LocationDispatcher.dispatchLocation(location)
             } else {
                 val errorMessage: String =
-                    GeofenceStatusCodes.getStatusCodeString(event.errorCode)
+                    GeofenceStatusCodes.getStatusCodeString(it.errorCode)
                 GlobalLogger.shared.error(context, "Error message is: $errorMessage")
                 println(errorMessage)
             }

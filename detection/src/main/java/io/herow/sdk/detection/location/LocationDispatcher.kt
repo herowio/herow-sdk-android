@@ -23,23 +23,23 @@ object LocationDispatcher {
             var skip = false
             GlobalLogger.shared.debug(
                 null,
-                " try to dispatchLocation : $newLocation"
+                " try to dispatchLocation : $it"
             )
             if (lastLocation != null) {
                 GlobalLogger.shared.info(null, "LastLocation is: $lastLocation")
-                GlobalLogger.shared.info(null, "NewLocation is: $newLocation")
+                GlobalLogger.shared.info(null, "NewLocation is: $it")
 
                 skip =
-                    if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
+                    if (lastLocation!!.latitude != it.latitude && lastLocation!!.longitude != newLocation.longitude) {
                         GlobalLogger.shared.info(null, "New and Last locations are different")
-                        val distance = newLocation.distanceTo(lastLocation!!)
+                        val distance = it.distanceTo(lastLocation!!)
 
                         GlobalLogger.shared.info(null, "Distance is: $distance")
-                        val time = newLocation.time - lastLocation!!.time
+                        val time = it.time - lastLocation!!.time
                         val timeInSeconds = time / 1000
                         GlobalLogger.shared.info(null, "Time is: $timeInSeconds")
 
-                        distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_SECONDS_MS
+                        distance < 10 && it.time - lastLocation!!.time < TimeHelper.FIVE_SECONDS_MS
                     } else {
                         true
                     }
@@ -51,10 +51,10 @@ object LocationDispatcher {
                 skipCount = 0
                 for (locationListener in locationListeners) {
                     GlobalLogger.shared.info(null, "Dispatching location to: $locationListener")
-                    locationListener.onLocationUpdate(newLocation)
+                    locationListener.onLocationUpdate(it)
                 }
 
-                lastLocation = newLocation
+                lastLocation = it
             } else {
                 skipCount += 1
             }
