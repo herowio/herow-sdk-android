@@ -101,7 +101,7 @@ subprojects {
 
         implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
         implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
-        implementation "com.google.android.gms:play-services-location:18.0.0"
+        implementation "com.google.android.gms:play-services-location:19.0.1"
 
         // Retrofit for API call
         implementation "com.squareup.retrofit2:retrofit:$retrofit_version"

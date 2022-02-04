@@ -18,45 +18,47 @@ object LocationDispatcher {
     /**
      * Update location only if distance is >20 m or if distance is <20 & time is >5 minutes
      */
-    fun dispatchLocation(newLocation: Location) {
-        var skip = false
-        GlobalLogger.shared.debug(
-            null,
-            " try to dispatchLocation : $newLocation"
-        )
-        if (lastLocation != null) {
-            GlobalLogger.shared.info(null, "LastLocation is: $lastLocation")
-            GlobalLogger.shared.info(null, "NewLocation is: $newLocation")
+    fun dispatchLocation(newLocation: Location?) {
+        newLocation?.let {
+            var skip = false
+            GlobalLogger.shared.debug(
+                null,
+                " try to dispatchLocation : $it"
+            )
+            if (lastLocation != null) {
+                GlobalLogger.shared.info(null, "LastLocation is: $lastLocation")
+                GlobalLogger.shared.info(null, "NewLocation is: $it")
 
-            skip =
-                if (lastLocation!!.latitude != newLocation.latitude && lastLocation!!.longitude != newLocation.longitude) {
-                    GlobalLogger.shared.info(null, "New and Last locations are different")
-                    val distance = newLocation.distanceTo(lastLocation!!)
+                skip =
+                    if (lastLocation!!.latitude != it.latitude && lastLocation!!.longitude != newLocation.longitude) {
+                        GlobalLogger.shared.info(null, "New and Last locations are different")
+                        val distance = it.distanceTo(lastLocation!!)
 
-                    GlobalLogger.shared.info(null, "Distance is: $distance")
-                    val time = newLocation.time - lastLocation!!.time
-                    val timeInSeconds = time / 1000
-                    GlobalLogger.shared.info(null, "Time is: $timeInSeconds")
+                        GlobalLogger.shared.info(null, "Distance is: $distance")
+                        val time = it.time - lastLocation!!.time
+                        val timeInSeconds = time / 1000
+                        GlobalLogger.shared.info(null, "Time is: $timeInSeconds")
 
-                    distance < 10 && newLocation.time - lastLocation!!.time < TimeHelper.FIVE_SECONDS_MS
-                } else {
-                    true
-                }
-        }
-
-        GlobalLogger.shared.info(null, "Value of skip: $skip")
-
-        if (!skip || skipCount > 5) {
-            skipCount = 0
-            for (locationListener in locationListeners) {
-                GlobalLogger.shared.info(null, "Dispatching location to: $locationListener")
-                locationListener.onLocationUpdate(newLocation)
+                        distance < 10 && it.time - lastLocation!!.time < TimeHelper.FIVE_SECONDS_MS
+                    } else {
+                        true
+                    }
             }
 
-            lastLocation = newLocation
-        } else {
-            skipCount += 1
+            GlobalLogger.shared.info(null, "Value of skip: $skip")
+
+            if (!skip || skipCount > 5) {
+                skipCount = 0
+                for (locationListener in locationListeners) {
+                    GlobalLogger.shared.info(null, "Dispatching location to: $locationListener")
+                    locationListener.onLocationUpdate(it)
+                }
+
+                lastLocation = it
+            } else {
+                skipCount += 1
+            }
+            GlobalLogger.shared.info(null, "End value of skip: $skip")
         }
-        GlobalLogger.shared.info(null, "End value of skip: $skip")
     }
 }

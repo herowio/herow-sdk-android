@@ -46,10 +46,10 @@ class LocationManager(
 
     init {
         locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                if (locationResult.locations.isNotEmpty()) {
-                    val lastLocation = locationResult.locations.last()
+            override fun onLocationResult(p0: LocationResult) {
+                p0 ?: return
+                if (p0.locations.isNotEmpty()) {
+                    val lastLocation = p0.locations.last()
                     LocationDispatcher.dispatchLocation(lastLocation)
                     updateMonitoring(lastLocation)
                 }

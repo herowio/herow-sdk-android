@@ -11,16 +11,20 @@ import io.herow.sdk.detection.location.LocationDispatcher
 class GeofencingReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        val geofencingEvent = GeofencingEvent.fromIntent(intent!!)
-        if (geofencingEvent != null) {
-            if (!geofencingEvent.hasError()) {
-                val location = geofencingEvent.triggeringLocation
-                if (location != null) {
-                    LocationDispatcher.dispatchLocation(location)
-                }
+        intent?.let {
+            val geofencingEvent = GeofencingEvent.fromIntent(intent)
+            treat(context,geofencingEvent)
+        }
+    }
+
+   private fun treat(context: Context?, event: GeofencingEvent?) {
+        event?.let {
+            if (!it.hasError()) {
+                val location = it.triggeringLocation
+                LocationDispatcher.dispatchLocation(location)
             } else {
                 val errorMessage: String =
-                    GeofenceStatusCodes.getStatusCodeString(geofencingEvent.errorCode)
+                    GeofenceStatusCodes.getStatusCodeString(it.errorCode)
                 GlobalLogger.shared.error(context, "Error message is: $errorMessage")
                 println(errorMessage)
             }
