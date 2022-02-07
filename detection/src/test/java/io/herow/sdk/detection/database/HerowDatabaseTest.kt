@@ -1,4 +1,4 @@
-package io.herow.sdk
+package io.herow.sdk.detection.database
 
 import android.content.Context
 import androidx.room.Room
@@ -14,7 +14,6 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo

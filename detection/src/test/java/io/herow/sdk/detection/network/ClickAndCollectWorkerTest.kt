@@ -7,7 +7,7 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import io.herow.sdk.common.helpers.DeviceHelper
 import io.herow.sdk.common.helpers.TimeHelper
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.livemoment.HerowInitializer
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
@@ -36,15 +36,15 @@ class ClickAndCollectWorkerTest : KoinTest, ICustomKoinTestComponent {
     private lateinit var worker: ClickAndCollectWorker
 
     private lateinit var clickAndCollectWorkerListener: ClickAndCollectWorkerListener
-    private lateinit var herowInitializer: io.herow.sdk.livemoment.HerowInitializer
+    private lateinit var herowInitializer: HerowInitializer
 
     @Before
     fun setUp() {
-        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
+        HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
 
-        herowInitializer = io.herow.sdk.livemoment.HerowInitializer.getInstance(context, true)
+        herowInitializer = HerowInitializer.getInstance(context, true)
         TimeHelper.testing = true
         DeviceHelper.testing = true
 

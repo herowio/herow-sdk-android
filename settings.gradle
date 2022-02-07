@@ -2,6 +2,3 @@ include ':common'
 include ':connection'
 include ':detection'
 rootProject.name = "Herow SDK"
-include ':livemoment'
-include ':livemoment'
-include ':livemoment'

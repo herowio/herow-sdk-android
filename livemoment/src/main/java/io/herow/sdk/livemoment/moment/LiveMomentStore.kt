@@ -7,9 +7,12 @@ import io.herow.sdk.livemoment.IPeriod
 import io.herow.sdk.livemoment.model.NodeDescription
 import io.herow.sdk.livemoment.model.enum.LivingTag
 import io.herow.sdk.livemoment.model.enum.NodeType
+import io.herow.sdk.livemoment.model.repository.PeriodRepository
 import io.herow.sdk.livemoment.quadtree.HerowQuadTreeLocation
 import io.herow.sdk.livemoment.quadtree.IQuadTreeLocation
 import io.herow.sdk.livemoment.quadtree.IQuadTreeNode
+import kotlinx.coroutines.CoroutineDispatcher
+import org.koin.java.KoinJavaComponent.inject
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -40,6 +43,9 @@ class LiveMomentStore : ILiveMomentStore, ICustomKoinComponent {
     private var periods = arrayListOf<IPeriod>()
     private var needGetPeriods = true
     private var onGeohashOnly = false
+
+    private val ioDispatcher: CoroutineDispatcher by inject()
+    private var periodRepository: PeriodRepository by inject()
 
     override fun onCacheReception() {
         currentNode = null
@@ -177,7 +183,6 @@ class LiveMomentStore : ILiveMomentStore, ICustomKoinComponent {
         } else {
             saveQuadTreesAndDispatch(currentNode)
         }
-
     }
 
     private fun save(force: Boolean, node: IQuadTreeNode?) {

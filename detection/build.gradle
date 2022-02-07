@@ -4,7 +4,6 @@ version = "${project.version}"
 
 dependencies {
     api project(':connection')
-    api project(':livemoment')
 
     //Mock server
     testImplementation "com.squareup.okhttp3:mockwebserver:$okhttp_version"

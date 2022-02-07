@@ -10,7 +10,7 @@ import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.database.HerowDatabase
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import kotlinx.coroutines.CoroutineDispatcher
@@ -47,7 +47,7 @@ class HerowInitializerTest : KoinTest, ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
+        HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
     }

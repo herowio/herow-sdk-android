@@ -9,7 +9,7 @@ import io.herow.sdk.connection.cache.model.Capping
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.database.HerowDatabase
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import kotlinx.coroutines.CoroutineDispatcher

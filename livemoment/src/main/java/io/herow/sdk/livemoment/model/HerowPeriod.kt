@@ -1,10 +1,12 @@
 package io.herow.sdk.livemoment.model
 
+import androidx.room.Entity
 import io.herow.sdk.livemoment.IPeriod
 import io.herow.sdk.livemoment.quadtree.IQuadTreeLocation
 import java.time.LocalDate
 import kotlin.collections.ArrayList
 
+@Entity
 class HerowPeriod(
     var otherLocations: ArrayList<IQuadTreeLocation>,
     var poiLocations: ArrayList<IQuadTreeLocation>,

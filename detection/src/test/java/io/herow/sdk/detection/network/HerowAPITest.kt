@@ -7,7 +7,7 @@ import com.google.common.base.Verify.verify
 import io.herow.sdk.common.helpers.Constants
 import io.herow.sdk.connection.HerowPlatform
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.livemoment.HerowInitializer
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
 import org.junit.After
@@ -27,16 +27,16 @@ import java.util.*
 class HerowAPITest: KoinTest, ICustomKoinTestComponent {
     private val sessionHolder: SessionHolder by inject()
 
-    private lateinit var herowInitializer: io.herow.sdk.livemoment.HerowInitializer
+    private lateinit var herowInitializer: HerowInitializer
     private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Before
     fun setUp() {
-        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
+        HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
 
-        herowInitializer = io.herow.sdk.livemoment.HerowInitializer.getInstance(context, true)
+        herowInitializer = HerowInitializer.getInstance(context, true)
 
         sessionHolder.saveOptinValue(true)
         sessionHolder.saveSDKID("test")

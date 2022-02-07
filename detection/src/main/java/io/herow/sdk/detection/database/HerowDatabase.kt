@@ -1,4 +1,4 @@
-package io.herow.sdk.connection.database
+package io.herow.sdk.detection.database
 
 import android.content.Context
 import androidx.room.Database
@@ -12,10 +12,11 @@ import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.Poi
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.utils.Converters
+import io.herow.sdk.detection.livemoment.model.dao.IPeriodDAO
 
 @Database(
     entities = [Campaign::class, Poi::class, Zone::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -24,6 +25,7 @@ abstract class HerowDatabase : RoomDatabase() {
     abstract fun campaignDAO(): CampaignDAO
     abstract fun zoneDAO(): ZoneDAO
     abstract fun poiDAO(): PoiDAO
+    abstract fun periodDAO(): IPeriodDAO
 
     companion object {
         @Volatile

@@ -7,7 +7,7 @@ import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.cache.model.Campaign
 import io.herow.sdk.connection.cache.model.HerowCapping
-import io.herow.sdk.livemoment.HerowInitializer
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.MockDataInDatabase
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 @ExperimentalCoroutinesApi
 @Config(sdk = [28])
 @RunWith(RobolectricTestRunner::class)
-class CappingFilterTest: KoinTest, ICustomKoinTestComponent {
+class CappingFilterTest : KoinTest, ICustomKoinTestComponent {
 
     private val ioDispatcher: CoroutineDispatcher by inject()
     private var context: Context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -36,7 +36,7 @@ class CappingFilterTest: KoinTest, ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
+        HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
         sessionHolder.reset()
     }

@@ -9,7 +9,9 @@ import io.herow.sdk.connection.cache.dao.ZoneDAO
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.database.HerowDatabase
+import io.herow.sdk.detection.livemoment.model.dao.IPeriodDAO
+import io.herow.sdk.detection.livemoment.model.repository.PeriodRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.koin.dsl.module
@@ -19,7 +21,7 @@ val dispatcherModule = module {
 }
 
 val sessionModule = module {
-    single { provideDataHolder(get())}
+    single { provideDataHolder(get()) }
     single { provideSessionHolder(get()) }
 }
 
@@ -28,9 +30,11 @@ val databaseModule = module {
     single { provideZoneDAO(get()) }
     single { providePoiDAO(get()) }
     single { provideCampaignDAO(get()) }
+    single { providePeriodDAO(get()) }
     single { provideZoneRepository(get()) }
     single { providePoiRepository(get()) }
     single { provideCampaignRepository(get()) }
+    single { providePeriodRepository(get()) }
 }
 
 val databaseModuleTest = module {
@@ -60,6 +64,8 @@ private fun providePoiDAO(herowDatabase: HerowDatabase): PoiDAO = herowDatabase.
 private fun provideCampaignDAO(herowDatabase: HerowDatabase): CampaignDAO =
     herowDatabase.campaignDAO()
 
+private fun providePeriodDAO(herowDatabase: HerowDatabase): IPeriodDAO = herowDatabase.periodDAO()
+
 private fun provideZoneRepository(herowDatabase: HerowDatabase): ZoneRepository =
     ZoneRepository(provideZoneDAO(herowDatabase))
 
@@ -72,3 +78,7 @@ private fun provideCampaignRepository(herowDatabase: HerowDatabase): CampaignRep
         provideCampaignDAO(herowDatabase)
     )
 
+private fun providePeriodRepository(herowDatabase: HerowDatabase): PeriodRepository =
+    PeriodRepository(
+        providePeriodDAO(herowDatabase)
+    )

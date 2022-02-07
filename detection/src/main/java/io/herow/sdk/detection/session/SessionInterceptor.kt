@@ -4,7 +4,6 @@ import androidx.annotation.Keep
 import io.herow.sdk.common.DataHolder
 import io.herow.sdk.connection.HerowHeaders
 import io.herow.sdk.connection.SessionHolder
-import io.herow.sdk.detection.BuildConfig
 import io.herow.sdk.detection.koin.ICustomKoinComponent
 import okhttp3.Interceptor
 import okhttp3.Response

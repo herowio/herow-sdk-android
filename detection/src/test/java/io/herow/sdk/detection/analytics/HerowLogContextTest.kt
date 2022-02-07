@@ -8,7 +8,7 @@ import io.herow.sdk.common.json.GsonProvider
 import io.herow.sdk.connection.SessionHolder
 import io.herow.sdk.connection.logs.Log
 import io.herow.sdk.connection.logs.Logs
-import io.herow.sdk.livemoment.HerowInitializer
+import io.herow.sdk.detection.HerowInitializer
 import io.herow.sdk.detection.analytics.model.HerowLogContext
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinTestComponent
@@ -28,7 +28,7 @@ class HerowLogContextTest: ICustomKoinTestComponent {
 
     @Before
     fun setUp() {
-        io.herow.sdk.livemoment.HerowInitializer.setStaticTesting(true)
+        HerowInitializer.setStaticTesting(true)
         HerowKoinTestContext.init(context)
 
         sessionHolder.reset()
@@ -40,6 +40,7 @@ class HerowLogContextTest: ICustomKoinTestComponent {
         location.latitude = 42.6
         location.longitude = 2.5
 
+        //TODO Complete logContext
         val herowLogContext = HerowLogContext("fg", location)
         herowLogContext.enrich(ApplicationData(ApplicationProvider.getApplicationContext()), sessionHolder)
         val listOfLogs = listOf(Log(herowLogContext))

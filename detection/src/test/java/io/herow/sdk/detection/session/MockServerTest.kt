@@ -7,7 +7,7 @@ import io.herow.sdk.connection.cache.model.CacheResult
 import io.herow.sdk.connection.cache.repository.CampaignRepository
 import io.herow.sdk.connection.cache.repository.PoiRepository
 import io.herow.sdk.connection.cache.repository.ZoneRepository
-import io.herow.sdk.connection.database.HerowDatabase
+import io.herow.sdk.detection.database.HerowDatabase
 import io.herow.sdk.detection.helpers.FakeAPI
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor

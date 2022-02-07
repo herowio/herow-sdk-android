@@ -20,7 +20,6 @@ import io.herow.sdk.connection.cache.ICacheListener
 import io.herow.sdk.connection.cache.model.Zone
 import io.herow.sdk.connection.cache.repository.ZoneRepository
 import io.herow.sdk.connection.config.ConfigDispatcher
-import io.herow.sdk.connection.database.HerowDatabase
 import io.herow.sdk.connection.token.SdkSession
 import io.herow.sdk.detection.analytics.LogsDispatcher
 import io.herow.sdk.detection.analytics.LogsManager
@@ -28,6 +27,7 @@ import io.herow.sdk.detection.cache.CacheManager
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectDispatcher
 import io.herow.sdk.detection.clickandcollect.ClickAndCollectWorker
 import io.herow.sdk.detection.clickandcollect.IClickAndCollectListener
+import io.herow.sdk.detection.database.HerowDatabase
 import io.herow.sdk.detection.geofencing.GeofenceDispatcher
 import io.herow.sdk.detection.geofencing.IGeofenceListener
 import io.herow.sdk.detection.helpers.PermissionLocationHelper
@@ -35,6 +35,10 @@ import io.herow.sdk.detection.helpers.WorkHelper
 import io.herow.sdk.detection.koin.HerowKoinContext
 import io.herow.sdk.detection.koin.HerowKoinTestContext
 import io.herow.sdk.detection.koin.ICustomKoinComponent
+import io.herow.sdk.detection.livemoment.moment.ILiveMomentStore
+import io.herow.sdk.detection.livemoment.moment.LiveMomentStore
+import io.herow.sdk.detection.livemoment.prediction.IPredictionStore
+import io.herow.sdk.detection.livemoment.prediction.PredictionStore
 import io.herow.sdk.detection.location.ILocationListener
 import io.herow.sdk.detection.location.LocationDispatcher
 import io.herow.sdk.detection.location.LocationManager
@@ -42,10 +46,6 @@ import io.herow.sdk.detection.network.AuthRequests
 import io.herow.sdk.detection.network.ConfigWorker
 import io.herow.sdk.detection.network.NetworkWorkerTags
 import io.herow.sdk.detection.notification.NotificationManager
-import io.herow.sdk.livemoment.moment.ILiveMomentStore
-import io.herow.sdk.livemoment.moment.LiveMomentStore
-import io.herow.sdk.livemoment.prediction.IPredictionStore
-import io.herow.sdk.livemoment.prediction.PredictionStore
 import kotlinx.coroutines.*
 import org.koin.android.BuildConfig
 import org.koin.core.component.inject
